@@ -12,8 +12,6 @@ namespace ze {
      * Quaternion Spline Class .
      * Now only cubic spline is supported.
      */
-
-
     class QuaternionSpline : public BSpline {
 
     public:
@@ -53,14 +51,8 @@ namespace ze {
         inline double* getControlPoint(unsigned int i){
             return mControlPointsParameter.at(i);
         }
-
-
-
-
     private:
-
         void initialNewControlPoint();
-
         std::vector<double*> mControlPointsParameter;
         std::map<double, Quaternion> mSampleValues;
         double mTimeInterval;

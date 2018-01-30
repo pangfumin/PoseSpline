@@ -34,9 +34,10 @@ add_library( PoseSpline
         src/pose-spline/QuaternionSplineUtility.cpp
         src/pose-spline/QuaternionSpline.cpp
         src/pose-spline/QuaternionLocalParameter.cpp
-        src/pose-spline/PoseLocalParameter.cpp
         src/pose-spline/QuaternionSplineSampleError.cpp
         src/pose-spline/OmegaExtrinsicTemperalError.cpp
+        src/pose-spline/PoseSpline.cpp
+        src/pose-spline/PoseLocalParameter.cpp
         src/pose-spline/csv_trajectory.cpp)
 
 
@@ -48,33 +49,6 @@ target_link_libraries(PoseSpline
 
 
 ## Test
-
-# Prepare "Catch" library for other executables
-# set(CATCH_INCLUDE_DIR include/ze/catch)
-# add_library(Catch INTERFACE)
-# target_include_directories(Catch INTERFACE ${CATCH_INCLUDE_DIR})
-
-# add_subdirectory(test)
-
-add_executable(QuaternionCeresTest test/QuaternionCeresTest.cpp)
-target_link_libraries(QuaternionCeresTest
-                   PoseSpline)
-
-
-add_executable(QuaternionSplineCeresTest test/QuaternionSplineCeresTest.cpp)
-target_link_libraries(QuaternionSplineCeresTest
-                   PoseSpline)
-
-
-add_executable(splineTest test/splineTest.cpp)
-target_link_libraries(splineTest
-                   PoseSpline)
-
-
-add_executable(UtilityTest test/UtilityTest.cpp)
-target_link_libraries(UtilityTest
-                   PoseSpline)
-
 
 # Prepare "Catch" library for other executables
 set(CATCH_INCLUDE_DIR include/utility/catch)

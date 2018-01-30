@@ -23,7 +23,6 @@ template<typename Functor,int ParamBlockSize>
 class NumbDifferentiiator{
 
 public:
-
     NumbDifferentiiator(Functor* ptrErrorFunctor):
             ptrErrorFunctor_(ptrErrorFunctor){
 
@@ -32,7 +31,6 @@ public:
         }
 
     };
-
 
     template <int ResidualDim,
               int ParamDim,
@@ -78,7 +76,6 @@ public:
         return true;
     };
 
-
     template <int ResidualDim,
               int ParamDim>
     bool df_r_xi(double** parameters,
@@ -116,7 +113,6 @@ public:
         return true;
     };
 
-
     template <int ResidualDim,
             int ParamDim>
     static bool isJacobianEqual(double* Jacobian_a,
@@ -148,11 +144,7 @@ public:
     }
 
 private:
-
     Functor* ptrErrorFunctor_;
-
-
-
 
     void applyDistribance(double** parameters,
                           double* parameter_i,
@@ -167,9 +159,6 @@ private:
         }
 
     }
-
-
-
 
 };
 

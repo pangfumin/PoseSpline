@@ -42,7 +42,6 @@ Quaternion QSUtility::EvaluateQS(double u,
     Quaternion r3 = r(beta3(u),Phi3);
 
     return quatLeftComp(Q0)*quatLeftComp(r1)*quatLeftComp(r2)*r3;
-
 }
 
 

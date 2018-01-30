@@ -42,7 +42,7 @@ namespace ze {
         Eigen::Vector3d evalOmega(real_t t);
         Eigen::Vector3d evalAlpha(real_t t);
 
-            Eigen::Vector3d evalNumRotOmega(real_t t);
+        Eigen::Vector3d evalNumRotOmega(real_t t);
 
         inline size_t getControlPointNum(){
             return mControlPointsParameter.size();

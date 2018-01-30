@@ -1,7 +1,7 @@
 
-#include "ze/catch/catch.hpp"
-#include "QuaternionSpline/Pose.hpp"
-#include "QuaternionSpline/PoseLocalParameter.hpp"
+#include "utility/catch/catch.hpp"
+#include "pose-spline/Pose.hpp"
+#include "pose-spline/PoseLocalParameter.hpp"
 
 // todo: test poselocalparameter
 
@@ -99,7 +99,6 @@ TEST_CASE( "Pose ", "[operations]"){
         //std::cout << jacobian_numDiff << std::endl;
         REQUIRE((jacobian - jacobian_numDiff).norm() < 1e-8);
         // also check lift Jacobian: dChi/dx*dx/dChi == 1
-        Eigen::Matrix<double, 6, 7, Eigen::RowMajor> lift_jacobian;
         T_AB.liftJacobian(lift_jacobian);
         REQUIRE(
                 (lift_jacobian * jacobian - Eigen::Matrix<double, 6, 6>::Identity())

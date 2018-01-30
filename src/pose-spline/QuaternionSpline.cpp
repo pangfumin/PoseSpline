@@ -33,7 +33,7 @@ namespace ze {
         return ts >= t_min() && ts < t_max();
 
     }
-    void QuaternionSpline::addSample(double t, Quaternion Q){
+    void QuaternionSpline:: addSample(double t, Quaternion Q){
 
         if(getControlPointNum() == 0){
             initialQuaternionSplineKnot(t);

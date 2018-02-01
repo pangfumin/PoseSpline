@@ -15,12 +15,12 @@ typedef  Eigen::Matrix3d Jacobian_Quat;
 
 class QSUtility{
 
-
 public:
 
     static Eigen::Vector3d Phi(const Quaternion & Q_k_1, const Quaternion &Q_k);
     static Quaternion r(double beta_t, Eigen::Vector3d Phi);
-    static std::pair<Jacobian_Quat,Jacobian_Quat>  Jcobian_Phi_Quat(Quaternion &q_k_1, Quaternion &q_k);
+    static std::pair<Jacobian_Quat,Jacobian_Quat>
+                    Jcobian_Phi_Quat(Quaternion &q_k_1, Quaternion &q_k);
 
 
     /*
@@ -87,8 +87,6 @@ public:
 
         return res;
     }
-
-
     /*
      * First order derivation of basis Cumulative functions
      * Here, we take dt into consideration.
@@ -136,16 +134,14 @@ public:
         return (1/(dt*dt))*uu.transpose()*C().col(3);
     }
 
-
-
-
-
 /*
  * We follow Pose estimation using linearized rotations and quaternion algebra.
- * The exp and log function is a little different from Hannes Sommer's Continuous-Time Estimation paper.
+ * The exp and log function is a little different from Hannes Sommer's
+ * Continuous-Time Estimation paper.
  * Thus, the dr_dt and d2r_dt2 are not equal to ones in this paper.
  */
-    static Quaternion dr_dt(double dot_beta, double beta,const Quaternion & Q_k_1, const Quaternion &Q_k){
+    static Quaternion dr_dt(double dot_beta, double beta,
+                            const Quaternion & Q_k_1, const Quaternion &Q_k){
 
         Eigen::Vector4d phi_ext;
         Eigen::Vector3d phi = Phi(Q_k_1,Q_k);
@@ -164,27 +160,29 @@ public:
     }
 
 
-    static Quaternion d2r_dt2(double dot_dot_beta, double dot_beta, double beta, const Quaternion & Q_k_1, const Quaternion &Q_k){
+    static Quaternion d2r_dt2(double dot_dot_beta, double dot_beta, double beta,
+                              const Quaternion & Q_k_1, const Quaternion &Q_k){
 
         Eigen::Vector4d phi_ext;
         Eigen::Vector3d phi = Phi(Q_k_1,Q_k);
 
         phi_ext << phi,0.0;
 
-        return 0.5*quatLeftComp<double>((0.5*dot_beta*dot_beta*phi_ext + dot_dot_beta*unitQuat<double>()))*quatLeftComp(phi_ext)*r(beta,phi);
+        return 0.5*quatLeftComp<double>(
+                (0.5*dot_beta*dot_beta*phi_ext + dot_dot_beta*unitQuat<double>()))
+               *quatLeftComp(phi_ext)*r(beta,phi);
     }
 
-    static Quaternion d2r_dt2(double dot_dot_beta, double dot_beta, double beta, const Eigen::Vector3d& phi){
+    static Quaternion d2r_dt2(double dot_dot_beta, double dot_beta, double beta,
+                              const Eigen::Vector3d& phi){
 
         Eigen::Vector4d phi_ext;
         phi_ext << phi,0.0;
 
-        return 0.5*quatLeftComp<double>((0.5*dot_beta*dot_beta*phi_ext + dot_dot_beta*unitQuat<double>()))*quatLeftComp(phi_ext)*r(beta,phi);
+        return 0.5*quatLeftComp<double>(
+                (0.5*dot_beta*dot_beta*phi_ext + dot_dot_beta*unitQuat<double>()))
+               *quatLeftComp(phi_ext)*r(beta,phi);
     }
-
-
-
-
 
     static Quaternion EvaluateQS(double u,
                                  const Quaternion& Q0,
@@ -207,8 +205,6 @@ public:
                                       const Quaternion& Q2,
                                       const Quaternion& Q3);
 
-
-
     static Eigen::Matrix<double,4,3> V();
     static Eigen::Matrix<double,3,4> W();
     static Eigen::Vector3d w(Quaternion Q_ba, Quaternion dot_Q_ba);
@@ -226,12 +222,7 @@ public:
     static Eigen::Matrix3d Jacobian_omega_extrinsicQ(const Quaternion& Q,
                                              const Quaternion& dQ,
                                              const Quaternion& extrinsicQ);
-
-
     static Eigen::Matrix<double,4,3> Jac_Exp(Eigen::Vector3d phi);
-
-
-
 
 };
 

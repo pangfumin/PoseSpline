@@ -153,7 +153,8 @@ Eigen::Matrix<T,3,3> quatL(Eigen::Matrix<T,4,1> &q){
         Eigen::Matrix<T,3,3> squareA= crossMat(a)*crossMat(a);
 
 
-        Jac_log = I + T(0.5)*crossMat<T>(phi) + (T(1) - nphi/(T(2)*tan(T(0.5)*nphi)))*squareA;
+        Jac_log = I + T(0.5)*crossMat<T>(phi)
+                  + (T(1) - nphi/(T(2)*tan(T(0.5)*nphi)))*squareA;
 
         return Jac_log;
 
@@ -172,7 +173,8 @@ Eigen::Matrix<T,3,3> quatS(Eigen::Matrix<T,3,1> &phi){
         Eigen::Matrix<T,3,1> a = phi/nphi;
         T squareSin = sin(T(0.5)*nphi)*sin((0.5)*nphi);
         Eigen::Matrix<T,3,3> squareA= crossMat(a)*crossMat(a);
-        Jac_exp = I - T(2.0)/nphi*squareSin*crossMat(a) + (T(1) - T(1.0)/(nphi)*sin(nphi))*squareA;
+        Jac_exp = I - T(2.0)/nphi*squareSin*crossMat(a)
+                  + (T(1) - T(1.0)/(nphi)*sin(nphi))*squareA;
         return Jac_exp;
 
     }
@@ -215,13 +217,16 @@ Eigen::Matrix<T,4,1> deltaQuat( Eigen::Matrix<T,3,1> &deltaTheta )
 
 
 template<typename T>
-Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> null(const Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>& A)
+Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>
+null(const Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>& A)
 {
     int r = 0;
-    Eigen::JacobiSVD<Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>> svd(A.transpose(), Eigen::ComputeFullV);
+    Eigen::JacobiSVD<Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>>
+            svd(A.transpose(), Eigen::ComputeFullV);
 
     /* Get the V matrix */
-    Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> V((int)svd.matrixV().rows(), (int)svd.matrixV().cols());
+    Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>
+            V((int)svd.matrixV().rows(), (int)svd.matrixV().cols());
     V = svd.matrixV();
     Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> S = svd.singularValues();
 
@@ -233,7 +238,8 @@ Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> null(const Eigen::Matrix<T,Eigen:
             r++;
         }
     }
-    Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic> Z = V.block(0, r, V.rows(), V.cols()-r);
+    Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic>
+            Z = V.block(0, r, V.rows(), V.cols()-r);
     return Z;
 }
 

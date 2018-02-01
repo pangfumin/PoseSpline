@@ -2,7 +2,9 @@
 #include "pose-spline/QuaternionSplineUtility.hpp"
 
 
-QuaternionSplineSampleError::QuaternionSplineSampleError(double t_meas, Quaternion Q_meas):t_meas_(t_meas),Q_Meas_(Q_meas){
+QuaternionSplineSampleError::QuaternionSplineSampleError(double t_meas,
+                                                         Quaternion Q_meas):
+        t_meas_(t_meas),Q_Meas_(Q_meas){
 
 };
 

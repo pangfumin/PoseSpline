@@ -99,7 +99,7 @@ namespace ze {
 
             problem.AddResidualBlock(vectorSplineSampleError, NULL, cp0, cp1, cp2, cp3);
 
-        }git 
+        }
         //std::cout<<"ParameterNum: "<<problem.NumParameterBlocks()<<std::endl;
         //std::cout<<"ResidualNUM: "<<problem.NumResiduals()<<std::endl;
 

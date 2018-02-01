@@ -147,9 +147,9 @@ Eigen::Matrix<double,4,3> QSUtility::V(){
 
 Eigen::Matrix<double,3,4> QSUtility::W(){
     Eigen::Matrix<double,3,4> M;
-    M<< 1.0,   0,   0, 0,
-            0, 1.0,   0, 0,
-            0,   0, 1.0, 0;
+    M<< 2.0,   0,   0, 0,
+            0, 2.0,   0, 0,
+            0,   0, 2.0, 0;
 
     return M;
 };

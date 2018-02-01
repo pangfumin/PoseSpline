@@ -48,26 +48,9 @@ bool QuaternionSplineSampleError::EvaluateWithMinimalJacobians(double const* con
     Eigen::Vector3d phi2 = QSUtility::Phi(Q1,Q2);
     Eigen::Vector3d phi3 = QSUtility::Phi(Q2,Q3);
 
-/*
-    std::cout<<"Phi: "<<std::endl;
-
-    std::cout<<phi1.transpose()<<std::endl;
-    std::cout<<phi2.transpose()<<std::endl;
-    std::cout<<phi3.transpose()<<std::endl;
-*/
-
     Quaternion r_1 = QSUtility::r(Beta1,phi1);
     Quaternion r_2 = QSUtility::r(Beta2,phi2);
     Quaternion r_3 = QSUtility::r(Beta3,phi3);
-
-/*
-    std::cout<<"r: "<<std::endl;
-
-    std::cout<<r_1.transpose()<<std::endl;
-    std::cout<<r_2.transpose()<<std::endl;
-    std::cout<<r_3.transpose()<<std::endl;
-*/
-
 
     // define residual
     // For simplity, we define error  =  /hat - meas.
@@ -75,10 +58,6 @@ bool QuaternionSplineSampleError::EvaluateWithMinimalJacobians(double const* con
     Quaternion Q_hat = quatLeftComp<double>(Q0)*quatLeftComp(r_1)*quatLeftComp(r_2)*r_3;
     Quaternion dQ = quatLeftComp(Q_hat)*quatInv(Q_Meas_);
     error = 2.0 * dQ.head<3>();
-
-    //std::cout<<"Evalued: "<<Q_hat.transpose()<<std::endl;
-    //std::cout<<"Residual: "<<error.transpose()<<std::endl;
-
 
     if(jacobians != NULL){
 

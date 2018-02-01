@@ -1,6 +1,7 @@
 #include "pose-spline/VectorSpaceSpline.hpp"
 #include "pose-spline/QuaternionSplineUtility.hpp"
 #include "pose-spline/QuaternionSplineSampleError.hpp"
+#include "pose-spline/VectorSplineSampleError.hpp"
 #include "utility/Time.hpp"
 #include <algorithm>
 
@@ -63,11 +64,10 @@ namespace ze {
     }
 
     void VectorSpaceSpline::initialSpline(std::vector<std::pair<double,Eigen::Vector3d>> Meas){
-        /*
+
         // Build a  least-square problem
         ceres::Problem problem;
-        QuaternionLocalParameter* quaternionLocalParam = new QuaternionLocalParameter;
-        //std::cout<<"Meas NUM: "<<Meas.size()<<std::endl;
+
         for(auto i : Meas){
             //std::cout<<"-----------------------------------"<<std::endl;
             // add sample
@@ -84,18 +84,20 @@ namespace ze {
             double* cp2 = getControlPoint(bidx+2);
             double* cp3 = getControlPoint(bidx+3);
 
-            QuaternionMap CpMap0(cp0);
-            QuaternionMap CpMap1(cp1);
-            QuaternionMap CpMap2(cp2);
-            QuaternionMap CpMap3(cp3);
-            QuaternionSplineSampleError* quatSampleFunctor = new QuaternionSplineSampleError(u,i.second);
+            Eigen::Map<Eigen::Matrix<double,3,1>> CpMap0(cp0);
+            Eigen::Map<Eigen::Matrix<double,3,1>> CpMap1(cp1);
+            Eigen::Map<Eigen::Matrix<double,3,1>> CpMap2(cp2);
+            Eigen::Map<Eigen::Matrix<double,3,1>> CpMap3(cp3);
 
-            problem.AddParameterBlock(cp0,4,quaternionLocalParam);
-            problem.AddParameterBlock(cp1,4,quaternionLocalParam);
-            problem.AddParameterBlock(cp2,4,quaternionLocalParam);
-            problem.AddParameterBlock(cp3,4,quaternionLocalParam);
+            VectorSplineSampleError* vectorSplineSampleError
+                    = new VectorSplineSampleError(u,i.second);
 
-            problem.AddResidualBlock(quatSampleFunctor, NULL, cp0, cp1, cp2, cp3);
+            problem.AddParameterBlock(cp0,3);
+            problem.AddParameterBlock(cp1,3);
+            problem.AddParameterBlock(cp2,3);
+            problem.AddParameterBlock(cp3,3);
+
+            problem.AddResidualBlock(vectorSplineSampleError, NULL, cp0, cp1, cp2, cp3);
 
         }
         //std::cout<<"ParameterNum: "<<problem.NumParameterBlocks()<<std::endl;
@@ -115,7 +117,7 @@ namespace ze {
         ceres::Solver::Summary summary;
         ceres::Solve(options, &problem, &summary);
         std::cout << summary.FullReport() << std::endl;
-         */
+
 
     }
 

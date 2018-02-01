@@ -141,8 +141,6 @@ int main(int argc, char** argv){
     problem.AddResidualBlock(vectorSplineSampleError4, loss_function, Cp0.data(),Cp1.data(),Cp2.data(),Cp3.data());
     problem.AddResidualBlock(vectorSplineSampleError5, loss_function, Cp0.data(),Cp1.data(),Cp2.data(),Cp3.data());
 
-
-
     ceres::Solver::Options options;
 
     options.linear_solver_type = ceres::DENSE_SCHUR;
@@ -162,18 +160,15 @@ int main(int argc, char** argv){
     std::cout<<"CP2_init: "<<Cp2_init.transpose()<<std::endl<<"After opt: "<<Cp2.transpose()<<std::endl;
     std::cout<<"CP3_init: "<<Cp3_init.transpose()<<std::endl<<"After opt: "<<Cp3.transpose()<<std::endl;
 
-
     Eigen::Vector3d Vhat0 = ze::VectorSpaceSpline::evaluateSpline(u,Cp0,Cp1,Cp2,Cp3);
     Eigen::Vector3d Vhat1 = ze::VectorSpaceSpline::evaluateSpline(u1,Cp0,Cp1,Cp2,Cp3);
     Eigen::Vector3d Vhat2 = ze::VectorSpaceSpline::evaluateSpline(u2,Cp0,Cp1,Cp2,Cp3);
     Eigen::Vector3d Vhat3 = ze::VectorSpaceSpline::evaluateSpline(u3,Cp0,Cp1,Cp2,Cp3);
 
-
     std::cout<<"Vmeas0: "<<V_meas.transpose()<<std::endl<<"Vhat0: "<<Vhat0.transpose()<<std::endl;
     std::cout<<"Vmeas1: "<<V_meas1.transpose()<<std::endl<<"Vhat1: "<<Vhat1.transpose()<<std::endl;
     std::cout<<"Vmeas2: "<<V_meas2.transpose()<<std::endl<<"Vhat2: "<<Vhat2.transpose()<<std::endl;
     std::cout<<"Vmeas3: "<<V_meas3.transpose()<<std::endl<<"Vhat3: "<<Vhat3.transpose()<<std::endl;
-
 
     return 0;
 }

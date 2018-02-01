@@ -152,6 +152,17 @@ namespace ze {
 
         }
     }
+    Eigen::Vector3d VectorSpaceSpline::evaluateSpline(const real_t t){
+        std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
+        double u = ui.first;
+        unsigned int bidx = ui.second - spline_order_ + 1;
+
+        return evaluateSpline(u,
+                              Eigen::Map<Eigen::Matrix<double,3,1>>(getControlPoint(bidx)),
+                              Eigen::Map<Eigen::Matrix<double,3,1>>(getControlPoint(bidx+1)),
+                              Eigen::Map<Eigen::Matrix<double,3,1>>(getControlPoint(bidx+2)),
+                              Eigen::Map<Eigen::Matrix<double,3,1>>(getControlPoint(bidx+3)));
+    }
 
     Eigen::Vector3d VectorSpaceSpline::evaluateSpline(const real_t t,
                                    const Eigen::Vector3d& v0,
@@ -165,6 +176,20 @@ namespace ze {
         Eigen::Vector3d V = v0 + Beta1*(v1 - v0) +  Beta2*(v2 - v1) + Beta3*(v3 - v2);
         return V;
 
+    }
+
+    Eigen::Vector3d VectorSpaceSpline::evaluateDotSpline(const real_t t,
+                                                         const double timeInterval,
+                                             const Eigen::Vector3d& v0,
+                                             const Eigen::Vector3d& v1,
+                                             const Eigen::Vector3d& v2,
+                                             const Eigen::Vector3d& v3) {
+
+        double  dotBeta1 = QSUtility::dot_beta1(timeInterval, t);
+        double  dotBeta2 = QSUtility::dot_beta2(timeInterval, t);
+        double  dotBeta3 = QSUtility::dot_beta3(timeInterval, t);
+        Eigen::Vector3d dotV =  dotBeta1*(v1 - v0) +  dotBeta2*(v2 - v1) + dotBeta3*(v3 - v2);
+        return dotV;
     }
 
     void VectorSpaceSpline::initialNewControlPoint(){

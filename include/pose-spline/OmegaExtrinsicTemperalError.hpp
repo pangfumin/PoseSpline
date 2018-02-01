@@ -30,8 +30,6 @@ private:
     Quaternion Q_cw_;
     Quaternion dotQ_cw_;
     Quaternion dotdotQ_cw_;
-
-
 };
 
 #endif

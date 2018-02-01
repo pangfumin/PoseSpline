@@ -39,6 +39,7 @@ add_library( PoseSpline
         src/pose-spline/PoseSpline.cpp
         src/pose-spline/PoseLocalParameter.cpp
         src/pose-spline/VectorSpaceSpline.cpp
+        src/pose-spline/VectorSplineSampleError.cpp
         src/pose-spline/csv_trajectory.cpp)
 
 

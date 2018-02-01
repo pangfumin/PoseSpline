@@ -44,7 +44,6 @@ Quaternion QSUtility::EvaluateQS(double u,
     return quatLeftComp(Q0)*quatLeftComp(r1)*quatLeftComp(r2)*r3;
 }
 
-
 Quaternion QSUtility::Evaluate_dot_QS(double dt,
                           double u,
                           const Quaternion& Q0,
@@ -56,7 +55,6 @@ Quaternion QSUtility::Evaluate_dot_QS(double dt,
     Eigen::Vector3d Phi2 = Phi(Q1,Q2);
     Eigen::Vector3d Phi3 = Phi(Q2,Q3);
 
-
     double b1 = beta1(u);
     double b2 = beta2(u);
     double b3 = beta3(u);
@@ -64,7 +62,6 @@ Quaternion QSUtility::Evaluate_dot_QS(double dt,
     double dot_b1 = dot_beta1(dt,u);
     double dot_b2 = dot_beta2(dt,u);
     double dot_b3 = dot_beta3(dt,u);
-
 
     Quaternion r1 = r(b1,Phi1);
     Quaternion r2 = r(b2,Phi2);
@@ -78,10 +75,7 @@ Quaternion QSUtility::Evaluate_dot_QS(double dt,
     dot_q = quatLeftComp(Q0)*(part1 + part2 + part3);
 
     return dot_q;
-
 }
-
-
 
 Quaternion QSUtility::Evaluate_dot_dot_QS(double dt,
                                       double u,
@@ -89,11 +83,9 @@ Quaternion QSUtility::Evaluate_dot_dot_QS(double dt,
                                       const Quaternion& Q1,
                                       const Quaternion& Q2,
                                       const Quaternion& Q3){
-
     Eigen::Vector3d Phi1 = Phi(Q0,Q1);
     Eigen::Vector3d Phi2 = Phi(Q1,Q2);
     Eigen::Vector3d Phi3 = Phi(Q2,Q3);
-
 
     double b1 = beta1(u);
     double b2 = beta2(u);
@@ -115,8 +107,6 @@ Quaternion QSUtility::Evaluate_dot_dot_QS(double dt,
     Quaternion dr2 = dr_dt(dot_b2,b2,Phi2);
     Quaternion dr3 = dr_dt(dot_b3,b3,Phi3);
 
-
-
     Quaternion r1 = r(b1,Phi1);
     Quaternion r2 = r(b2,Phi2);
     Quaternion r3 = r(b3,Phi3);
@@ -134,13 +124,11 @@ Quaternion QSUtility::Evaluate_dot_dot_QS(double dt,
     part32 = quatLeftComp(r1)*quatLeftComp(dr2)*dr3;
     part33 = quatLeftComp(r1)*quatLeftComp(r2)*ddr3;
 
-
     dot_dot_q = quatLeftComp(Q0)*(part11 + part12 + part13
                                     + part21 + part22 + part23
                                     + part31 + part32 + part33);
 
     return dot_dot_q;
-
 }
 
 
@@ -148,7 +136,6 @@ Quaternion QSUtility::Evaluate_dot_dot_QS(double dt,
  *
  */
 Eigen::Matrix<double,4,3> QSUtility::V(){
-
     Eigen::Matrix<double,4,3> M;
     M<< 0.5,   0,   0,
           0, 0.5,   0,
@@ -159,7 +146,6 @@ Eigen::Matrix<double,4,3> QSUtility::V(){
 
 
 Eigen::Matrix<double,3,4> QSUtility::W(){
-
     Eigen::Matrix<double,3,4> M;
     M<< 1.0,   0,   0, 0,
             0, 1.0,   0, 0,
@@ -219,7 +205,6 @@ Eigen::Vector3d QSUtility::Jacobian_omega_t(const Quaternion& Q,
 Eigen::Matrix3d QSUtility::Jacobian_omega_extrinsicQ(const Quaternion& Q,
                                                      const Quaternion& dQ,
                                                      const Quaternion& extrinsicQ){
-
     Quaternion invQ, A, invExtQ;
     invQ = quatInv(Q);
     A = quatLeftComp(dQ)*invQ;
@@ -228,7 +213,6 @@ Eigen::Matrix3d QSUtility::Jacobian_omega_extrinsicQ(const Quaternion& Q,
     J = quatLeftComp(invExtQ)*quatLeftComp(A)*quatRightComp(extrinsicQ)
             - quatLeftComp(invExtQ)*quatRightComp<double>(quatLeftComp(A)*extrinsicQ);
     return J.topLeftCorner(3,3);
-
 }
 
 Eigen::Matrix<double,4,3> QSUtility::Jac_Exp(Eigen::Vector3d phi){

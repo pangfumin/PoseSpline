@@ -53,6 +53,7 @@ public:
     /*
      * bspline basis Cumulative functions
      */
+    // todo: need move to base class
     static double beta0(double u){
         return 1.0;
     }
@@ -93,20 +94,20 @@ public:
      */
 
     //TODO: simplify
-    static double dot_beta1(double dt, double u){
+    static double dot_beta1(const double dt, const double u){
 
         Eigen::Vector4d uu(0.0, 1, 2*u ,3*u*u);
         return (1/dt)*uu.transpose()*C().col(1);
     }
 
-    static double dot_beta2(double dt, double u){
+    static double dot_beta2(const double dt, const double u){
 
         Eigen::Vector4d uu(0.0, 1, 2*u ,3*u*u);
         return (1/dt)*uu.transpose()*C().col(2);
     }
 
 
-    static double dot_beta3(double dt, double u){
+    static double dot_beta3(const double dt, const double u){
 
         Eigen::Vector4d uu(0.0, 1, 2*u ,3*u*u);
         return (1/dt)*uu.transpose()*C().col(3);

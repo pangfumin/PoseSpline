@@ -1,6 +1,7 @@
 #include "pose-spline/VectorSpaceSpline.hpp"
 #include "pose-spline/QuaternionSplineUtility.hpp"
 #include "pose-spline/QuaternionSplineSampleError.hpp"
+#include "pose-spline/VectorSplineSampleError.hpp"
 #include "utility/Time.hpp"
 #include <algorithm>
 
@@ -63,11 +64,10 @@ namespace ze {
     }
 
     void VectorSpaceSpline::initialSpline(std::vector<std::pair<double,Eigen::Vector3d>> Meas){
-        /*
+
         // Build a  least-square problem
         ceres::Problem problem;
-        QuaternionLocalParameter* quaternionLocalParam = new QuaternionLocalParameter;
-        //std::cout<<"Meas NUM: "<<Meas.size()<<std::endl;
+
         for(auto i : Meas){
             //std::cout<<"-----------------------------------"<<std::endl;
             // add sample
@@ -84,18 +84,20 @@ namespace ze {
             double* cp2 = getControlPoint(bidx+2);
             double* cp3 = getControlPoint(bidx+3);
 
-            QuaternionMap CpMap0(cp0);
-            QuaternionMap CpMap1(cp1);
-            QuaternionMap CpMap2(cp2);
-            QuaternionMap CpMap3(cp3);
-            QuaternionSplineSampleError* quatSampleFunctor = new QuaternionSplineSampleError(u,i.second);
+            Eigen::Map<Eigen::Matrix<double,3,1>> CpMap0(cp0);
+            Eigen::Map<Eigen::Matrix<double,3,1>> CpMap1(cp1);
+            Eigen::Map<Eigen::Matrix<double,3,1>> CpMap2(cp2);
+            Eigen::Map<Eigen::Matrix<double,3,1>> CpMap3(cp3);
 
-            problem.AddParameterBlock(cp0,4,quaternionLocalParam);
-            problem.AddParameterBlock(cp1,4,quaternionLocalParam);
-            problem.AddParameterBlock(cp2,4,quaternionLocalParam);
-            problem.AddParameterBlock(cp3,4,quaternionLocalParam);
+            VectorSplineSampleError* vectorSplineSampleError
+                    = new VectorSplineSampleError(u,i.second);
 
-            problem.AddResidualBlock(quatSampleFunctor, NULL, cp0, cp1, cp2, cp3);
+            problem.AddParameterBlock(cp0,3);
+            problem.AddParameterBlock(cp1,3);
+            problem.AddParameterBlock(cp2,3);
+            problem.AddParameterBlock(cp3,3);
+
+            problem.AddResidualBlock(vectorSplineSampleError, NULL, cp0, cp1, cp2, cp3);
 
         }git 
         //std::cout<<"ParameterNum: "<<problem.NumParameterBlocks()<<std::endl;
@@ -115,7 +117,7 @@ namespace ze {
         ceres::Solver::Summary summary;
         ceres::Solve(options, &problem, &summary);
         std::cout << summary.FullReport() << std::endl;
-         */
+
 
     }
 
@@ -152,6 +154,46 @@ namespace ze {
 
         }
     }
+    Eigen::Vector3d VectorSpaceSpline::evaluateSpline(const real_t t){
+        std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
+        double u = ui.first;
+        unsigned int bidx = ui.second - spline_order_ + 1;
+
+        return evaluateSpline(u,
+                              Eigen::Map<Eigen::Matrix<double,3,1>>(getControlPoint(bidx)),
+                              Eigen::Map<Eigen::Matrix<double,3,1>>(getControlPoint(bidx+1)),
+                              Eigen::Map<Eigen::Matrix<double,3,1>>(getControlPoint(bidx+2)),
+                              Eigen::Map<Eigen::Matrix<double,3,1>>(getControlPoint(bidx+3)));
+    }
+
+    Eigen::Vector3d VectorSpaceSpline::evaluateSpline(const real_t t,
+                                   const Eigen::Vector3d& v0,
+                                   const Eigen::Vector3d& v1,
+                                   const Eigen::Vector3d& v2,
+                                   const Eigen::Vector3d& v3){
+
+        double  Beta1 = QSUtility::beta1(t);
+        double  Beta2 = QSUtility::beta2(t);
+        double  Beta3 = QSUtility::beta3(t);
+        Eigen::Vector3d V = v0 + Beta1*(v1 - v0) +  Beta2*(v2 - v1) + Beta3*(v3 - v2);
+        return V;
+
+    }
+
+    Eigen::Vector3d VectorSpaceSpline::evaluateDotSpline(const real_t t,
+                                                         const double timeInterval,
+                                             const Eigen::Vector3d& v0,
+                                             const Eigen::Vector3d& v1,
+                                             const Eigen::Vector3d& v2,
+                                             const Eigen::Vector3d& v3) {
+
+        double  dotBeta1 = QSUtility::dot_beta1(timeInterval, t);
+        double  dotBeta2 = QSUtility::dot_beta2(timeInterval, t);
+        double  dotBeta3 = QSUtility::dot_beta3(timeInterval, t);
+        Eigen::Vector3d dotV =  dotBeta1*(v1 - v0) +  dotBeta2*(v2 - v1) + dotBeta3*(v3 - v2);
+        return dotV;
+    }
+
     void VectorSpaceSpline::initialNewControlPoint(){
         Eigen::Vector3d vec = (Eigen::Vector3d::Zero());
         double* data = new double[3];

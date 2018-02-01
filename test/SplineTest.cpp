@@ -21,8 +21,8 @@ int main(int argc, char** argv){
     //google::InitGoogleLogging(argv[0]);
 
     ze::EurocResultSeries eurocDataReader;
-    eurocDataReader.load("/home/pang/dataset/EuRoC/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv");
-    eurocDataReader.loadIMU("/home/pang/dataset/EuRoC/MH_01_easy/mav0/imu0/data.csv");
+    eurocDataReader.load("/media/pang/Plus/dataset/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv");
+    eurocDataReader.loadIMU("/media/pang/Plus/dataset/MH_01_easy/mav0/imu0/data.csv");
 
     ze::TupleVector  data = eurocDataReader.getVector();
     Buffer<real_t, 7>& poseBuffer = eurocDataReader.getBuffer();

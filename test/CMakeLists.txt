@@ -10,11 +10,19 @@ add_executable(QuaternionSplineCeresTest QuaternionSplineCeresTest.cpp)
 target_link_libraries(QuaternionSplineCeresTest
         PoseSpline)
 
+add_executable(VectorSplineCeresTest VectorSplineCeresTest.cpp)
+target_link_libraries(VectorSplineCeresTest
+        PoseSpline)
+
 
 add_executable(SplineTest SplineTest.cpp)
 target_link_libraries(SplineTest
         PoseSpline)
 
+
+add_executable(VectorSpaceSplineTest VectorSpaceSplineTest.cpp)
+target_link_libraries(VectorSpaceSplineTest
+        PoseSpline)
 
 add_executable(UtilityTest UtilityTest.cpp)
 target_link_libraries(UtilityTest

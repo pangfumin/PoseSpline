@@ -53,6 +53,7 @@ public:
     /*
      * bspline basis Cumulative functions
      */
+    // todo: need move to base class
     static double beta0(double u){
         return 1.0;
     }

@@ -152,6 +152,21 @@ namespace ze {
 
         }
     }
+
+    Eigen::Vector3d VectorSpaceSpline::evaluateSpline(const real_t t,
+                                   const Eigen::Vector3d& v0,
+                                   const Eigen::Vector3d& v1,
+                                   const Eigen::Vector3d& v2,
+                                   const Eigen::Vector3d& v3){
+
+        double  Beta1 = QSUtility::beta1(t);
+        double  Beta2 = QSUtility::beta2(t);
+        double  Beta3 = QSUtility::beta3(t);
+        Eigen::Vector3d V = v0 + Beta1*(v1 - v0) +  Beta2*(v2 - v1) + Beta3*(v3 - v2);
+        return V;
+
+    }
+
     void VectorSpaceSpline::initialNewControlPoint(){
         Eigen::Vector3d vec = (Eigen::Vector3d::Zero());
         double* data = new double[3];

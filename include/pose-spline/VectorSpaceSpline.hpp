@@ -26,6 +26,13 @@ namespace ze {
 
         void printKnots();
 
+
+        static Eigen::Vector3d evaluateSpline(const real_t t,
+                                              const Eigen::Vector3d& v0,
+                                              const Eigen::Vector3d& v1,
+                                              const Eigen::Vector3d& v2,
+                                              const Eigen::Vector3d& v3);
+
         inline size_t getControlPointNum(){
             return mControlPointsParameter.size();
         }
@@ -35,6 +42,7 @@ namespace ze {
         }
     private:
         void initialNewControlPoint(); // need pure vitual
+
         std::vector<double*> mControlPointsParameter;
         std::map<double, Eigen::Vector3d> mSampleValues;
         double mTimeInterval;

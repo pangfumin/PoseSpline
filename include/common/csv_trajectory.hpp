@@ -113,7 +113,7 @@ public:
   EurocResultSeries();
     virtual void load(const std::string& in_file_path);
     void loadIMU(const std::string& in_file_path);
-    std::vector<Vector3> getLinearVelocities();
+    std::vector<std::pair<int64_t,Vector3>> getLinearVelocities();
     std::vector<Vector3> getGyroBias();
     std::vector<Vector3> getAccelBias();
 
@@ -139,7 +139,7 @@ private:
 
 
 
-    std::vector<Eigen::Vector3d> linearVelocities_;
+    std::vector<std::pair<int64_t ,Eigen::Vector3d>> linearVelocities_;
     std::vector<Eigen::Vector3d> gyroBias_;
     std::vector<Eigen::Vector3d> accelBias_;
 

@@ -459,15 +459,8 @@ template <typename T>
 Eigen::Matrix<T,3,1> getOmegaFromTwoQuaternion(const Eigen::Matrix<T,4,1>& q1,
                                                const Eigen::Matrix<T,4,1>& q2,
                                                T dt){
-
     Eigen::Matrix<T,4,1> temp = quatLeftComp<T>(q2)*quatInv<T>(q1);
     return   quatLog<T>(temp)/dt;
-
-
 };
-
-
-
-
 
 #endif

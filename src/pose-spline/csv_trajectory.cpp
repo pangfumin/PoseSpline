@@ -168,10 +168,7 @@ TupleVector PoseSeries::getVector()
         int64_t t = i.first;
         Vector3 tran = i.second.head(3);
         Vector4 quat = i.second.tail(4);
-
         vector_.push_back(std::make_tuple(t,tran,quat));
-
-
     }
     return vector_;
 }
@@ -274,7 +271,7 @@ void EurocResultSeries::load(const std::string& in_file_path){
             Vector3 gyro_bias = readGyroBias(items);
             Vector3 accel_bias = readAccelBias(items);
             pose_buf_.insert(stamp, pose);
-            linearVelocities_.push_back(velo);
+            linearVelocities_.push_back(std::make_pair(stamp,velo));
             gyroBias_.push_back(gyro_bias);
             accelBias_.push_back(accel_bias);
         }
@@ -316,7 +313,7 @@ void EurocResultSeries::loadIMU(const std::string& in_file_path){
     }
 }
 
-std::vector<Vector3> EurocResultSeries::getLinearVelocities(){
+std::vector<std::pair<int64_t,Vector3>> EurocResultSeries::getLinearVelocities(){
     return linearVelocities_;
 
 }

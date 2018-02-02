@@ -166,6 +166,26 @@ namespace ze {
                               Eigen::Map<Eigen::Matrix<double,3,1>>(getControlPoint(bidx+3)));
     }
 
+    Eigen::Vector3d VectorSpaceSpline::evaluateDotSpline(const real_t t){
+        std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
+        double u = ui.first;
+        unsigned int bidx = ui.second - spline_order_ + 1;
+
+        return evaluateDotSpline(u,mTimeInterval,
+                              Eigen::Map<Eigen::Matrix<double,3,1>>(getControlPoint(bidx)),
+                              Eigen::Map<Eigen::Matrix<double,3,1>>(getControlPoint(bidx+1)),
+                              Eigen::Map<Eigen::Matrix<double,3,1>>(getControlPoint(bidx+2)),
+                              Eigen::Map<Eigen::Matrix<double,3,1>>(getControlPoint(bidx+3)));
+    }
+
+    Eigen::Vector3d VectorSpaceSpline::evaluateDotSplineNumeric(const real_t t){
+
+        double eps = 1e-5;
+        return (evaluateSpline(t + eps) - evaluateSpline(t - eps))/(2*eps);
+    }
+
+
+
     Eigen::Vector3d VectorSpaceSpline::evaluateSpline(const real_t t,
                                    const Eigen::Vector3d& v0,
                                    const Eigen::Vector3d& v1,

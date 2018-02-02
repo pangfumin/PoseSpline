@@ -24,17 +24,18 @@ std::pair<double,Eigen::Vector3d>  getSamplePosition(ze::TupleVector& data, unsi
 };
 
 
+
 int main(int argc, char** argv){
     //google::InitGoogleLogging(argv[0]);
 
     ze::EurocResultSeries eurocDataReader;
-    eurocDataReader.load("/media/pang/Plus/dataset/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv");
-    eurocDataReader.loadIMU("/media/pang/Plus/dataset/MH_01_easy/mav0/imu0/data.csv");
+    eurocDataReader.load("/media/pang/Elements/dataset/ViSensor_Data/EuRoc_dataset/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv");
+    eurocDataReader.loadIMU("/media/pang/Elements/dataset/ViSensor_Data/EuRoc_dataset/MH_01_easy/mav0/imu0/data.csv");
 
     ze::TupleVector  data = eurocDataReader.getVector();
     Buffer<real_t, 7>& poseBuffer = eurocDataReader.getBuffer();
     LOG(INFO)<<"Get data size: "<<data.size(); // @200Hz
-    std::vector<Vector3> linearVelocities = eurocDataReader.getLinearVelocities();
+    std::vector<std::pair<int64_t ,Eigen::Vector3d>> linearVelocities = eurocDataReader.getLinearVelocities();
     std::vector<Vector3> gyroBias = eurocDataReader.getGyroBias();
     LOG(INFO)<<"Get velocities size: "<<linearVelocities.size(); // @200Hz
     LOG(INFO)<<"Get gyro_bias  size: "<<gyroBias.size(); // @200Hz
@@ -49,17 +50,18 @@ int main(int argc, char** argv){
     int end = data.size() - 2;
 
     ze::VectorSpaceSpline vectorSpaceSpline(4,0.1);
-    std::vector<std::pair<double,Eigen::Vector3d>> samples, queryMeas;
+    std::vector<std::pair<double,Eigen::Vector3d>> samples, queryMeas, queryVelocity;
 
     for(uint i = start; i <end; i++){
 
         queryMeas.push_back(getSamplePosition( data,  i));
+        queryVelocity.push_back(std::make_pair(((double)linearVelocities.at(i).first)*1e-9,
+                                               linearVelocities.at(i).second));
         if(i % 4  == 0){
             samples.push_back(getSamplePosition( data,  i));
 
         }
     }
-
     vectorSpaceSpline.initialSpline(samples);
 
     /*
@@ -67,21 +69,39 @@ int main(int argc, char** argv){
      */
 
     for(auto i: queryMeas){
-
         if(vectorSpaceSpline.isTsEvaluable(i.first)){
             Eigen::Vector3d query = vectorSpaceSpline.evaluateSpline(i.first);
-
             Eigen::Vector3d diff = query - i.second;
             CHECK_EQ(diff.norm() < 0.01,true)<<" Position query is not close to the ground truth!"
                                               <<"Gt:    "<<i.second.transpose()<<std::endl
                                               <<"Query: "<<query.transpose()<<std::endl
                                               <<"diff:  "<<diff.transpose()<<std::endl<<std::endl;
 
+        }
 
+    }
+
+
+    int cnt  = 0;
+
+    for(auto i : queryVelocity){
+        if(cnt ++ < 100 ) continue;
+        if(vectorSpaceSpline.isTsEvaluable(i.first)){
+            Eigen::Vector3d query = vectorSpaceSpline.evaluateDotSpline(i.first);
+            Eigen::Vector3d queryNumeric = vectorSpaceSpline.evaluateDotSplineNumeric(i.first);
+            Eigen::Vector3d diff = query - i.second;
+//            CHECK_EQ(diff.norm() < 0.01,true)<<" Position query is not close to the ground truth!"
+//                                             <<"Gt:    "<<i.second.transpose()<<std::endl
+//                                             <<"Query: "<<query.transpose()<<std::endl
+//                                             <<"diff:  "<<diff.transpose()<<std::endl<<std::endl;
+            std::cout<<"meas         : "<< i.second.transpose()<<std::endl;
+            std::cout<<"queryNumeric : "<< queryNumeric.transpose()<<std::endl;
+            std::cout<<"query        : "<< query.transpose()<<std::endl;
 
         }
 
     }
+
 
 
 

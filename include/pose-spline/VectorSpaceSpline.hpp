@@ -27,6 +27,8 @@ namespace ze {
         void printKnots();
 
         Eigen::Vector3d evaluateSpline(const real_t t);
+        Eigen::Vector3d evaluateDotSpline(const real_t t);
+        Eigen::Vector3d evaluateDotSplineNumeric(const real_t t);
 
 
         static Eigen::Vector3d evaluateSpline(const real_t t,

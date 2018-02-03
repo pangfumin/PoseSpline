@@ -70,6 +70,9 @@ int main(int argc, char** argv){
                                               <<"Query: "<<query.transpose()<<std::endl
                                               <<"diff:  "<<diff.transpose()<<std::endl<<std::endl;
 
+            std::cout <<"Gt:    "<<i.second.transpose()<<std::endl;
+            std::cout <<"Query: "<<query.transpose()<<std::endl;
+
         }
 
     }
@@ -215,9 +218,9 @@ int main(int argc, char** argv){
                 ofs_debug << num_dot_dot_Q1.transpose()<<" "<<another_num_dot_dot_Q1.transpose()<<" "<<dot_dotQ1.transpose()<<std::endl;
 
 
-                std::cout << q0.second.transpose()<<" "<<Q1.transpose()<<" ";
-                std::cout << num_dotQ1.transpose()<<" "<<dotQ1.transpose()<<" ";
-                std::cout << num_dot_dot_Q1.transpose()<<" "<<dot_dotQ1.transpose()<<std::endl;
+//                std::cout << q0.second.transpose()<<" "<<Q1.transpose()<<" ";
+//                std::cout << num_dotQ1.transpose()<<" "<<dotQ1.transpose()<<" ";
+//                std::cout << num_dot_dot_Q1.transpose()<<" "<<dot_dotQ1.transpose()<<std::endl;
 
             }
 

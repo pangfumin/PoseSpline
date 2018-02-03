@@ -1,17 +1,7 @@
 #include "pose-spline/QuaternionSplineUtility.hpp"
 
 
-Eigen::Vector3d QSUtility::Phi(const Quaternion & Q_k_1, const Quaternion &Q_k){
-    Quaternion invQ_k_1 = quatInv(Q_k_1);
-    Quaternion tmp  = quatMult(invQ_k_1,Q_k);
 
-    return quatLog(tmp);
-}
-Quaternion QSUtility::r(double beta_t, Eigen::Vector3d Phi){
-
-    return quatExp<double>(beta_t*Phi);
-
-}
 
 std::pair<Jacobian_Quat,Jacobian_Quat> QSUtility::Jcobian_Phi_Quat(Quaternion &q_k_1, Quaternion &q_k){
     Eigen::Matrix3d L,C,J_k_1,J_k;
@@ -135,39 +125,6 @@ Quaternion QSUtility::Evaluate_dot_dot_QS(double dt,
 /*
  *
  */
-Eigen::Matrix<double,4,3> QSUtility::V(){
-    Eigen::Matrix<double,4,3> M;
-    M<< 0.5,   0,   0,
-          0, 0.5,   0,
-          0,   0, 0.5,
-          0,   0,   0;
-    return M;
-};
-
-
-Eigen::Matrix<double,3,4> QSUtility::W(){
-    Eigen::Matrix<double,3,4> M;
-    M<< 2.0,   0,   0, 0,
-            0, 2.0,   0, 0,
-            0,   0, 2.0, 0;
-
-    return M;
-};
-
-/*
- *  using Indrict Kalman filter for 3D attitude estimation.
- */
-Eigen::Vector3d QSUtility::w(Quaternion Q_ba, Quaternion dot_Q_ba){
-    return 2.0*(quatLeftComp(dot_Q_ba)*quatInv(Q_ba)).head(3);
-}
-
-Eigen::Vector3d QSUtility::alpha(Quaternion Q_ba, Quaternion dot_dot_Q_ba){
-    return 2.0*(quatLeftComp(dot_dot_Q_ba)*quatInv(Q_ba)).head(3);
-}
-
-/*
- *
- */
 
 //Todo: test
 Quaternion QSUtility::Jacobian_dotQinvQ_t(const Quaternion& Q,
@@ -215,7 +172,5 @@ Eigen::Matrix3d QSUtility::Jacobian_omega_extrinsicQ(const Quaternion& Q,
     return J.topLeftCorner(3,3);
 }
 
-Eigen::Matrix<double,4,3> QSUtility::Jac_Exp(Eigen::Vector3d phi){
-    return quatRightComp(quatExp(phi))*V()*quatS(phi);
-};
+
 

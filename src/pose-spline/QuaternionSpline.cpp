@@ -329,7 +329,7 @@ namespace ze {
         //std::cout<<"dot_Q: "<<dot_Q_LG.transpose()<<std::endl;
 
 
-        return QSUtility::w(Q_LG,dot_Q_LG);
+        return QSUtility::w<double>(Q_LG,dot_Q_LG);
     }
 
     Eigen::Vector3d QuaternionSpline::evalAlpha(real_t t){
@@ -394,7 +394,7 @@ namespace ze {
 
         Quaternion Q_LG =  quatLeftComp(Q0)*quatLeftComp(r1)*quatLeftComp(r2)*r3;
 
-        return QSUtility::alpha(Q_LG,dot_dot_q);
+        return QSUtility::alpha<double>(Q_LG,dot_dot_q);
 
 
     }

@@ -44,9 +44,9 @@ bool QuaternionSplineSampleError::EvaluateWithMinimalJacobians(double const* con
     double  Beta2 = QSUtility::beta2(t_meas_);
     double  Beta3 = QSUtility::beta3(t_meas_);
 
-    Eigen::Vector3d phi1 = QSUtility::Phi(Q0,Q1);
-    Eigen::Vector3d phi2 = QSUtility::Phi(Q1,Q2);
-    Eigen::Vector3d phi3 = QSUtility::Phi(Q2,Q3);
+    Eigen::Vector3d phi1 = QSUtility::Phi<double>(Q0,Q1);
+    Eigen::Vector3d phi2 = QSUtility::Phi<double>(Q1,Q2);
+    Eigen::Vector3d phi3 = QSUtility::Phi<double>(Q2,Q3);
 
     Quaternion r_1 = QSUtility::r(Beta1,phi1);
     Quaternion r_2 = QSUtility::r(Beta2,phi2);
@@ -67,7 +67,7 @@ bool QuaternionSplineSampleError::EvaluateWithMinimalJacobians(double const* con
 
        // std::cout<<"J_1st: "<<J_1st<<std::endl;
 
-        Eigen::Matrix<double,4,3> Vee = QSUtility::V();
+        Eigen::Matrix<double,4,3> Vee = QSUtility::V<double>();
 
         Eigen::Vector3d BetaPhi1 = Beta1*phi1;
         Eigen::Vector3d BetaPhi2 = Beta2*phi2;

@@ -27,7 +27,7 @@ int main(int argc, char** argv){
     ze::TupleVector  data = eurocDataReader.getVector();
     Buffer<real_t, 7>& poseBuffer = eurocDataReader.getBuffer();
     LOG(INFO)<<"Get data size: "<<data.size(); // @200Hz
-    std::vector<Vector3> linearVelocities = eurocDataReader.getLinearVelocities();
+    std::vector<std::pair<int64_t ,Eigen::Vector3d>> linearVelocities = eurocDataReader.getLinearVelocities();
     std::vector<Vector3> gyroBias = eurocDataReader.getGyroBias();
     LOG(INFO)<<"Get velocities size: "<<linearVelocities.size(); // @200Hz
     LOG(INFO)<<"Get gyro_bias  size: "<<gyroBias.size(); // @200Hz

@@ -11,7 +11,7 @@ set(cmake_build_type Debug)
 find_package(Eigen3 REQUIRED)
 find_package(Ceres REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(glog REQUIRED)
+find_package(Glog REQUIRED)
 
 include_directories(include
         ${EIGEN3_INCLUDE_DIR}
@@ -25,7 +25,7 @@ add_library(Spline
 target_link_libraries(Spline
         ${CERES_LIBRARIES}
         ${OPENCV_LIBRARIES}
-        glog::glog)
+        ${GLOG_LIBRARIES})
 
 
 add_library( PoseSpline
@@ -48,7 +48,7 @@ target_link_libraries(PoseSpline
         Spline
         ${CERES_LIBRARIES}
         ${OPENCV_LIBRARIES}
-        glog::glog)
+        ${GLOG_LIBRARIES})
 
 
 ## Test

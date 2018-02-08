@@ -6,7 +6,7 @@ LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-set(cmake_build_type release)
+set(cmake_build_type Release)
 
 find_package(Eigen3 REQUIRED)
 find_package(Ceres REQUIRED)

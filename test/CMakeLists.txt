@@ -33,6 +33,11 @@ add_executable(UtilityTest UtilityTest.cpp)
 target_link_libraries(UtilityTest
         PoseSpline)
 
+add_executable(QuaternionOmegaSampleErrorTest QuaternionOmegaSampleErrorTest.cpp)
+target_link_libraries(QuaternionOmegaSampleErrorTest
+        PoseSpline)
+
+
 
 add_executable(test_main
         test_main.cpp PoseTest.cpp)

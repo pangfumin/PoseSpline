@@ -69,7 +69,7 @@ Eigen::Matrix<T,4,1> quatExp(const Eigen::Matrix<T,3,1>& dx) {
     // na is 1/theta sin(theta/2)
     T na;
     if(isLessThenEpsilons4thRoot(theta)){
-        static const double one_over_48 = T(1.0/48.0);
+        static const T one_over_48 = T(1.0/48.0);
         na = T(0.5) + (theta * theta) * one_over_48;
     } else {
         na = sin(theta*T(0.5)) / theta;
@@ -82,8 +82,13 @@ Eigen::Matrix<T,4,1> quatExp(const Eigen::Matrix<T,3,1>& dx) {
 }
 
 template<typename T>
+T fabsT(const T scale){
+    if( scale > T(0)) return scale;
+    else return -scale;
+}
+template<typename T>
 T arcSinXOverX(T x) {
-    if(isLessThenEpsilons4thRoot(fabs(x))){
+    if(isLessThenEpsilons4thRoot(fabsT(x))){
         return T(1.0) + x * x * T(1.0/6.0);
     }
     return asin(x) / x;
@@ -99,7 +104,7 @@ Eigen::Matrix<T,3,1> quatLog(Eigen::Matrix<T,4,1> & q){
     const T na = a.norm();
     const T eta = q[3];
     T scale;
-    if(fabs(eta) < na){ // use eta because it is more precise than na to calculate the scale. No singularities here.
+    if(fabsT(eta) < na){ // use eta because it is more precise than na to calculate the scale. No singularities here.
         // check sign of eta so that we can be sure that log(-q) = log(q)
         if (eta >= T(0)) {
             scale = acos(eta) / na;

@@ -27,7 +27,7 @@ public:
 
     template<typename T>
     static Eigen::Matrix<T, 4, 1> r(const T beta_t,const Eigen::Matrix<T,3,1> Phi) {
-            return quatExp<double>(beta_t*Phi);
+            return quatExp<T>(beta_t*Phi);
     }
     static std::pair<Jacobian_Quat,Jacobian_Quat>
                     Jcobian_Phi_Quat(Quaternion &q_k_1, Quaternion &q_k);
@@ -53,7 +53,7 @@ public:
 
     template<typename T>
     static T cubicBasisFun3(T u){
-        return T(u*u*u /6.0);
+        return T(u*u*u /T(6.0));
     }
 
     // An alternative form
@@ -78,12 +78,12 @@ public:
     static T beta1(T u){
 
         //cubicBasisFun1(u) + cubicBasisFun2(u) + cubicBasisFun3(u)
-        return T((u*u*u - 3*u*u + 3*u +5)/6.0);
+        return T((u*u*u - T(3)*u*u + T(3)*u +T(5))/T(6.0));
     }
     template<typename T >
     static T beta2(T u){
         // cubicBasisFun2(u) + cubicBasisFun3(u)
-        return T((-2*u*u*u + 3*u*u + 3*u +1)/6.0);
+        return T((-T(2)*u*u*u + T(3)*u*u + T(3)*u +T(1))/T(6.0));
     }
     template<typename T >
     static T beta3(T u){
@@ -99,10 +99,10 @@ public:
     static Eigen::Matrix<T,4,4> C(){
 
         Eigen::Matrix<T,4,4> res;
-        res <<  6,5,1,0,
-                0,3,3,0,
-                0,-3,3,0,
-                0,1,-2,1;
+        res <<  T(6),T(5),T(1),T(0),
+                T(0),T(3),T(3),T(0),
+                T(0),T(-3),T(3),T(0),
+                T(0),T(1),T(-2),T(1);
         res = T(1.0/6.0)*res;
 
 
@@ -117,22 +117,22 @@ public:
     template<typename T >
     static T dot_beta1(const T dt, const T u){
 
-        Eigen::Matrix<T,4,1> uu(0.0, 1, 2*u ,3*u*u);
-        return T(1/dt)*uu.transpose()*C<T>().col(1);
+        Eigen::Matrix<T,4,1> uu(T(0.0), T(1), T(2)*u ,T(3)*u*u);
+        return T(T(1)/dt)*uu.transpose()*C<T>().col(1);
     }
 
     template<typename T >
     static T dot_beta2(const T dt, const T u){
 
-        Eigen::Matrix<T,4,1> uu(0.0, 1, 2*u ,3*u*u);
-        return (1/dt)*uu.transpose()*C<T>().col(2);
+        Eigen::Matrix<T,4,1> uu(T(0.0), T(1), T(2)*u ,T(3)*u*u);
+        return (T(1)/dt)*uu.transpose()*C<T>().col(2);
     }
 
     template<typename T >
     static T dot_beta3(const T dt, const T u){
 
-        Eigen::Matrix<T,4,1> uu(0.0, 1, 2*u ,3*u*u);
-        return (1/dt)*uu.transpose()*C<T>().col(3);
+        Eigen::Matrix<T,4,1> uu(T(0.0), T(1), T(2)*u ,T(3)*u*u);
+        return (T(1)/dt)*uu.transpose()*C<T>().col(3);
     }
 
     /*
@@ -140,15 +140,15 @@ public:
      */
     template<typename T >
     static T dot_dot_beta1(T dt, T u){
-        Eigen::Matrix<T,4,1> uu(0.0, 0.0, 2.0 ,6*u);
-        return (1/(dt*dt))*uu.transpose()*C<T>().col(1);
+        Eigen::Matrix<T,4,1> uu(0.0, 0.0, 2.0 ,T(6)*u);
+        return (T(1)/(dt*dt))*uu.transpose()*C<T>().col(1);
     }
 
     template<typename T >
     static T dot_dot_beta2(T dt, T u){
 
-        Eigen::Matrix<T,4,1> uu(0.0, 0.0, 2.0 ,6*u);
-        return (1/(dt*dt))*uu.transpose()*C<T>().col(2);
+        Eigen::Matrix<T,4,1> uu(0.0, 0.0, 2.0 ,T(6)*u);
+        return (T(1)/(dt*dt))*uu.transpose()*C<T>().col(2);
     }
 
     template<typename T >
@@ -257,13 +257,13 @@ public:
  */
     template<typename T>
     static Eigen::Matrix<T,3,1> w(const Eigen::Matrix<T,4,1> Q_ba,const Eigen::Matrix<T,4,1> dot_Q_ba){
-        return 2.0*(quatLeftComp(dot_Q_ba)*quatInv(Q_ba)).head(3);
+        return T(2.0)*(quatLeftComp(dot_Q_ba)*quatInv(Q_ba)).head(3);
     }
 
     template<typename T>
     static Eigen::Matrix<T,3,1> alpha(const Eigen::Matrix<T,4,1> Q_ba,
                                           const Eigen::Matrix<T,4,1> dot_dot_Q_ba){
-        return 2.0*(quatLeftComp(dot_dot_Q_ba)*quatInv(Q_ba)).head(3);
+        return T(2.0)*(quatLeftComp(dot_dot_Q_ba)*quatInv(Q_ba)).head(3);
     }
     static Quaternion Jacobian_dotQinvQ_t(const Quaternion& Q,
                                          const Quaternion& dQ,

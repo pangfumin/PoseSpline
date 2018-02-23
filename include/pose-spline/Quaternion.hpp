@@ -160,9 +160,7 @@ Eigen::Matrix<T,3,3> quatL(Eigen::Matrix<T,4,1> &q){
 
         Jac_log = I + T(0.5)*crossMat<T>(phi)
                   + (T(1) - nphi/(T(2)*tan(T(0.5)*nphi)))*squareA;
-
         return Jac_log;
-
     }
 }
 template<typename T>

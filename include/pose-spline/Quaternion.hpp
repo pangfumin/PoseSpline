@@ -203,9 +203,6 @@ Eigen::Matrix<T,4,1> QuatFromEuler(T* euler)
 }
 
 
-
-
-
 template<typename T>
 Eigen::Matrix<T,4,1> deltaQuat( Eigen::Matrix<T,3,1> &deltaTheta )
 {

@@ -20,7 +20,8 @@
  * @Author Pang Fumin
  */
 
-class QuaternionSplineSampleError: public ceres::SizedCostFunction<3,4,4,4,4>{
+class QuaternionSplineSampleError
+    : public ceres::SizedCostFunction<3, 4, 4, 4, 4> {
 public:
 
     typedef Eigen::Matrix<double, 3, 3> covariance_t;
@@ -39,7 +40,6 @@ public:
 
 
     bool VerifyJacobianNumDiff(double const* const* parameters);
-
 private:
 
     double t_meas_;

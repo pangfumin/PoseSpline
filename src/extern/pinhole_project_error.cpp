@@ -1,7 +1,8 @@
-#include "extern/spline_projection_error.h"
+#include "extern/pinhole_project_error.h"
 #include "pose-spline/QuaternionSplineUtility.hpp"
 #include "pose-spline/Quaternion.hpp"
-PinholeProjectFactor::PinholeProjectFactor(const Eigen::Vector3d& uv_C0,
+#include "pose-spline/PoseLocalParameter.hpp"
+PinholeProjectError::PinholeProjectError(const Eigen::Vector3d& uv_C0,
                                            const Eigen::Vector3d& uv_C1,
                                            const Eigen::Isometry3d _T_IC):
         C0uv(uv_C0),
@@ -11,7 +12,7 @@ PinholeProjectFactor::PinholeProjectFactor(const Eigen::Vector3d& uv_C0,
 }
 
 
-bool PinholeProjectFactor::Evaluate(double const *const *parameters,
+bool PinholeProjectError::Evaluate(double const *const *parameters,
                                     double *residuals,
                                     double **jacobians) const {
     return EvaluateWithMinimalJacobians(parameters,
@@ -20,31 +21,30 @@ bool PinholeProjectFactor::Evaluate(double const *const *parameters,
 }
 
 
-bool PinholeProjectFactor::EvaluateWithMinimalJacobians(double const *const *parameters,
+bool PinholeProjectError::EvaluateWithMinimalJacobians(double const *const *parameters,
                                                         double *residuals,
                                                         double **jacobians,
                                                         double **jacobiansMinimal) const {
 
     // T_WI0
     Eigen::Vector3d t_WI0(parameters[0][0], parameters[0][1], parameters[0][2]);
-    Eigen::Quaterniond Q_WI0(parameters[0][6], parameters[0][3], parameters[0][4], parameters[0][5]);
+    Quaternion Q_WI0( parameters[0][3], parameters[0][4], parameters[0][5], parameters[0][6]);
 
     // T_WI1
     Eigen::Vector3d t_WI1(parameters[1][0], parameters[1][1], parameters[1][2]);
-    Eigen::Quaterniond Q_WI1(parameters[1][6], parameters[1][3], parameters[1][4], parameters[1][5]);
+    Quaternion Q_WI1( parameters[1][3], parameters[1][4], parameters[1][5], parameters[1][6]);
 
     // rho
     double inv_dep = parameters[2][0];
 
 
-
-
-
+    Eigen::Matrix3d R_WI0 = quatToRotMat(Q_WI0);
+    Eigen::Matrix3d R_WI1 = quatToRotMat(Q_WI1);
 
     Eigen::Vector3d C0p = C0uv / inv_dep;
     Eigen::Vector3d I0p = R_IC * C0p + t_IC;
-    Eigen::Vector3d Wp = Q_WI0 * I0p + t_WI0;
-    Eigen::Vector3d I1p = Q_WI1.inverse() * (Wp - t_WI1);
+    Eigen::Vector3d Wp = R_WI0 * I0p + t_WI0;
+    Eigen::Vector3d I1p = R_WI1.inverse() * (Wp - t_WI1);
     Eigen::Vector3d C1p = R_IC.inverse() * (I1p - t_IC);
 
     Eigen::Matrix<double, 2, 1> error;
@@ -65,8 +65,7 @@ bool PinholeProjectFactor::EvaluateWithMinimalJacobians(double const *const *par
     Eigen::Map<Eigen::Matrix<double, 2, 1> > weighted_error(residuals);
     weighted_error = squareRootInformation_ * error;
 
-    Eigen::Matrix3d R_WI0 = Q_WI0.toRotationMatrix();
-    Eigen::Matrix3d R_WI1 = Q_WI1.toRotationMatrix();
+
 
 
     // calculate jacobians
@@ -83,13 +82,15 @@ bool PinholeProjectFactor::EvaluateWithMinimalJacobians(double const *const *par
 
             jacobian0_min  =  H*tmp;
 
-            jacobian0_min = squareRootInformation_*jacobian0_min;
-            jacobian0 << jacobian0_min, Eigen::Matrix<double, 2, 1>::Zero();
+            Eigen::Matrix<double, 6, 7, Eigen::RowMajor> lift;
+            PoseLocalParameter::liftJacobian(parameters[0], lift.data());
+            jacobian0 = squareRootInformation_*jacobian0_min*lift;
+
 
 
             if(jacobiansMinimal != NULL && jacobiansMinimal[0] != NULL){
                 Eigen::Map<Eigen::Matrix<double,2,6,Eigen::RowMajor>> map_jacobian0_min(jacobiansMinimal[0]);
-                map_jacobian0_min = jacobian0_min;
+                map_jacobian0_min = squareRootInformation_*jacobian0_min;
             }
         }
 
@@ -105,13 +106,13 @@ bool PinholeProjectFactor::EvaluateWithMinimalJacobians(double const *const *par
 
 
             jacobian1_min = H*tmp;
-            jacobian1_min = squareRootInformation_*jacobian1_min;
-
-            jacobian1 << jacobian1_min, Eigen::Matrix<double,2,1>::Zero(); // lift
+            Eigen::Matrix<double, 6, 7, Eigen::RowMajor> lift;
+            PoseLocalParameter::liftJacobian(parameters[1], lift.data());
+            jacobian1 = squareRootInformation_*jacobian1_min*lift;
 
             if(jacobiansMinimal != NULL && jacobiansMinimal[1] != NULL){
                 Eigen::Map<Eigen::Matrix<double,2,6,Eigen::RowMajor>> map_jacobian1_min(jacobiansMinimal[1]);
-                map_jacobian1_min = jacobian1_min;
+                map_jacobian1_min = squareRootInformation_*jacobian1_min;
             }
         }
         if(jacobians[2] != NULL){
@@ -121,7 +122,7 @@ bool PinholeProjectFactor::EvaluateWithMinimalJacobians(double const *const *par
 
             if(jacobiansMinimal != NULL && jacobiansMinimal[2] != NULL){
                 Eigen::Map<Eigen::Matrix<double,2,1>> map_jacobian2_min(jacobiansMinimal[2]);
-                map_jacobian2_min = jacobian2;
+                map_jacobian2_min = squareRootInformation_*jacobian2;
             }
         }
     }

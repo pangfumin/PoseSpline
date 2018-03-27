@@ -1,6 +1,6 @@
 
-#ifndef DEPTH_PROJECT_FACTOR_H
-#define DEPTH_PROJECT_FACTOR_H
+#ifndef PROJECT_FACTOR_H
+#define PROJECT_FACTOR_H
 #include <vector>
 #include <mutex>
 #include "ceres/ceres.h"
@@ -10,11 +10,9 @@
 /**
  *
  */
-class PinholeProjectFactor:public ceres::SizedCostFunction<2, /* num of residual */
+class ProjectError:public ceres::SizedCostFunction<2, /* num of residual */
         7, /* parameter of pose */
-        7, /* parameter of pose */
-        7,
-        1>{
+        3>{
 
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -37,13 +35,11 @@ public:
     /// \warning This is w.r.t. minimal tangential space coordinates...
     typedef Eigen::Matrix<double, 2, 6> jacobian0_t;
 
-    PinholeProjectFactor() = delete;
-    PinholeProjectFactor(const Eigen::Vector3d& uv_C0,
-                         const Eigen::Vector3d& uv_C1,
-                         const Eigen::Isometry3d _T_IC);
+    ProjectError() = delete;
+    ProjectError(const Eigen::Vector3d& uv_C0);
 
     /// \brief Trivial destructor.
-    virtual ~PinholeProjectFactor() {}
+    virtual ~ProjectError() {}
 
     virtual bool Evaluate(double const *const *parameters, double *residuals,
                           double **jacobians) const;
@@ -56,9 +52,7 @@ public:
 private:
 
     Eigen::Vector3d C0uv;
-    Eigen::Vector3d C1uv;
-    Eigen::Vector3d t_IC;
-    Eigen::Matrix3d R_IC;
+
     // information matrix and its square root
     mutable information_t information_; ///< The information matrix for this error term.
     mutable information_t squareRootInformation_; ///< The square root information matrix for this error term.

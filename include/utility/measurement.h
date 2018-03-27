@@ -329,7 +329,7 @@ public:
             }
 //            std::cout<<std::endl;
 
-            gtMeas.measurement.q_WS = Eigen::Quaterniond(q_WS);
+            gtMeas.measurement.q_WS = Eigen::Quaterniond(q_WS(0), q_WS(1), q_WS(2), q_WS(3));
 
 
             for (int j = 0; j < 3; ++j) {

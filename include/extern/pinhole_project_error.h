@@ -10,7 +10,7 @@
 /**
  *
  */
-class PinholeProjectFactor:public ceres::SizedCostFunction<2, /* num of residual */
+class PinholeProjectError:public ceres::SizedCostFunction<2, /* num of residual */
         7, /* parameter of pose */
         7, /* parameter of pose */
         7,
@@ -37,13 +37,13 @@ public:
     /// \warning This is w.r.t. minimal tangential space coordinates...
     typedef Eigen::Matrix<double, 2, 6> jacobian0_t;
 
-    PinholeProjectFactor() = delete;
-    PinholeProjectFactor(const Eigen::Vector3d& uv_C0,
+    PinholeProjectError() = delete;
+    PinholeProjectError(const Eigen::Vector3d& uv_C0,
                          const Eigen::Vector3d& uv_C1,
                          const Eigen::Isometry3d _T_IC);
 
     /// \brief Trivial destructor.
-    virtual ~PinholeProjectFactor() {}
+    virtual ~PinholeProjectError() {}
 
     virtual bool Evaluate(double const *const *parameters, double *residuals,
                           double **jacobians) const;

@@ -37,11 +37,21 @@ add_executable(QuaternionOmegaSampleErrorTest QuaternionOmegaSampleErrorTest.cpp
 target_link_libraries(QuaternionOmegaSampleErrorTest
         PoseSpline)
 
-
-add_executable(testDataReader testDataReader.cpp)
-target_link_libraries(testDataReader
+add_executable(testPinholeProjectFactor testPinholeProjectFactor.cpp)
+target_link_libraries(testPinholeProjectFactor
         PoseSpline)
 
+add_executable(testProjectError testProjectError.cpp)
+target_link_libraries(testProjectError
+        PoseSpline)
+
+
+
+#
+#add_executable(testDataReader testDataReader.cpp)
+#target_link_libraries(testDataReader
+#        PoseSpline)
+#
 
 
 add_executable(test_main

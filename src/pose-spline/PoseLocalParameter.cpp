@@ -21,7 +21,7 @@ bool PoseLocalParameter::plus(const double* x, const double* delta,
     // transform to okvis::kinematics framework
     Pose T(
             Eigen::Vector3d(x[0], x[1], x[2]),
-            Quaternion (x[3], x[4], x[5], x[6]));
+            Quaternion ( x[3], x[4], x[5], x[6]));
 
     // call oplus operator in okvis::kinematis
     T.oplus(delta_);

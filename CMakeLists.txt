@@ -38,6 +38,7 @@ add_library( PoseSpline
         src/pose-spline/QuaternionSpline.cpp
         src/pose-spline/QuaternionLocalParameter.cpp
         src/pose-spline/QuaternionSplineSampleError.cpp
+        src/pose-spline/PoseSplineSampleError.cpp
         src/pose-spline/OmegaExtrinsicTemperalError.cpp
         src/pose-spline/PoseSpline.cpp
         src/pose-spline/PoseLocalParameter.cpp

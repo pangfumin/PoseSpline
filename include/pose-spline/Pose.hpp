@@ -148,7 +148,7 @@ public:
 
     /// \brief Get the parameters --- support for ceres.
     /// \warning USE WITH CARE!
-    const double* parameterPtr() const
+    double* parameterPtr()
     {
         return &parameters_[0];
     }
@@ -226,10 +226,12 @@ public:
     template<typename Derived_jacobian>
     bool liftJacobian(const Eigen::MatrixBase<Derived_jacobian> & jacobian) const;
 
+    Quaternion rotation() const;
+    Eigen::Vector3d translation() const;
+
 protected:
     /// \brief Update the caching of the rotation matrix.
     void updateC();
-    void updateQ();
     Eigen::Matrix<double, 7, 1> parameters_;  ///< Concatenated parameters [r;q].
     Eigen::Map<Eigen::Vector3d> r_;  ///< Translation {_A}r_{B}.
     Eigen::Map<Quaternion> q_;  ///< Quaternion q_{AB}.

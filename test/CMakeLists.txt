@@ -45,6 +45,10 @@ add_executable(testProjectError testProjectError.cpp)
 target_link_libraries(testProjectError
         PoseSpline)
 
+add_executable(testPoseSplineSampleError testPoseSplineSampleError.cpp)
+target_link_libraries(testPoseSplineSampleError
+        PoseSpline)
+
 
 
 #

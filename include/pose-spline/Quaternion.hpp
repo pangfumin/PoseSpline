@@ -36,6 +36,7 @@ Eigen::Matrix<T,4,1> unitQuat(){
 };
 
 
+
 template<typename T>
 Eigen::Matrix<T,4,1> quatMap(T* ptr){
     Eigen::Map<Eigen::Matrix<T,4,1>> j(ptr);
@@ -393,6 +394,18 @@ Eigen::Matrix<T,3,3> axisAngleToRotMat(Eigen::Matrix<T,3,1> aa){
     return cos_phi*I + (1 - cos_phi)*a*a.transpose() - sin(phi)*crossMat<T>(a);
 
 }
+
+template<typename T>
+Eigen::Matrix<T,4,1> randomQuat() {
+    // Create a random unit-length axis.
+    Eigen::Matrix<T, 3, 1> axis = T(M_PI) * Eigen::Matrix<T, 3, 1>::Random();
+
+    Eigen::Matrix<T,3,3> C_
+            = Eigen::AngleAxis<T>(axis.norm(), axis.normalized()).toRotationMatrix();
+    Eigen::Matrix<T,4,1> q_ = rotMatToQuat<T>(C_);
+    return q_;
+}
+
 
 
 /*

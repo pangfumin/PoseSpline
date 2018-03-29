@@ -50,6 +50,11 @@ target_link_libraries(testPoseSplineSampleError
         PoseSpline)
 
 
+add_executable(testSplineRotateError testSplineRotateError.cpp)
+target_link_libraries(testSplineRotateError
+        PoseSpline)
+
+
 
 #
 #add_executable(testDataReader testDataReader.cpp)

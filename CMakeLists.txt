@@ -34,6 +34,7 @@ add_library( PoseSpline
         src/extern/spline_projection_error.cpp
         src/extern/pinhole_project_error.cpp
         src/extern/project_error.cpp
+        src/extern/RotateVectorError.cpp
         src/pose-spline/QuaternionSplineUtility.cpp
         src/pose-spline/QuaternionSpline.cpp
         src/pose-spline/QuaternionLocalParameter.cpp

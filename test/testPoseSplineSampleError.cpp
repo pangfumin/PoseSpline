@@ -1,6 +1,5 @@
 #include "pose-spline/Pose.hpp"
 #include "pose-spline/PoseLocalParameter.hpp"
-#include "pose-spline/QuaternionSplineUtility.hpp"
 #include "pose-spline/PoseSplineUtility.hpp"
 #include "pose-spline/PoseSplineSampleError.hpp"
 #include "pose-spline/NumbDifferentiator.hpp"

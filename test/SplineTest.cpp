@@ -17,6 +17,11 @@ std::pair<double,Quaternion>  getSample(ze::TupleVector& data, unsigned int i){
 };
 
 
+/**
+ TODO:: fixme , input Hamilton quaternion into quaternion spline 
+       which will mistake 
+*/
+
 int main(int argc, char** argv){
     //google::InitGoogleLogging(argv[0]);
 

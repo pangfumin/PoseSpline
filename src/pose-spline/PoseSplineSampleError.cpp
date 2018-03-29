@@ -81,6 +81,7 @@ bool PoseSplineSampleError::EvaluateWithMinimalJacobians(double const* const * p
     Quaternion dQ = quatLeftComp(Q_hat)*quatInv(T_Meas_.rotation());
 
     Eigen::Vector3d t_hat = t0 + Beta1*(t1 - t0) +  Beta2*(t2 - t1) + Beta3*(t3 - t2);
+
     error.head(3) =  t_hat - T_Meas_.translation();
     error.tail(3) =  2.0 * dQ.head<3>();
 //

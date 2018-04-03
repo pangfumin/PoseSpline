@@ -70,7 +70,6 @@ bool PinholeProjectError::EvaluateWithMinimalJacobians(double const *const *para
 
     // calculate jacobians
     if(jacobians != NULL){
-
         if(jacobians[0] != NULL){
             Eigen::Matrix<double,2,6,Eigen::RowMajor> jacobian0_min;
             Eigen::Map<Eigen::Matrix<double,2,7,Eigen::RowMajor>> jacobian0(jacobians[0]);

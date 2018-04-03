@@ -1,6 +1,6 @@
 
-#ifndef DEPTH_PROJECT_FACTOR_H
-#define DEPTH_PROJECT_FACTOR_H
+#ifndef SPLINe_PROJECT_FACTOR_H
+#define SPLINe_PROJECT_FACTOR_H
 #include <vector>
 #include <mutex>
 #include "ceres/ceres.h"
@@ -10,7 +10,8 @@
 /**
  *
  */
-class PinholeProjectFactor:public ceres::SizedCostFunction<2, /* num of residual */
+class SplineProjectError:public ceres::SizedCostFunction<2, /* num of residual */
+        7, /* parameter of pose */
         7, /* parameter of pose */
         7, /* parameter of pose */
         7,
@@ -18,8 +19,7 @@ class PinholeProjectFactor:public ceres::SizedCostFunction<2, /* num of residual
 
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    /// \brief The base in ceres we derive from
-    typedef ::ceres::SizedCostFunction<2, 7, 7> base_t;
+    
 
     /// \brief The number of residuals
     static const int kNumResiduals = 2;
@@ -37,13 +37,13 @@ public:
     /// \warning This is w.r.t. minimal tangential space coordinates...
     typedef Eigen::Matrix<double, 2, 6> jacobian0_t;
 
-    PinholeProjectFactor() = delete;
-    PinholeProjectFactor(const Eigen::Vector3d& uv_C0,
-                         const Eigen::Vector3d& uv_C1,
-                         const Eigen::Isometry3d _T_IC);
+    SplineProjectError() = delete;
+    SplineProjectError(const double _t0, const Eigen::Vector3d& uv_C0,
+                       const double _t1, const Eigen::Vector3d& uv_C1,
+                        const Eigen::Isometry3d _T_IC);
 
     /// \brief Trivial destructor.
-    virtual ~PinholeProjectFactor() {}
+    virtual ~SplineProjectError() {}
 
     virtual bool Evaluate(double const *const *parameters, double *residuals,
                           double **jacobians) const;
@@ -54,7 +54,7 @@ public:
                                       double **jacobiansMinimal) const;
 
 private:
-
+    double t0,t1;
     Eigen::Vector3d C0uv;
     Eigen::Vector3d C1uv;
     Eigen::Vector3d t_IC;
@@ -65,8 +65,3 @@ private:
 };
 
 #endif
-
-
-/*
- *
- */

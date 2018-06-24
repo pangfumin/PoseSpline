@@ -1,5 +1,5 @@
-#ifndef VECTORSPLINESAMPLEERROR_H
-#define  VECTORSPLINESAMPLEERROR_H
+#ifndef VECTORSPLINESAMPLEAUTOERROR_H
+#define  VECTORSPLINESAMPLEAUTOERROR_H
 
 #include "pose-spline/QuaternionSpline.hpp"
 #include <ceres/ceres.h>
@@ -9,35 +9,38 @@
 #include "pose-spline/QuaternionSplineUtility.hpp"
 
 
-class VectorSplineSampleError: public ceres::SizedCostFunction<3,3,3,3,3>{
+class VectorSplineSampleAutoError {
 public:
     typedef Eigen::Matrix<double, 3, 3> covariance_t;
     typedef covariance_t information_t;
 
-    VectorSplineSampleError(const double& t_meas, const Eigen::Vector3d& V_meas);
-    virtual ~VectorSplineSampleError();
+    VectorSplineSampleAutoError(const double& t_meas, const Eigen::Vector3d& V_meas);
+    virtual ~VectorSplineSampleAutoError();
 
-    virtual bool Evaluate(double const* const* parameters,
-                          double* residuals,
-                          double** jacobians) const;
-    bool EvaluateWithMinimalJacobians(double const* const * parameters,
-                                      double* residuals,
-                                      double** jacobians,
-                                      double** jacobiansMinimal) const;
+
+//    template <typename T>
+//    bool operator()(const T* const x , const T* const y, T* e) const {
+//        e[0] = k_ - x[0] * y[0] - x[1] * y[1];
+//        return true;
+//    }
 
     template <typename T>
-    bool operator()(T const* const* params, T* residual) const {
+    bool operator()(const T* const params0,
+                    const T* const params1,
+                    const T* const params2,
+                    const T* const params3,
+                    T* residual) const {
 //        auto trajectory = entity::Map<TrajectoryModel, T>(params, meta);
 //        Eigen::Map<Eigen::Matrix<T,3,1>> r(residual);
 //        r = measurement.Error<TrajectoryModel, T>(trajectory);
-        Eigen::Map<const Eigen::Matrix<T, 3,1>> V0(params[0]);
-        Eigen::Map<const Eigen::Matrix<T, 3,1>> V1(params[1]);
-        Eigen::Map<const Eigen::Matrix<T, 3,1>> V2(params[2]);
-        Eigen::Map<const Eigen::Matrix<T, 3,1>> V3(params[3]);
+        Eigen::Map<const Eigen::Matrix<T, 3,1>> V0(params0);
+        Eigen::Map<const Eigen::Matrix<T, 3,1>> V1(params1);
+        Eigen::Map<const Eigen::Matrix<T, 3,1>> V2(params2);
+        Eigen::Map<const Eigen::Matrix<T, 3,1>> V3(params3);
 
-        T  Beta1 = QSUtility::beta1(t_meas_);
-        T  Beta2 = QSUtility::beta2(t_meas_);
-        T  Beta3 = QSUtility::beta3(t_meas_);
+        T  Beta1 = QSUtility::beta1(T(t_meas_));
+        T  Beta2 = QSUtility::beta2(T(t_meas_));
+        T  Beta3 = QSUtility::beta3(T(t_meas_));
 
         // define residual
         // For simplity, we define error  =  /hat - meas.

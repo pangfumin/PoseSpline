@@ -76,7 +76,6 @@ public:
     }
     template<typename T >
     static T beta1(T u){
-
         //cubicBasisFun1(u) + cubicBasisFun2(u) + cubicBasisFun3(u)
         return T((u*u*u - T(3)*u*u + T(3)*u +T(5))/T(6.0));
     }

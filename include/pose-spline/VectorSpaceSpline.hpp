@@ -7,9 +7,7 @@
 
 
 namespace ze {
-
     class VectorSpaceSpline : public BSpline {
-
     public:
         VectorSpaceSpline(int spline_order);
         VectorSpaceSpline(int spline_order,double interval);

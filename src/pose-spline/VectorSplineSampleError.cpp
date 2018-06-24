@@ -1,5 +1,5 @@
 #include "pose-spline/VectorSplineSampleError.hpp"
-#include "pose-spline/QuaternionSplineUtility.hpp"
+
 
 
 VectorSplineSampleError::VectorSplineSampleError(const double& t_meas,

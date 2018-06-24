@@ -6,6 +6,7 @@
 #include "pose-spline/Quaternion.hpp"
 #include "pose-spline/VectorSpaceSpline.hpp"
 #include <pose-spline/QuaternionSplineUtility.hpp>
+#include <utility/timer.h>
 
 
 using namespace ze;
@@ -26,25 +27,26 @@ std::pair<double,Eigen::Vector3d>  getSamplePosition(ze::TupleVector& data, unsi
 
 
 int main(int argc, char** argv){
-    //google::InitGoogleLogging(argv[0]);
+    google::InitGoogleLogging(argv[0]);
+    std::string dataset = "/media/pang/Plus/dataset/MH_01_easy";
 
     ze::EurocResultSeries eurocDataReader;
-    eurocDataReader.load("/media/pang/Elements/dataset/ViSensor_Data/EuRoc_dataset/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv");
-    eurocDataReader.loadIMU("/media/pang/Elements/dataset/ViSensor_Data/EuRoc_dataset/MH_01_easy/mav0/imu0/data.csv");
+    eurocDataReader.load(dataset + "/mav0/state_groundtruth_estimate0/data.csv");
+    eurocDataReader.loadIMU(dataset + "/mav0/imu0/data.csv");
 
     ze::TupleVector  data = eurocDataReader.getVector();
     Buffer<real_t, 7>& poseBuffer = eurocDataReader.getBuffer();
-    LOG(INFO)<<"Get data size: "<<data.size(); // @200Hz
+    //LOG(INFO)<<"Get data size: "<<data.size(); // @200Hz
     std::vector<std::pair<int64_t ,Eigen::Vector3d>> linearVelocities = eurocDataReader.getLinearVelocities();
     std::vector<Vector3> gyroBias = eurocDataReader.getGyroBias();
-    LOG(INFO)<<"Get velocities size: "<<linearVelocities.size(); // @200Hz
-    LOG(INFO)<<"Get gyro_bias  size: "<<gyroBias.size(); // @200Hz
+    //LOG(INFO)<<"Get velocities size: "<<linearVelocities.size(); // @200Hz
+    //LOG(INFO)<<"Get gyro_bias  size: "<<gyroBias.size(); // @200Hz
 
     std::vector<int64_t> imu_ts = eurocDataReader.getIMUts();
-    LOG(INFO)<<"Get IMU ts  size: "<<imu_ts.size(); // @200Hz
+    //LOG(INFO)<<"Get IMU ts  size: "<<imu_ts.size(); // @200Hz
 
     std::vector<Vector3> gyroMeas = eurocDataReader.getGyroMeas();
-    LOG(INFO)<<"Get gyro Meas  size: "<<gyroMeas.size(); // @200Hz
+    //LOG(INFO)<<"Get gyro Meas  size: "<<gyroMeas.size(); // @200Hz
 
     int start  = 1;
     int end = data.size() - 2;
@@ -62,7 +64,11 @@ int main(int argc, char** argv){
 
         }
     }
+
+    TimeStatistics::Timer timer;
     vectorSpaceSpline.initialSpline(samples);
+    std::cout<<"intialization timer: "<< timer.stopAndGetSeconds()<<std::endl;
+
 
     /*
      *  Test:
@@ -82,26 +88,26 @@ int main(int argc, char** argv){
     }
 
 
-    int cnt  = 0;
-
-    for(auto i : queryVelocity){
-        if(cnt ++ < 100 ) continue;
-        if(vectorSpaceSpline.isTsEvaluable(i.first)){
-            Eigen::Vector3d query = vectorSpaceSpline.evaluateDotSpline(i.first);
-            Eigen::Vector3d queryNumeric = vectorSpaceSpline.evaluateDotSplineNumeric(i.first);
-            Eigen::Vector3d diff = query - i.second;
-//            CHECK_EQ(diff.norm() < 0.01,true)<<" Position query is not close to the ground truth!"
-//                                             <<"Gt:    "<<i.second.transpose()<<std::endl
-//                                             <<"Query: "<<query.transpose()<<std::endl
-//                                             <<"diff:  "<<diff.transpose()<<std::endl<<std::endl;
-            std::cout<<"meas         : "<< i.second.transpose()<<std::endl;
-            std::cout<<"queryNumeric : "<< queryNumeric.transpose()<<std::endl;
-            std::cout<<"query        : "<< query.transpose()<<std::endl;
-
-        }
-
-    }
-
+//    int cnt  = 0;
+//
+//    for(auto i : queryVelocity){
+//        if(cnt ++ < 100 ) continue;
+//        if(vectorSpaceSpline.isTsEvaluable(i.first)){
+//            Eigen::Vector3d query = vectorSpaceSpline.evaluateDotSpline(i.first);
+//            Eigen::Vector3d queryNumeric = vectorSpaceSpline.evaluateDotSplineNumeric(i.first);
+//            Eigen::Vector3d diff = query - i.second;
+////            CHECK_EQ(diff.norm() < 0.01,true)<<" Position query is not close to the ground truth!"
+////                                             <<"Gt:    "<<i.second.transpose()<<std::endl
+////                                             <<"Query: "<<query.transpose()<<std::endl
+////                                             <<"diff:  "<<diff.transpose()<<std::endl<<std::endl;
+//            std::cout<<"meas         : "<< i.second.transpose()<<std::endl;
+//            std::cout<<"queryNumeric : "<< queryNumeric.transpose()<<std::endl;
+//            std::cout<<"query        : "<< query.transpose()<<std::endl;
+//
+//        }
+//
+//    }
+//
 
 
 

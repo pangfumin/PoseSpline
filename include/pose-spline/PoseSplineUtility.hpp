@@ -9,6 +9,13 @@ class PSUtility {
 public:
     static Pose EvaluatePS(double u, const Pose& P0, const Pose& P1,
                             const Pose& P2, const Pose& P3);
+    static Eigen::Vector3d EvaluateLinearVelocity(double u, double dt,
+                                                  const Eigen::Vector3d& V0,
+                                                  const Eigen::Vector3d& V1,
+                                                  const Eigen::Vector3d& V2,
+                                                  const Eigen::Vector3d& V3);
+    static Eigen::Vector3d EvaluateLinearAccelerate(double u, double dt, const Pose& P0, const Pose& P1,
+                                                        const Pose& P2, const Pose& P3);
 };
 
 class PoseSplineEvaluation {

@@ -31,6 +31,7 @@ namespace  ze {
         void printKnots();
 
         Pose evalPoseSpline(real_t t);
+        Eigen::Vector3d evalLinearVelocity(real_t t );
 
 
 

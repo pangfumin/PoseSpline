@@ -31,6 +31,38 @@ Pose PSUtility::EvaluatePS(double u, const Pose& P0, const Pose& P1,
     return Pose( V, quatLeftComp(Q0)*quatLeftComp(r1)*quatLeftComp(r2)*r3);
 }
 
+Eigen::Vector3d PSUtility::EvaluateLinearVelocity(double u, double dt,
+                                                  const Eigen::Vector3d& V0,
+                                                  const Eigen::Vector3d& V1,
+                                                  const Eigen::Vector3d& V2,
+                                                  const Eigen::Vector3d& V3) {
+
+
+    double  dotBeta1 = QSUtility::dot_beta1(dt, u);
+    double  dotBeta2 = QSUtility::dot_beta2(dt, u);
+    double  dotBeta3 = QSUtility::dot_beta3(dt, u);
+
+    Eigen::Vector3d V =  dotBeta1*(V1 - V0) +  dotBeta2*(V2 - V1) + dotBeta3*(V3 - V2);
+    return V;
+
+}
+
+Eigen::Vector3d PSUtility::EvaluateLinearAccelerate(double u, double dt, const Pose& P0, const Pose& P1,
+                                                  const Pose& P2, const Pose& P3) {
+
+    Eigen::Vector3d V0 = P0.translation();
+    Eigen::Vector3d V1 = P1.translation();
+    Eigen::Vector3d V2 = P2.translation();
+    Eigen::Vector3d V3 = P3.translation();
+    double  ddBeta1 = QSUtility::dot_dot_beta1(dt, u);
+    double  ddBeta2 = QSUtility::dot_dot_beta2(dt, u);
+    double  ddBeta3 = QSUtility::dot_dot_beta3(dt, u);
+
+    Eigen::Vector3d accel =  ddBeta1*(V1 - V0) +  ddBeta2*(V2 - V1) + ddBeta3*(V3 - V2);
+    return accel;
+
+}
+
 
 Pose PoseSplineEvaluation::operator() (double u, const Pose& P0, const Pose& P1,
                  const Pose& P2, const Pose& P3) {

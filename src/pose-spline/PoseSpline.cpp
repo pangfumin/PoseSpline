@@ -1,6 +1,7 @@
 #include "pose-spline/PoseSpline.hpp"
 #include "utility/Time.hpp"
 #include "pose-spline/PoseLocalParameter.hpp"
+#include "pose-spline/PoseSplineSampleError.hpp"
 namespace ze {
     PoseSpline::PoseSpline(int spline_order)
             : BSpline(spline_order), mTimeInterval(0) {
@@ -89,6 +90,19 @@ namespace ze {
             double *cp3 = getControlPoint(bidx + 3);
 
 
+            PoseSplineSampleError* poseSampleFunctor = new PoseSplineSampleError(u,i.second);
+/*
+            std::cout<<"Q0: "<<CpMap0.transpose()<<std::endl;
+            std::cout<<"Q1: "<<CpMap1.transpose()<<std::endl;
+            std::cout<<"Q2: "<<CpMap2.transpose()<<std::endl;
+            std::cout<<"Q3: "<<CpMap3.transpose()<<std::endl;
+*/
+            problem.AddParameterBlock(cp0,4,poseLocalParameter);
+            problem.AddParameterBlock(cp1,4,poseLocalParameter);
+            problem.AddParameterBlock(cp2,4,poseLocalParameter);
+            problem.AddParameterBlock(cp3,4,poseLocalParameter);
+
+            problem.AddResidualBlock(poseSampleFunctor, NULL, cp0, cp1, cp2, cp3);
 
         }
         //std::cout<<"ParameterNum: "<<problem.NumParameterBlocks()<<std::endl;
@@ -137,6 +151,15 @@ namespace ze {
 
 
     }
+
+    void PoseSpline::initialNewControlPoint(){
+
+        Pose unit;
+        double* data = new double[7];
+        memcpy(data, unit.parameterPtr(),sizeof(double)*7);
+        mControlPointsParameter.push_back(data);
+    }
+
 
     void PoseSpline::printKnots() {
         std::cout << "knot: " << std::endl;

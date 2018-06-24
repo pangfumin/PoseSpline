@@ -18,11 +18,6 @@ public:
     virtual ~VectorSplineSampleAutoError();
 
 
-//    template <typename T>
-//    bool operator()(const T* const x , const T* const y, T* e) const {
-//        e[0] = k_ - x[0] * y[0] - x[1] * y[1];
-//        return true;
-//    }
 
     template <typename T>
     bool operator()(const T* const params0,
@@ -30,9 +25,7 @@ public:
                     const T* const params2,
                     const T* const params3,
                     T* residual) const {
-//        auto trajectory = entity::Map<TrajectoryModel, T>(params, meta);
-//        Eigen::Map<Eigen::Matrix<T,3,1>> r(residual);
-//        r = measurement.Error<TrajectoryModel, T>(trajectory);
+
         Eigen::Map<const Eigen::Matrix<T, 3,1>> V0(params0);
         Eigen::Map<const Eigen::Matrix<T, 3,1>> V1(params1);
         Eigen::Map<const Eigen::Matrix<T, 3,1>> V2(params2);

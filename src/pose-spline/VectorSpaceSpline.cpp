@@ -2,8 +2,10 @@
 #include "pose-spline/QuaternionSplineUtility.hpp"
 #include "pose-spline/QuaternionSplineSampleError.hpp"
 #include "pose-spline/VectorSplineSampleError.hpp"
+#include "pose-spline/VectorSplineSampleAutoError.hpp"
 #include "utility/Time.hpp"
 #include <algorithm>
+
 
 namespace ze {
     VectorSpaceSpline::VectorSpaceSpline(int spline_order)
@@ -91,6 +93,9 @@ namespace ze {
 
             VectorSplineSampleError* vectorSplineSampleError
                     = new VectorSplineSampleError(u,i.second);
+//
+//            ceres::CostFunction* vectorSplineSampleError
+//                    = new ceres::AutoDiffCostFunction<VectorSplineSampleAutoError,3,3,3,3,3>(new VectorSplineSampleAutoError(u, i.second));
 
             problem.AddParameterBlock(cp0,3);
             problem.AddParameterBlock(cp1,3);

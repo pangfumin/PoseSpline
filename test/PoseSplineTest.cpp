@@ -6,6 +6,7 @@
 #include "pose-spline/Quaternion.hpp"
 #include "pose-spline/QuaternionSpline.hpp"
 #include <pose-spline/QuaternionSplineUtility.hpp>
+#include <pose-spline/PoseSpline.hpp>
 
 
 using namespace ze;
@@ -14,6 +15,12 @@ std::pair<double,Quaternion>  getSample(ze::TupleVector& data, unsigned int i){
     ze::TrajectoryEle  p0 = data.at(i);
     Quaternion q = std::get<2>(p0);
     return std::make_pair(std::get<0>(p0)*1e-9,q);
+};
+
+std::pair<double,Eigen::Vector3d>  getPositionSample(ze::TupleVector& data, unsigned int i){
+    ze::TrajectoryEle  p0 = data.at(i);
+    Eigen::Vector3d t = std::get<1>(p0);
+    return std::make_pair(std::get<0>(p0)*1e-9,t);
 };
 
 
@@ -45,21 +52,23 @@ int main(int argc, char** argv){
     LOG(INFO)<<"Get gyro Meas  size: "<<gyroMeas.size(); // @200Hz
 
     int start  = 1;
-    int end = data.size() - 2;
+    int end = data.size()/100;
 
-    ze::QuaternionSpline qspline(4,0.1);
-    std::vector<std::pair<double,Quaternion>> samples, queryMeas;
+    //ze::QuaternionSpline qspline(4,0.1);
+    ze::PoseSpline poseSpline(4, 0.1);
+    std::vector<std::pair<double,Pose>> samples, queryMeas;
 
     for(uint i = start; i <end; i++){
 
-        queryMeas.push_back(getSample( data,  i));
+        Pose pose(getPositionSample( data,  i).second,getSample( data,  i).second);
+        queryMeas.push_back(std::pair<double,Pose>(getPositionSample( data,  i).first, pose ) );
         if(i % 4  == 0){
-            samples.push_back(getSample( data,  i));
+            samples.push_back(std::pair<double,Pose>(getPositionSample( data,  i).first, pose ));
 
         }
     }
 
-    qspline.initialQuaternionSpline(samples);
+    poseSpline.initialPoseSpline(samples);
 
     /*
      *  Test: qspline.evalQuatSpline
@@ -67,17 +76,18 @@ int main(int argc, char** argv){
 
     for(auto i: queryMeas){
 
-        if(qspline.isTsEvaluable(i.first)){
-            Quaternion query = qspline.evalQuatSpline(i.first);
+        if(poseSpline.isTsEvaluable(i.first)){
+            Pose query = poseSpline.evalPoseSpline(i.first);
 
-            Eigen::Vector3d diff = (quatLeftComp(i.second)*quatInv(query)).head(3);
-            CHECK_EQ(diff.norm() < 0.01,true)<<"Qspline query is not close to the ground truth!"
-                                              <<"Gt:    "<<i.second.transpose()<<std::endl
-                                              <<"Query: "<<query.transpose()<<std::endl
-                                              <<"diff:  "<<diff.transpose()<<std::endl<<std::endl;
+           // Eigen::Vector3d diff = (quatLeftComp(i.second)*quatInv(query)).head(3);
+            //Pose diff = query.inverse()*i.second;
+//            CHECK_EQ(diff.r().norm() < 0.1 && diff.q().norm() < 0.01,true)<<"Qspline query is not close to the ground truth!"
+//                                              <<"Gt:    "<<i.second.r().transpose() << " " << i.second.q().transpose()<<std::endl
+//                                              <<"Query: "<<query.r().transpose()<<" "<< query.q().transpose()<< std::endl
+//                                              <<"diff:  "<<diff.r().transpose()<<" "<< diff.q().transpose()<< std::endl<<std::endl;
 
-            std::cout <<"Gt:    "<<i.second.transpose()<<std::endl;
-            std::cout <<"Query: "<<query.transpose()<<std::endl;
+            std::cout <<"Gt:    "<<i.second.r().transpose() << " " << i.second.q().transpose()<<std::endl;
+            std::cout <<"Query: "<<query.r().transpose()<<" "<< query.q().transpose()<< std::endl << std::endl;
 
         }
 

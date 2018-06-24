@@ -1,5 +1,5 @@
 #include "pose-spline/VectorSplineSampleError.hpp"
-#include "pose-spline/QuaternionSplineUtility.hpp"
+
 
 
 VectorSplineSampleError::VectorSplineSampleError(const double& t_meas,
@@ -43,7 +43,6 @@ bool VectorSplineSampleError::EvaluateWithMinimalJacobians(double const* const *
     error = squareRootInformation_*(V_hat - V_Meas_);
 
     if(jacobians != NULL){
-
 
         if(jacobians[0] != NULL){
             Eigen::Map<Eigen::Matrix<double,3,3,Eigen::RowMajor>> J0(jacobians[0]);
@@ -106,7 +105,6 @@ bool VectorSplineSampleError::EvaluateWithMinimalJacobians(double const* const *
 
             //std::cout<<"J3: "<<std::endl<<J3<<std::endl;
 
-
             if(jacobiansMinimal != NULL &&  jacobiansMinimal[3] != NULL){
 
                 Eigen::Map<Eigen::Matrix<double,3,3,Eigen::RowMajor>> J3_minimal_map(jacobiansMinimal[3]);
@@ -120,15 +118,3 @@ bool VectorSplineSampleError::EvaluateWithMinimalJacobians(double const* const *
     return true;
 }
 
-
-/*
- * NOT finished.
- * Add not used any more.
- * It is recommend to use Numdifferentiator instead.
- */
-bool VectorSplineSampleError::VerifyJacobianNumDiff(double const* const* parameters){
-
-
-    return 0;
-
-}

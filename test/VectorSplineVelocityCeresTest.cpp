@@ -90,9 +90,9 @@ int main(int argc, char** argv){
 
     // check jacobian_minimal0
     Eigen::Matrix<double,3,3,Eigen::RowMajor> numJacobian_min0;
-    NumbDifferentiiator<VectorSplineSampleVelocityError,4>
-                                numbDifferentiiator(vectorSplineSampleVelocityError);
-    numbDifferentiiator.df_r_xi<3,3>(paramters,0,numJacobian_min0.data());
+    NumbDifferentiator<VectorSplineSampleVelocityError,4>
+                                numbDifferentiator(vectorSplineSampleVelocityError);
+    numbDifferentiator.df_r_xi<3,3>(paramters,0,numJacobian_min0.data());
 
     std::cout<<"numJacobian_min0: "<<std::endl<<numJacobian_min0<<std::endl;
     std::cout<<"AnaliJacobian_minimal0*numJacobian_min0: "<<
@@ -100,7 +100,7 @@ int main(int argc, char** argv){
 
     // check jacobian_minimal1
     Eigen::Matrix<double,3,3,Eigen::RowMajor> numJacobian_min1;
-    numbDifferentiiator.df_r_xi<3,3>(paramters,1,numJacobian_min1.data());
+    numbDifferentiator.df_r_xi<3,3>(paramters,1,numJacobian_min1.data());
 
     std::cout<<"numJacobian_min1: "<<std::endl<<numJacobian_min1<<std::endl;
     std::cout<<"AnaliJacobian_minimal1*numJacobian_min1: "<<
@@ -108,7 +108,7 @@ int main(int argc, char** argv){
 
     // check jacobian_minimal2
     Eigen::Matrix<double,3,3,Eigen::RowMajor> numJacobian_min2;
-    numbDifferentiiator.df_r_xi<3,3>(paramters,2,numJacobian_min2.data());
+    numbDifferentiator.df_r_xi<3,3>(paramters,2,numJacobian_min2.data());
 
     std::cout<<"numJacobian_min2: "<<std::endl<<numJacobian_min2<<std::endl;
     std::cout<<"AnaliJacobian_minimal2*numJacobian_min2: "<<
@@ -116,7 +116,7 @@ int main(int argc, char** argv){
 
     // check jacobian_minimal3
     Eigen::Matrix<double,3,3,Eigen::RowMajor> numJacobian_min3;
-    numbDifferentiiator.df_r_xi<3,3>(paramters,3,numJacobian_min3.data());
+    numbDifferentiator.df_r_xi<3,3>(paramters,3,numJacobian_min3.data());
 
     std::cout<<"numJacobian_min3: "<<std::endl<<numJacobian_min3<<std::endl;
     std::cout<<"AnaliJacobian_minimal3*numJacobian_min3: "<<

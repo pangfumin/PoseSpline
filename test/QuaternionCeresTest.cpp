@@ -20,7 +20,7 @@ bool test(Quaternion Q_target, Quaternion Q_param){
     // check jacobians
     Eigen::Matrix<double,3,3,Eigen::RowMajor> numMinimalJacobian0;
     numMinimalJacobian0.setIdentity();
-    NumbDifferentiiator<QuaternionErrorCostFunction,1> numDiffer(quaternionError);
+    NumbDifferentiator<QuaternionErrorCostFunction,1> numDiffer(quaternionError);
     numDiffer.df_r_xi<3,4,3,QuaternionLocalParameter>(parametrs,0,numMinimalJacobian0.data());
 
     std::cout<<"Numdiffer: "<<std::endl<<numMinimalJacobian0<<std::endl;

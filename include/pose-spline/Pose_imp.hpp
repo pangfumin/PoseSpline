@@ -196,8 +196,7 @@ inline void Pose::setRandom(double translationMaxMeters,
     Eigen::Vector3d r = translationMaxMeters * Eigen::Vector3d::Random();
     r_ = r;
     C_ = Eigen::AngleAxisd(axis.norm(), axis.normalized());
-    //updateC(); //pang
-    updateQ();
+    q_ = rotMatToQuat(C_);
 
 }
 
@@ -205,7 +204,7 @@ inline void Pose::setRandom(double translationMaxMeters,
 inline void Pose::set(const Eigen::Matrix4d & T_AB) {
     r_ = (T_AB.topRightCorner<3, 1>());
     C_ = (T_AB.topLeftCorner<3, 3>());
-    updateQ();
+    q_ = rotMatToQuat(C_);
 }
 inline void Pose::set(const Eigen::Vector3d & r_AB,
                                 const Quaternion& q_AB) {
@@ -255,9 +254,6 @@ inline void Pose::updateC() {
     C_ = quatToRotMat<double>(q_);
 }
 
-inline void Pose::updateQ() {
-    q_ = rotMatToQuat<double>(C_);
-}
 
 // apply small update:
 template<typename Derived_delta>
@@ -317,3 +313,12 @@ inline bool Pose::liftJacobian(const Eigen::MatrixBase<Derived_jacobian> & jacob
             = 2*quatRightComp<double>(quatInv<double>(q_)).template topLeftCorner<3,4>();
     return true;
 }
+
+inline  Quaternion Pose::rotation() const {
+    return q_;
+}
+
+inline  Eigen::Vector3d Pose::translation() const {
+    return r_;
+}
+

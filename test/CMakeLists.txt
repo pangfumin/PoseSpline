@@ -25,6 +25,13 @@ target_link_libraries(SplineTest
         PoseSpline)
 
 
+
+add_executable(PoseSplineTest PoseSplineTest.cpp)
+target_link_libraries(PoseSplineTest
+        PoseSpline)
+
+
+
 add_executable(VectorSpaceSplineTest VectorSpaceSplineTest.cpp)
 target_link_libraries(VectorSpaceSplineTest
         PoseSpline)
@@ -37,6 +44,30 @@ add_executable(QuaternionOmegaSampleErrorTest QuaternionOmegaSampleErrorTest.cpp
 target_link_libraries(QuaternionOmegaSampleErrorTest
         PoseSpline)
 
+add_executable(testPinholeProjectFactor testPinholeProjectFactor.cpp)
+target_link_libraries(testPinholeProjectFactor
+        PoseSpline)
+
+add_executable(testProjectError testProjectError.cpp)
+target_link_libraries(testProjectError
+        PoseSpline)
+
+add_executable(testPoseSplineSampleError testPoseSplineSampleError.cpp)
+target_link_libraries(testPoseSplineSampleError
+        PoseSpline)
+
+
+add_executable(testSplineRotateError testSplineRotateError.cpp)
+target_link_libraries(testSplineRotateError
+        PoseSpline)
+
+
+
+#
+#add_executable(testDataReader testDataReader.cpp)
+#target_link_libraries(testDataReader
+#        PoseSpline)
+#
 
 
 add_executable(test_main

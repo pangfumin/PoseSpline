@@ -1,6 +1,8 @@
 #include "pose-spline/PoseSpline.hpp"
 #include "utility/Time.hpp"
 #include "pose-spline/PoseLocalParameter.hpp"
+#include "pose-spline/PoseSplineSampleError.hpp"
+#include "pose-spline/PoseSplineUtility.hpp"
 namespace ze {
     PoseSpline::PoseSpline(int spline_order)
             : BSpline(spline_order), mTimeInterval(0) {
@@ -89,6 +91,19 @@ namespace ze {
             double *cp3 = getControlPoint(bidx + 3);
 
 
+            PoseSplineSampleError* poseSampleFunctor = new PoseSplineSampleError(u,i.second);
+/*
+            std::cout<<"Q0: "<<CpMap0.transpose()<<std::endl;
+            std::cout<<"Q1: "<<CpMap1.transpose()<<std::endl;
+            std::cout<<"Q2: "<<CpMap2.transpose()<<std::endl;
+            std::cout<<"Q3: "<<CpMap3.transpose()<<std::endl;
+*/
+            problem.AddParameterBlock(cp0,7,poseLocalParameter);
+            problem.AddParameterBlock(cp1,7,poseLocalParameter);
+            problem.AddParameterBlock(cp2,7,poseLocalParameter);
+            problem.AddParameterBlock(cp3,7,poseLocalParameter);
+
+            problem.AddResidualBlock(poseSampleFunctor, NULL, cp0, cp1, cp2, cp3);
 
         }
         //std::cout<<"ParameterNum: "<<problem.NumParameterBlocks()<<std::endl;
@@ -137,6 +152,35 @@ namespace ze {
 
 
     }
+
+    void PoseSpline::initialNewControlPoint(){
+
+        Pose unit;
+        double* data = new double[7];
+        memcpy(data, unit.parameterPtr(),sizeof(double)*7);
+        mControlPointsParameter.push_back(data);
+    }
+
+
+    Pose PoseSpline::evalPoseSpline(real_t t ){
+        std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
+        double u = ui.first;
+        unsigned int bidx = ui.second - spline_order_ + 1;
+//
+        Eigen::Map<Eigen::Matrix<double, 3,1>> t0(getControlPoint(bidx));
+        Eigen::Map<Eigen::Matrix<double, 3,1>> t1(getControlPoint(bidx+1));
+        Eigen::Map<Eigen::Matrix<double, 3,1>> t2(getControlPoint(bidx+2));
+        Eigen::Map<Eigen::Matrix<double, 3,1>> t3(getControlPoint(bidx+3));
+
+        Eigen::Map<Eigen::Matrix<double, 4,1>> q0(getControlPoint(bidx) + 3);
+        Eigen::Map<Eigen::Matrix<double, 4,1>> q1(getControlPoint(bidx+1) + 3);
+        Eigen::Map<Eigen::Matrix<double, 4,1>> q2(getControlPoint(bidx+2) + 3);
+        Eigen::Map<Eigen::Matrix<double, 4,1>> q3(getControlPoint(bidx+3) + 3);
+
+        return PSUtility::EvaluatePS(u,
+                                     Pose(t0, q0), Pose(t1, q1), Pose(t2, q2), Pose(t2,q3));
+    }
+
 
     void PoseSpline::printKnots() {
         std::cout << "knot: " << std::endl;

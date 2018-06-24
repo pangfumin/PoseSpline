@@ -1,6 +1,7 @@
 #include "pose-spline/QuaternionSpline.hpp"
 #include "pose-spline/QuaternionSplineUtility.hpp"
 #include "pose-spline/QuaternionSplineSampleError.hpp"
+#include "pose-spline/QuaternionSplineSampleAutoError.hpp"
 #include "utility/Time.hpp"
 #include <algorithm>
 
@@ -100,13 +101,14 @@ namespace ze {
             QuaternionMap CpMap1(cp1);
             QuaternionMap CpMap2(cp2);
             QuaternionMap CpMap3(cp3);
+#if 1
             QuaternionSplineSampleError* quatSampleFunctor = new QuaternionSplineSampleError(u,i.second);
-/*
-            std::cout<<"Q0: "<<CpMap0.transpose()<<std::endl;
-            std::cout<<"Q1: "<<CpMap1.transpose()<<std::endl;
-            std::cout<<"Q2: "<<CpMap2.transpose()<<std::endl;
-            std::cout<<"Q3: "<<CpMap3.transpose()<<std::endl;
-*/
+#else
+            ceres::CostFunction* quatSampleFunctor
+                    = new ceres::AutoDiffCostFunction<QuaternionSplineSampleAutoError,3,4,4,4,4>(
+                            new QuaternionSplineSampleAutoError(u, i.second));
+#endif
+
             problem.AddParameterBlock(cp0,4,quaternionLocalParam);
             problem.AddParameterBlock(cp1,4,quaternionLocalParam);
             problem.AddParameterBlock(cp2,4,quaternionLocalParam);

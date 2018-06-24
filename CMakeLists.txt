@@ -31,15 +31,22 @@ target_link_libraries(Spline
 add_library( PoseSpline
         src/utility/Duration.cpp
         src/utility/Time.cpp
+        src/extern/spline_projection_error.cpp
+        src/extern/pinhole_project_error.cpp
+        src/extern/project_error.cpp
+        src/extern/RotateVectorError.cpp
         src/pose-spline/QuaternionSplineUtility.cpp
         src/pose-spline/QuaternionSpline.cpp
         src/pose-spline/QuaternionLocalParameter.cpp
         src/pose-spline/QuaternionSplineSampleError.cpp
+        src/pose-spline/PoseSplineSampleError.cpp
+        src/pose-spline/PoseSplineUtility.cpp
         src/pose-spline/OmegaExtrinsicTemperalError.cpp
         src/pose-spline/PoseSpline.cpp
         src/pose-spline/PoseLocalParameter.cpp
         src/pose-spline/VectorSpaceSpline.cpp
         src/pose-spline/VectorSplineSampleError.cpp
+        src/pose-spline/VectorSplineSampleAutoError.cpp
         src/pose-spline/VectorSplineSampleVelocityError.cpp
         src/pose-spline/csv_trajectory.cpp)
 

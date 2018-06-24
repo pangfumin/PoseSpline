@@ -1,7 +1,7 @@
 #include "pose-spline/PoseSplineUtility.hpp"
 
-Pose PSUtility::EvaluatePS(double u, const Pose& P0, const Pose& P1,
-                const Pose& P2, const Pose& P3) {
+Pose<double> PSUtility::EvaluatePS(double u, const Pose<double>& P0, const Pose<double>& P1,
+                const Pose<double>& P2, const Pose<double>& P3) {
 
 
     double b1 = QSUtility::beta1(u);
@@ -28,7 +28,7 @@ Pose PSUtility::EvaluatePS(double u, const Pose& P0, const Pose& P1,
 
     Eigen::Vector3d V = V0 + b1*(V1 - V0) +  b2*(V2 - V1) + b3*(V3 - V2);
 
-    return Pose( V, quatLeftComp(Q0)*quatLeftComp(r1)*quatLeftComp(r2)*r3);
+    return Pose<double>( V, quatLeftComp(Q0)*quatLeftComp(r1)*quatLeftComp(r2)*r3);
 }
 
 Eigen::Vector3d PSUtility::EvaluateLinearVelocity(double u, double dt,
@@ -47,8 +47,9 @@ Eigen::Vector3d PSUtility::EvaluateLinearVelocity(double u, double dt,
 
 }
 
-Eigen::Vector3d PSUtility::EvaluateLinearAccelerate(double u, double dt, const Pose& P0, const Pose& P1,
-                                                  const Pose& P2, const Pose& P3) {
+Eigen::Vector3d PSUtility::EvaluateLinearAccelerate(double u, double dt,
+                                                    const Pose<double>& P0, const Pose<double>& P1,
+                                                  const Pose<double>& P2, const Pose<double>& P3) {
 
     Eigen::Vector3d V0 = P0.translation();
     Eigen::Vector3d V1 = P1.translation();
@@ -64,8 +65,11 @@ Eigen::Vector3d PSUtility::EvaluateLinearAccelerate(double u, double dt, const P
 }
 
 
-Pose PoseSplineEvaluation::operator() (double u, const Pose& P0, const Pose& P1,
-                 const Pose& P2, const Pose& P3) {
+Pose<double> PoseSplineEvaluation::operator() (double u,
+                                               const Pose<double>& P0,
+                                               const Pose<double>& P1,
+                                               const Pose<double>& P2,
+                                               const Pose<double>& P3) {
 
     double b1 = QSUtility::beta1(u);
     double b2 = QSUtility::beta2(u);
@@ -136,5 +140,5 @@ Pose PoseSplineEvaluation::operator() (double u, const Pose& P0, const Pose& P1,
     JacobianRotate2 = temp12 - temp23;
     JacobianRotate3 = temp23;
 
-    return Pose( t, Q);
+    return Pose<double>( t, Q);
 }

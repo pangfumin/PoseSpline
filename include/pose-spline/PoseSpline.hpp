@@ -22,15 +22,15 @@ namespace  ze {
 
         bool isTsEvaluable(double ts);
 
-        void addSample(double t, Pose Q);
+        void addSample(double t, Pose<double> Q);
 
-        void initialPoseSpline(std::vector<std::pair<double, Pose>> Meas);
+        void initialPoseSpline(std::vector<std::pair<double, Pose<double>>> Meas);
 
         void initialPoseSplineKnot(double t);
 
         void printKnots();
 
-        Pose evalPoseSpline(real_t t);
+        Pose<double> evalPoseSpline(real_t t);
         Eigen::Vector3d evalLinearVelocity(real_t t );
 
 
@@ -52,8 +52,8 @@ namespace  ze {
         void initialNewControlPoint();
 
         std::vector<double *> mControlPointsParameter;
-        std::vector<Pose> mControlPointPoses;
-        std::map<double, Pose> mSampleValues;
+        std::vector<Pose<double>> mControlPointPoses;
+        std::map<double, Pose<double>> mSampleValues;
         double mTimeInterval;
     };
 

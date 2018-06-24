@@ -7,19 +7,19 @@
 int main() {
 
 
-    Pose pose0;
+    Pose<double> pose0;
     pose0.setRandom();
     std::cout<<pose0.parameters().transpose()<<std::endl;
 
-    Pose pose1;
+    Pose<double> pose1;
     pose1.setRandom();
     std::cout<<pose1.parameters().transpose()<<std::endl;
 
-    Pose pose2;
+    Pose<double> pose2;
     pose2.setRandom();
     std::cout<<pose2.parameters().transpose()<<std::endl;
 
-    Pose pose3;
+    Pose<double> pose3;
     pose3.setRandom();
     std::cout<<pose3.parameters().transpose()<<std::endl;
 
@@ -30,12 +30,12 @@ int main() {
     double u4 = 0.75;
     double u5 = 0.85;
 
-    Pose P_meas = PSUtility::EvaluatePS(u, pose0, pose1, pose2, pose3);
-    Pose P_meas1 = PSUtility::EvaluatePS(u1, pose0, pose1, pose2, pose3);
-    Pose P_meas2 = PSUtility::EvaluatePS(u2, pose0, pose1, pose2, pose3);
-    Pose P_meas3 = PSUtility::EvaluatePS(u3, pose0, pose1, pose2, pose3);
-    Pose P_meas4 = PSUtility::EvaluatePS(u4, pose0, pose1, pose2, pose3);
-    Pose P_meas5 = PSUtility::EvaluatePS(u5, pose0, pose1, pose2, pose3);
+    Pose<double> P_meas = PSUtility::EvaluatePS(u, pose0, pose1, pose2, pose3);
+    Pose<double> P_meas1 = PSUtility::EvaluatePS(u1, pose0, pose1, pose2, pose3);
+    Pose<double> P_meas2 = PSUtility::EvaluatePS(u2, pose0, pose1, pose2, pose3);
+    Pose<double> P_meas3 = PSUtility::EvaluatePS(u3, pose0, pose1, pose2, pose3);
+    Pose<double> P_meas4 = PSUtility::EvaluatePS(u4, pose0, pose1, pose2, pose3);
+    Pose<double> P_meas5 = PSUtility::EvaluatePS(u5, pose0, pose1, pose2, pose3);
 
     std::cout<<"P_meas: "<<P_meas.parameters().transpose()<<std::endl;
 
@@ -70,18 +70,18 @@ int main() {
     *  Test jacobians
     */
 
-    Pose noise;
+    Pose<double> noise;
     noise.setRandom();
-    Pose pose0_noised = pose0*noise;
+    Pose<double> pose0_noised = pose0*noise;
 
     noise.setRandom();
-    Pose pose1_noised = pose1*noise;
+    Pose<double> pose1_noised = pose1*noise;
 
     noise.setRandom();
-    Pose pose2_noised = pose2*noise;
+    Pose<double> pose2_noised = pose2*noise;
 
     noise.setRandom();
-    Pose pose3_noised = pose3*noise;
+    Pose<double> pose3_noised = pose3*noise;
 
     double* paramters_noised[4] = {pose0_noised.parameterPtr(), pose1_noised.parameterPtr(),
                             pose2_noised.parameterPtr(), pose3_noised.parameterPtr()};
@@ -197,10 +197,10 @@ int main() {
 //    std::cout<<"CP3_init: "<<Cp3_init.transpose()<<std::endl<<"After opt: "<<Cp3.transpose()<<std::endl;
 //
 
-    Pose Qhat0 = PSUtility::EvaluatePS(u,pose0,pose1,pose2,pose3);
-    Pose Qhat1 = PSUtility::EvaluatePS(u1,pose0,pose1,pose2,pose3);
-    Pose Qhat2 = PSUtility::EvaluatePS(u2,pose0,pose1,pose2,pose3);
-    Pose Qhat3 = PSUtility::EvaluatePS(u3,pose0,pose1,pose2,pose3);
+    Pose<double> Qhat0 = PSUtility::EvaluatePS(u,pose0,pose1,pose2,pose3);
+    Pose<double> Qhat1 = PSUtility::EvaluatePS(u1,pose0,pose1,pose2,pose3);
+    Pose<double> Qhat2 = PSUtility::EvaluatePS(u2,pose0,pose1,pose2,pose3);
+    Pose<double> Qhat3 = PSUtility::EvaluatePS(u3,pose0,pose1,pose2,pose3);
 
     std::cout<<"Qmeas0: "<<P_meas.r().transpose()<<" "<< P_meas.q().transpose()<<std::endl
              <<"Qhat0: "<<Qhat0.r().transpose()<<" "<<Qhat0.q().transpose()<<std::endl;

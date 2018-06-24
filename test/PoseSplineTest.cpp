@@ -56,14 +56,14 @@ int main(int argc, char** argv){
 
     //ze::QuaternionSpline qspline(4,0.1);
     ze::PoseSpline poseSpline(4, 0.1);
-    std::vector<std::pair<double,Pose>> samples, queryMeas;
+    std::vector<std::pair<double,Pose<double>>> samples, queryMeas;
 
     for(uint i = start; i <end; i++){
 
-        Pose pose(getPositionSample( data,  i).second,getSample( data,  i).second);
-        queryMeas.push_back(std::pair<double,Pose>(getPositionSample( data,  i).first, pose ) );
+        Pose<double> pose(getPositionSample( data,  i).second,getSample( data,  i).second);
+        queryMeas.push_back(std::pair<double,Pose<double>>(getPositionSample( data,  i).first, pose ) );
         if(i % 4  == 0){
-            samples.push_back(std::pair<double,Pose>(getPositionSample( data,  i).first, pose ));
+            samples.push_back(std::pair<double,Pose<double>>(getPositionSample( data,  i).first, pose ));
 
         }
     }
@@ -77,7 +77,7 @@ int main(int argc, char** argv){
     for(auto i: queryMeas){
 
         if(poseSpline.isTsEvaluable(i.first)){
-            Pose query = poseSpline.evalPoseSpline(i.first);
+            Pose<double> query = poseSpline.evalPoseSpline(i.first);
 //
 //            std::cout <<"Gt:    "<<i.second.r().transpose() << " " << i.second.q().transpose()<<std::endl;
 //            std::cout <<"Query: "<<query.r().transpose()<<" "<< query.q().transpose()<< std::endl << std::endl;

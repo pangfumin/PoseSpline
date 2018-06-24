@@ -7,23 +7,23 @@
 
 class PSUtility {
 public:
-    static Pose EvaluatePS(double u, const Pose& P0, const Pose& P1,
-                            const Pose& P2, const Pose& P3);
+    static Pose<double> EvaluatePS(double u, const Pose<double>& P0, const Pose<double>& P1,
+                            const Pose<double>& P2, const Pose<double>& P3);
     static Eigen::Vector3d EvaluateLinearVelocity(double u, double dt,
                                                   const Eigen::Vector3d& V0,
                                                   const Eigen::Vector3d& V1,
                                                   const Eigen::Vector3d& V2,
                                                   const Eigen::Vector3d& V3);
-    static Eigen::Vector3d EvaluateLinearAccelerate(double u, double dt, const Pose& P0, const Pose& P1,
-                                                        const Pose& P2, const Pose& P3);
+    static Eigen::Vector3d EvaluateLinearAccelerate(double u, double dt, const Pose<double>& P0, const Pose<double>& P1,
+                                                        const Pose<double>& P2, const Pose<double>& P3);
 };
 
 class PoseSplineEvaluation {
 public:
     typedef Eigen::Matrix<double, 3,3>  TranslationJacobian;
     typedef Eigen::Matrix<double, 4,3>  RotationJacobian;
-    Pose operator() (double u, const Pose& P0, const Pose& P1,
-                     const Pose& P2, const Pose& P3);
+    Pose<double> operator() (double u, const Pose<double>& P0, const Pose<double>& P1,
+                     const Pose<double>& P2, const Pose<double>& P3);
     template <int D>
     TranslationJacobian  getTranslationJacobian () {
         if (D == 0){

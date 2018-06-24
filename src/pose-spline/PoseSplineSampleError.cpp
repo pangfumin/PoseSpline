@@ -4,7 +4,7 @@
 
 
 PoseSplineSampleError::PoseSplineSampleError(double t_meas,
-                                                         Pose T_meas):
+                                             Pose<double> T_meas):
         t_meas_(t_meas),T_Meas_(T_meas){
 
 };
@@ -25,7 +25,7 @@ bool PoseSplineSampleError::EvaluateWithMinimalJacobians(double const* const * p
                                                                double** jacobians,
                                                                double** jacobiansMinimal) const {
 
-    Pose T0, T1, T2, T3;
+    Pose<double> T0, T1, T2, T3;
     Eigen::Map<const Eigen::Matrix<double, 7, 1>> map_T0(parameters[0]);
     T0.setParameters(map_T0);
 

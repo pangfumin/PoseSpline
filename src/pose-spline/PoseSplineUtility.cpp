@@ -1,6 +1,6 @@
 #include "pose-spline/PoseSplineUtility.hpp"
 
-Pose PSUtility::EvaluateQS(double u, const Pose& P0, const Pose& P1,
+Pose PSUtility::EvaluatePS(double u, const Pose& P0, const Pose& P1,
                 const Pose& P2, const Pose& P3) {
 
 

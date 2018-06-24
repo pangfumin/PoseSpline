@@ -7,7 +7,7 @@
 
 class PSUtility {
 public:
-    static Pose EvaluateQS(double u, const Pose& P0, const Pose& P1,
+    static Pose EvaluatePS(double u, const Pose& P0, const Pose& P1,
                             const Pose& P2, const Pose& P3);
 };
 

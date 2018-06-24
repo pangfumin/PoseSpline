@@ -24,8 +24,18 @@ int main() {
     std::cout<<pose3.parameters().transpose()<<std::endl;
 
     double u = 0.5;
+    double u1 = 0.15;
+    double u2 = 0.25;
+    double u3 = 0.45;
+    double u4 = 0.75;
+    double u5 = 0.85;
 
-    Pose P_meas = PSUtility::EvaluateQS(u, pose0, pose1, pose2, pose3);
+    Pose P_meas = PSUtility::EvaluatePS(u, pose0, pose1, pose2, pose3);
+    Pose P_meas1 = PSUtility::EvaluatePS(u1, pose0, pose1, pose2, pose3);
+    Pose P_meas2 = PSUtility::EvaluatePS(u2, pose0, pose1, pose2, pose3);
+    Pose P_meas3 = PSUtility::EvaluatePS(u3, pose0, pose1, pose2, pose3);
+    Pose P_meas4 = PSUtility::EvaluatePS(u4, pose0, pose1, pose2, pose3);
+    Pose P_meas5 = PSUtility::EvaluatePS(u5, pose0, pose1, pose2, pose3);
 
     std::cout<<"P_meas: "<<P_meas.parameters().transpose()<<std::endl;
 
@@ -114,6 +124,99 @@ int main() {
     std::cout<<"numJacobian_min3: "<<std::endl<<numJacobian_min3<<std::endl;
     std::cout<<"AnaliJacobian_minimal3: "<<
              std::endl<<AnaliJacobian_minimal3<<std::endl;
+
+    /*
+     * Optimization test
+     */
+
+    pose0 = pose0_noised;
+    pose1 = pose1_noised;
+    pose2 = pose2_noised;
+    pose3 = pose3_noised;
+
+    ceres::Problem problem;
+    ceres::LossFunction* loss_function =  new ceres::HuberLoss(1.0);
+
+    PoseLocalParameter*  local_parameterization = new PoseLocalParameter;
+
+    problem.AddParameterBlock(pose0.parameterPtr(), 7);
+    problem.SetParameterization(pose0.parameterPtr(),local_parameterization);
+    problem.AddParameterBlock(pose1.parameterPtr(), 7);
+    problem.SetParameterization(pose1.parameterPtr(),local_parameterization);
+    problem.AddParameterBlock(pose2.parameterPtr(), 7);
+    problem.SetParameterization(pose2.parameterPtr(),local_parameterization);
+    problem.AddParameterBlock(pose3.parameterPtr(), 7);
+    problem.SetParameterization(pose3.parameterPtr(),local_parameterization);
+
+    PoseSplineSampleError* quatSplineError = new PoseSplineSampleError(u1,P_meas);
+    PoseSplineSampleError* quatSplineError1 = new PoseSplineSampleError(u2,P_meas1);
+    PoseSplineSampleError* quatSplineError2 = new PoseSplineSampleError(u3,P_meas2);
+    PoseSplineSampleError* quatSplineError3 = new PoseSplineSampleError(u4,P_meas3);
+    PoseSplineSampleError* quatSplineError4 = new PoseSplineSampleError(u5,P_meas4);
+    PoseSplineSampleError* quatSplineError5 = new PoseSplineSampleError(u5,P_meas5);
+
+
+
+
+
+    problem.AddResidualBlock(quatSplineError, loss_function, pose0.parameterPtr(),pose1.parameterPtr(),
+                             pose2.parameterPtr(),pose3.parameterPtr());
+    problem.AddResidualBlock(quatSplineError1, loss_function, pose0.parameterPtr(),pose1.parameterPtr(),
+                             pose2.parameterPtr(),pose3.parameterPtr());
+    problem.AddResidualBlock(quatSplineError2, loss_function, pose0.parameterPtr(),pose1.parameterPtr(),
+                             pose2.parameterPtr(),pose3.parameterPtr());
+    problem.AddResidualBlock(quatSplineError3, loss_function, pose0.parameterPtr(),pose1.parameterPtr(),
+                             pose2.parameterPtr(),pose3.parameterPtr());
+    problem.AddResidualBlock(quatSplineError4, loss_function, pose0.parameterPtr(),pose1.parameterPtr(),
+                             pose2.parameterPtr(),pose3.parameterPtr());
+    problem.AddResidualBlock(quatSplineError5, loss_function, pose0.parameterPtr(),pose1.parameterPtr(),
+                             pose2.parameterPtr(),pose3.parameterPtr());
+
+
+
+    ceres::Solver::Options options;
+
+    options.linear_solver_type = ceres::DENSE_SCHUR;
+    //options.num_threads = 2;
+    //options.trust_region_strategy_type = ceres::DOGLEG;
+    options.max_num_iterations = 100;
+    options.minimizer_progress_to_stdout = true;
+
+    ceres::Solver::Summary summary;
+    ceres::Solve(options, &problem, &summary);
+
+    std::cout<<"--------------"<<std::endl;
+    std::cout << summary.FullReport() << std::endl;
+
+
+
+
+//    std::cout<<"CP0_init: "<<Cp0_init.transpose()<<std::endl<<"After opt: "<<Cp0.transpose()<<std::endl;
+//    std::cout<<"CP1_init: "<<Cp1_init.transpose()<<std::endl<<"After opt: "<<Cp1.transpose()<<std::endl;
+//    std::cout<<"CP2_init: "<<Cp2_init.transpose()<<std::endl<<"After opt: "<<Cp2.transpose()<<std::endl;
+//    std::cout<<"CP3_init: "<<Cp3_init.transpose()<<std::endl<<"After opt: "<<Cp3.transpose()<<std::endl;
+//
+
+    Pose Qhat0 = PSUtility::EvaluatePS(u,pose0,pose1,pose2,pose3);
+    Pose Qhat1 = PSUtility::EvaluatePS(u1,pose0,pose1,pose2,pose3);
+    Pose Qhat2 = PSUtility::EvaluatePS(u2,pose0,pose1,pose2,pose3);
+    Pose Qhat3 = PSUtility::EvaluatePS(u3,pose0,pose1,pose2,pose3);
+
+    std::cout<<"Qmeas0: "<<P_meas.r().transpose()<<" "<< P_meas.q().transpose()<<std::endl
+             <<"Qhat0: "<<Qhat0.r().transpose()<<" "<<Qhat0.q().transpose()<<std::endl;
+
+    std::cout<<"Qmeas1: "<<P_meas1.r().transpose()<<" "<< P_meas1.q().transpose()<<std::endl
+             <<"Qhat1: "<<Qhat1.r().transpose()<<" "<<Qhat1.q().transpose()<<std::endl;
+
+    std::cout<<"Qmeas2: "<<P_meas2.r().transpose()<<" "<< P_meas2.q().transpose()<<std::endl
+             <<"Qhat2: "<<Qhat2.r().transpose()<<" "<<Qhat2.q().transpose()<<std::endl;
+
+    std::cout<<"Qmeas3: "<<P_meas3.r().transpose()<<" "<< P_meas3.q().transpose()<<std::endl
+             <<"Qhat3: "<<Qhat3.r().transpose()<<" "<<Qhat3.q().transpose()<<std::endl;
+
+
+
+
 
     return 0;
 }

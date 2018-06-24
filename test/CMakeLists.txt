@@ -25,6 +25,13 @@ target_link_libraries(SplineTest
         PoseSpline)
 
 
+
+add_executable(PoseSplineTest PoseSplineTest.cpp)
+target_link_libraries(PoseSplineTest
+        PoseSpline)
+
+
+
 add_executable(VectorSpaceSplineTest VectorSpaceSplineTest.cpp)
 target_link_libraries(VectorSpaceSplineTest
         PoseSpline)

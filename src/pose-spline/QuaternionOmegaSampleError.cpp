@@ -73,4 +73,5 @@ bool QuaternionOmegaSampleAutoError::EvaluateWithMinimalJacobians(double const* 
 
     }
 
+    return success;
 }

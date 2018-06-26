@@ -1,19 +1,17 @@
 #ifndef  QUATERNION_OMEGA_SAMPLE_ERROR
 #define  QUATERNION_OMEGA_SAMPLE_ERROR
 
-
+#include <ceres/ceres.h>
 #include "pose-spline/QuaternionSplineUtility.hpp"
-class QuaternionOmegaSampleError{
+struct QuaternionOmegaSampleFunctor{
 
-public:
-    QuaternionOmegaSampleError(const double ts, const double& deltat,
+    QuaternionOmegaSampleFunctor(const double ts, const double& deltat,
                                const Eigen::Vector3d& omegaSample,
                                 const double& weightScale)
             : ts_(ts),
               deltaT_(deltat),
               omegaSample_(omegaSample),
               weightScale_(weightScale){
-
     }
 
     template <typename  T>
@@ -69,17 +67,7 @@ public:
         return true;
     }
 
-    // Create  autodiff cost functions
-    static ceres::CostFunction* Create(const double ts, const double& deltat,
-                                       const Eigen::Vector3d& omegaSample,
-                                       const double& weightScale)
-    {
-        return (new ceres::AutoDiffCostFunction<
-                QuaternionOmegaSampleError, 3, 4, 4, 4, 4>(
-                new QuaternionOmegaSampleError( ts,  deltat,
-                                                 omegaSample,
-                                                weightScale)));
-    }
+
 
 private:
     double ts_;
@@ -87,6 +75,40 @@ private:
     Eigen::Vector3d omegaSample_;
 
     double  weightScale_;
+};
+
+
+
+class QuaternionOmegaSampleAutoError : public ceres::SizedCostFunction<3,
+        4, 4, 4, 4> {
+public:
+    // Takes ownership of functor. Uses the template-provided value for the
+    // number of residuals ("kNumResiduals").
+    explicit QuaternionOmegaSampleAutoError(QuaternionOmegaSampleFunctor* functor)
+            : functor_(functor) {
+
+    }
+
+
+
+    virtual ~QuaternionOmegaSampleAutoError() {}
+
+    // Implementation details follow; clients of the autodiff cost function should
+    // not have to examine below here.
+    //
+    // To handle varardic cost functions, some template magic is needed. It's
+    // mostly hidden inside autodiff.h.
+    virtual bool Evaluate(double const* const* parameters,
+                          double* residuals,
+                          double** jacobians) const;
+
+    bool EvaluateWithMinimalJacobians(double const* const * parameters,
+                                      double* residuals,
+                                      double** jacobians,
+                                      double** jacobiansMinimal) const;
+
+private:
+    QuaternionOmegaSampleFunctor* functor_;
 };
 
 #endif

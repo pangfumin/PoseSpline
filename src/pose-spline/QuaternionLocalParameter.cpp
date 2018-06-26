@@ -20,6 +20,11 @@ bool QuaternionLocalParameter::Plus(const double *x, const double *delta, double
 //And its derivative with respect to Δx at Δx=0.  // r.f furgale, barfoot and okvis
 bool QuaternionLocalParameter::ComputeJacobian(const double *x, double *jacobian) const
 {
+    plusJacobian(x,jacobian);
+    return true;
+}
+
+bool QuaternionLocalParameter::plusJacobian(const double* x,double* jacobian) {
 
     Eigen::Map<const Quaternion> Q_(x);
     Eigen::Map<Eigen::Matrix<double, 4, 3, Eigen::RowMajor>> J(jacobian);
@@ -28,7 +33,9 @@ bool QuaternionLocalParameter::ComputeJacobian(const double *x, double *jacobian
     m.topLeftCorner(3,3).setIdentity();
     J = quatRightComp<double>(Q_)*0.5*m;
     return true;
+
 }
+
 
 /*
  * Note: liftJacobian is [MiniDim x Dim], plusJacobian is [Dim x MiniDim],

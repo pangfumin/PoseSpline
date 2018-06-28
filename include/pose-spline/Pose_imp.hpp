@@ -42,56 +42,57 @@
  * @brief Header file for the Pose class.
  * @author Modified By Pang Fumin
  */
-
-__inline__ double sinc(double x) {
+template <typename T>
+__inline__ T sinc(T x) {
     if (fabs(x) > 1e-6) {
         return sin(x) / x;
     } else {
-        static const double c_2 = 1.0 / 6.0;
-        static const double c_4 = 1.0 / 120.0;
-        static const double c_6 = 1.0 / 5040.0;
-        const double x_2 = x * x;
-        const double x_4 = x_2 * x_2;
-        const double x_6 = x_2 * x_2 * x_2;
-        return 1.0 - c_2 * x_2 + c_4 * x_4 - c_6 * x_6;
+        static const T c_2 = T(1.0 / 6.0);
+        static const T c_4 = T(1.0 / 120.0);
+        static const T c_6 = T(1.0 / 5040.0);
+        const T x_2 = x * x;
+        const T x_4 = x_2 * x_2;
+        const T x_6 = x_2 * x_2 * x_2;
+        return T(1.0) - c_2 * x_2 + c_4 * x_4 - c_6 * x_6;
     }
 }
-
-__inline__ Quaternion deltaQ(const Eigen::Vector3d& dAlpha)
+template <typename T>
+__inline__ Eigen::Matrix<T,4,1> deltaQ(const Eigen::Matrix<T,3,1>& dAlpha)
 {
-    Quaternion dq;
-    double halfnorm = 0.5 * dAlpha.template tail<3>().norm();
+    Eigen::Matrix<T,4,1> dq;
+    T halfnorm = T(0.5) * dAlpha.template tail<3>().norm();
     dq.template head<3>() = sinc(halfnorm) * 0.5 * dAlpha.template tail<3>();
     dq[3] = cos(halfnorm);
     return dq;
 }
 
 // Right Jacobian, see Forster et al. RSS 2015 eqn. (8)
-__inline__ Eigen::Matrix3d rightJacobian(const Eigen::Vector3d & PhiVec) {
-    const double Phi = PhiVec.norm();
-    Eigen::Matrix3d retMat = Eigen::Matrix3d::Identity();
-    const Eigen::Matrix3d Phi_x = crossMat(PhiVec);
-    const Eigen::Matrix3d Phi_x2 = Phi_x*Phi_x;
-    if(Phi < 1.0e-4) {
-        retMat += -0.5*Phi_x + 1.0/6.0*Phi_x2;
+template <typename T>
+__inline__ Eigen::Matrix<T,3,3> rightJacobian(const Eigen::Matrix<T,3,1> & PhiVec) {
+    const T Phi = PhiVec.norm();
+    Eigen::Matrix<T,3,3> retMat = Eigen::Matrix<T,3,3>::Identity();
+    const  Eigen::Matrix<T,3,3> Phi_x = crossMat(PhiVec);
+    const  Eigen::Matrix<T,3,3> Phi_x2 = Phi_x*Phi_x;
+    if(Phi < T(1.0e-4)) {
+        retMat += T(-0.5)*Phi_x + T(1.0/6.0)*Phi_x2;
     } else {
-        const double Phi2 = Phi*Phi;
-        const double Phi3 = Phi2*Phi;
-        retMat += -(1.0-cos(Phi))/(Phi2)*Phi_x + (Phi-sin(Phi))/Phi3*Phi_x2;
+        const T Phi2 = Phi*Phi;
+        const T Phi3 = Phi2*Phi;
+        retMat += -(T(1.0)-cos(Phi))/(Phi2)*Phi_x + (Phi-sin(Phi))/Phi3*Phi_x2;
     }
     return retMat;
 }
 
-
-inline Pose::Pose(const Pose & other)
+template <typename T>
+inline Pose<T>::Pose(const Pose & other)
         : parameters_(other.parameters_),
           r_(&parameters_[0]),
           q_(&parameters_[3]),
           C_(other.C_) {
 
 }
-
-inline Pose::Pose(Pose && other)
+template <typename T>
+inline Pose<T>::Pose(Pose && other)
         : parameters_(std::move(other.parameters_)),
           r_(&parameters_[0]),
           q_(&parameters_[3]),
@@ -99,16 +100,18 @@ inline Pose::Pose(Pose && other)
 
 }
 
-inline Pose::Pose()
+template <typename T>
+inline Pose<T>::Pose()
         : r_(&parameters_[0]),
           q_(&parameters_[3]),
-          C_(Eigen::Matrix3d::Identity()) {
-    r_ = Eigen::Vector3d(0.0, 0.0, 0.0);
-    q_ = unitQuat<double>();
+          C_(Eigen::Matrix<T,3,3>::Identity()) {
+    r_ = Eigen::Matrix<T,3,1>(0.0, 0.0, 0.0);
+    q_ = unitQuat<T>();
 }
 
-inline Pose::Pose(const Eigen::Vector3d & r_AB,
-                                      const Quaternion& q_AB)
+template <typename T>
+inline Pose<T>::Pose(const Eigen::Matrix<T,3,1> & r_AB,
+                                      const Eigen::Matrix<T,4,1>& q_AB)
         : r_(&parameters_[0]),
           q_(&parameters_[3]) {
     r_ = r_AB;
@@ -116,31 +119,34 @@ inline Pose::Pose(const Eigen::Vector3d & r_AB,
     updateC();
 }
 
-inline Pose::Pose(const Eigen::Matrix<double,7,1>& vec): r_(&parameters_[0]),
+template <typename T>
+inline Pose<T>::Pose(const Eigen::Matrix<T,7,1>& vec): r_(&parameters_[0]),
                                                          q_(&parameters_[3]) {
-    r_ = vec.head<3>();
-    q_ = vec.tail<4>();
-    q_ = quatNorm<double>(q_);
+    r_ = vec.template head<3>();
+    q_ = vec.template tail<4>();
+    q_ = quatNorm<T>(q_);
     updateC();
 
 }
-inline Pose::Pose(const Eigen::Matrix4d & T_AB)
+template <typename T>
+inline Pose<T>::Pose(const Eigen::Matrix<T,4,4> & T_AB)
         : r_(&parameters_[0]),
           q_(&parameters_[3]),
-          C_(T_AB.topLeftCorner<3, 3>()) {
-    r_ = (T_AB.topRightCorner<3, 1>());
-    q_ = rotMatToQuat<double>(C_);
-    assert(fabs(T_AB(3, 0)) < 1.0e-12);
-    assert(fabs(T_AB(3, 1)) < 1.0e-12);
-    assert(fabs(T_AB(3, 2)) < 1.0e-12);
-    assert(fabs(T_AB(3, 3) - 1.0) < 1.0e-12);
+          C_(T_AB.template topLeftCorner<3, 3>()) {
+    r_ = (T_AB.template topRightCorner<3, 1>());
+    q_ = rotMatToQuat<T>(C_);
+//    assert(fabs(T_AB(3, 0)) < 1.0e-12);
+//    assert(fabs(T_AB(3, 1)) < 1.0e-12);
+//    assert(fabs(T_AB(3, 2)) < 1.0e-12);
+//    assert(fabs(T_AB(3, 3) - 1.0) < 1.0e-12);
 }
-inline Pose::~Pose() {
+template <typename T>
+inline Pose<T>::~Pose() {
 
 }
-
+template<typename T>
 template<typename Derived_coeffs>
-inline bool Pose::setCoeffs(
+inline bool Pose<T>::setCoeffs(
         const Eigen::MatrixBase<Derived_coeffs> & coeffs) {
     EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived_coeffs, 7);
     parameters_ = coeffs;
@@ -149,121 +155,139 @@ inline bool Pose::setCoeffs(
 }
 
 // The underlying transformation
-inline Eigen::Matrix4d Pose::T() const {
-    Eigen::Matrix4d T_ret;
-    T_ret.topLeftCorner<3, 3>() = C_;
-    T_ret.topRightCorner<3, 1>() = r_;
-    T_ret.bottomLeftCorner<1, 3>().setZero();
-    T_ret(3, 3) = 1.0;
+template <typename T>
+inline Eigen::Matrix<T,4,4> Pose<T>::Transformation() const {
+    Eigen::Matrix<T,4,4> T_ret;
+    T_ret.template topLeftCorner<3, 3>() = C_;
+    T_ret.template topRightCorner<3, 1>() = r_;
+    T_ret.template bottomLeftCorner<1, 3>().setZero();
+    T_ret(3, 3) = T(1.0);
     return T_ret;
 }
 
 // return the rotation matrix
-inline const Eigen::Matrix3d & Pose::C() const {
+template <typename T>
+inline const Eigen::Matrix<T,3,3> & Pose<T>::C() const {
     return C_;
 }
 
 // return the translation vector
-inline const Eigen::Map<Eigen::Vector3d> & Pose::r() const {
+template <typename T>
+inline const Eigen::Map<Eigen::Matrix<T,3,1>> & Pose<T>::r() const {
     return r_;
 }
-
-inline const Eigen::Map<Quaternion> & Pose::q() const {
+template <typename T>
+inline const Eigen::Map<Eigen::Matrix<T,4,1>> & Pose<T>::q() const {
     return q_;
 }
 
-inline Eigen::Matrix<double, 3, 4> Pose::T3x4() const {
-    Eigen::Matrix<double, 3, 4> T3x4_ret;
-    T3x4_ret.topLeftCorner<3, 3>() = C_;
-    T3x4_ret.topRightCorner<3, 1>() = r_;
+template <typename T>
+inline Eigen::Matrix<T, 3, 4> Pose<T>::T3x4() const {
+    Eigen::Matrix<T, 3, 4> T3x4_ret;
+    T3x4_ret.template topLeftCorner<3, 3>() = C_;
+    T3x4_ret.template topRightCorner<3, 1>() = r_;
     return T3x4_ret;
 }
 // Return a copy of the transformation inverted.
-inline Pose Pose::inverse() const {
-    return Pose(-(C_.transpose() * r_), quatInv<double>(q_));
+template <typename T>
+inline Pose<T> Pose<T>::inverse() const {
+    return Pose<T>(-(C_.transpose() * r_), quatInv<T>(q_));
 }
 
 // Set this to a random transformation.
-inline void Pose::setRandom() {
-    setRandom(1.0, M_PI);
+template <typename T>
+inline void Pose<T>::setRandom() {
+    setRandom(T(1.0), T(M_PI));
 }
 // Set this to a random transformation with bounded rotation and translation.
-inline void Pose::setRandom(double translationMaxMeters,
-                                      double rotationMaxRadians) {
+template <typename T>
+inline void Pose<T>::setRandom(T translationMaxMeters,
+                                      T rotationMaxRadians) {
     // Create a random unit-length axis.
-    Eigen::Vector3d axis = rotationMaxRadians * Eigen::Vector3d::Random();
+    Eigen::Matrix<T,3,1> axis = rotationMaxRadians * Eigen::Matrix<T,3,1>::Random();
     // Create a random rotation angle in radians.
-    Eigen::Vector3d r = translationMaxMeters * Eigen::Vector3d::Random();
+    Eigen::Matrix<T,3,1> r = translationMaxMeters * Eigen::Matrix<T,3,1>::Random();
     r_ = r;
-    C_ = Eigen::AngleAxisd(axis.norm(), axis.normalized());
-    q_ = rotMatToQuat(C_);
-
+    C_ = Eigen::AngleAxis<T>(axis.norm(), axis.normalized());
+    q_ = rotMatToQuat<T>(C_);
 }
 
 // Setters
-inline void Pose::set(const Eigen::Matrix4d & T_AB) {
-    r_ = (T_AB.topRightCorner<3, 1>());
-    C_ = (T_AB.topLeftCorner<3, 3>());
+template <typename T>
+inline void Pose<T>::set(const Eigen::Matrix<T,4,4> & T_AB) {
+    r_ = (T_AB.template topRightCorner<3, 1>());
+    C_ = (T_AB.template topLeftCorner<3, 3>());
     q_ = rotMatToQuat(C_);
 }
-inline void Pose::set(const Eigen::Vector3d & r_AB,
-                                const Quaternion& q_AB) {
+template <typename T>
+
+inline void Pose<T>::set(const Eigen::Matrix<T,3,1> & r_AB,
+                                const Eigen::Matrix<T,4,1>& q_AB) {
     r_ = r_AB;
-    q_ = quatNorm<double>(q_AB);
+    q_ = quatNorm<T>(q_AB);
 
     updateC();
 }
 // Set this transformation to identity
-inline void Pose::setIdentity() {
-    q_ = unitQuat<double>();
+template <typename T>
+inline void Pose<T>::setIdentity() {
+    q_ = unitQuat<T>();
     r_.setZero();
     C_.setIdentity();
 }
 
-inline Pose Pose::Identity() {
-    return Pose();
+template <typename T>
+inline Pose<T> Pose<T>::Identity() {
+    return Pose<T>();
 }
 
 // operator*
-inline Pose Pose::operator*(
+template <typename T>
+inline Pose<T> Pose<T>::operator*(
         const Pose & rhs) const {
-    return Pose(C_ * rhs.r_ + r_, quatLeftComp<double>(q_) * rhs.q_);
+    return Pose(C_ * rhs.r_ + r_, quatLeftComp<T>(q_) * rhs.q_);
 }
-inline Eigen::Vector3d Pose::operator*(
-        const Eigen::Vector3d & rhs) const {
+template <typename T>
+inline Eigen::Matrix<T,3,1> Pose<T>::operator*(
+        const Eigen::Matrix<T,3,1> & rhs) const {
     return C_ * rhs;
 }
-inline Eigen::Vector4d Pose::operator*(
-        const Eigen::Vector4d & rhs) const {
-    const double s = rhs[3];
-    Eigen::Vector4d retVec;
-    retVec.head<3>() = C_ * rhs.head<3>() + r_ * s;
+template <typename T>
+inline Eigen::Matrix<T,4,1> Pose<T>::operator*(
+        const Eigen::Matrix<T,4,1> & rhs) const {
+    const T s = rhs[3];
+    Eigen::Matrix<T,4,1> retVec;
+    retVec.template head<3>() = C_ * rhs.template head<3>() + r_ * s;
     retVec[3] = s;
     return retVec;
 }
 
-inline Pose& Pose::operator=(const Pose & rhs) {
+template <typename T>
+inline Pose<T>& Pose<T>::operator=(const Pose<T> & rhs) {
     parameters_ = rhs.parameters_;
     C_ = rhs.C_;
-    r_ = Eigen::Map<Eigen::Vector3d>(&parameters_[0]);
-    q_ = Eigen::Map<Quaternion>(&parameters_[3]);
+    r_ = Eigen::Map<Eigen::Matrix<T,3,1>>(&parameters_[0]);
+    q_ = Eigen::Map<Eigen::Matrix<T,4,1>>(&parameters_[3]);
     return *this;
 }
 
-inline void Pose::updateC() {
-    C_ = quatToRotMat<double>(q_);
+
+template <typename T>
+inline void Pose<T>::updateC() {
+    C_ = quatToRotMat<T>(q_);
 }
 
 
 // apply small update:
+template <typename T>
 template<typename Derived_delta>
-inline bool Pose::oplus(
+inline bool Pose<T>::oplus(
         const Eigen::MatrixBase<Derived_delta> & delta) {
     EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived_delta, 6);
     r_ += delta.template head<3>();
-    Quaternion dq;
-    double halfnorm = 0.5 * delta.template tail<3>().norm();
-    dq.template head<3>() = sinc(halfnorm) * 0.5 * delta.template tail<3>();
+    Eigen::Matrix<T,4,1> dq;
+    T halfnorm = T(0.5) * delta.template tail<3>().norm();
+    dq.template head<3>() = sinc(halfnorm) * T(0.5) * delta.template tail<3>();
     dq[3] = cos(halfnorm);
     q_ = (quatLeftComp(dq) * q_);
     q_.normalize();
@@ -271,8 +295,9 @@ inline bool Pose::oplus(
     return true;
 }
 
+template <typename T>
 template<typename Derived_delta, typename Derived_jacobian>
-inline bool Pose::oplus(
+inline bool Pose<T>::oplus(
         const Eigen::MatrixBase<Derived_delta> & delta,
         const Eigen::MatrixBase<Derived_jacobian> & jacobian) {
     EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Derived_delta, 6);
@@ -282,18 +307,18 @@ inline bool Pose::oplus(
     }
     return oplusJacobian(jacobian);
 }
-
+template <typename T>
 template<typename Derived_jacobian>
-inline bool Pose::oplusJacobian(
+inline bool Pose<T>::oplusJacobian(
         const Eigen::MatrixBase<Derived_jacobian> & jacobian) const {
     EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Derived_jacobian, 7, 6);
     Eigen::Matrix<double, 4, 3> S = Eigen::Matrix<double, 4, 3>::Zero();
     const_cast<Eigen::MatrixBase<Derived_jacobian>&>(jacobian).setZero();
     const_cast<Eigen::MatrixBase<Derived_jacobian>&>(jacobian)
             .template topLeftCorner<3, 3>().setIdentity();
-    S(0, 0) = 0.5;
-    S(1, 1) = 0.5;
-    S(2, 2) = 0.5;
+    S(0, 0) = T(0.5);
+    S(1, 1) = T(0.5);
+    S(2, 2) = T(0.5);
     const_cast<Eigen::MatrixBase<Derived_jacobian>&>(jacobian)
             .template bottomRightCorner<4, 3>() = quatRightComp<double>(q_) * S;
     return true;
@@ -302,23 +327,25 @@ inline bool Pose::oplusJacobian(
 //use right multiplication to compute $\frac{d\alpha}{d\Delta q}$ where \alpha is defined in leutenegger
 // ijrr 15, and q+\Delta q = \delta q(\alpha)\otimes q,
 // so (q+\Delta q)\otimes q^{-1} = \delta q(\alpha) = [0.5\alpha; 1]^T
+template <typename T>
 template <typename Derived_jacobian>
-inline bool Pose::liftJacobian(const Eigen::MatrixBase<Derived_jacobian> & jacobian) const
+inline bool Pose<T>::liftJacobian(const Eigen::MatrixBase<Derived_jacobian> & jacobian) const
 {
     EIGEN_STATIC_ASSERT_MATRIX_SPECIFIC_SIZE(Derived_jacobian, 6, 7);
     const_cast<Eigen::MatrixBase<Derived_jacobian>&>(jacobian).setZero();
     const_cast<Eigen::MatrixBase<Derived_jacobian>&>(jacobian).template topLeftCorner<3,3>()
             = Eigen::Matrix3d::Identity();
     const_cast<Eigen::MatrixBase<Derived_jacobian>&>(jacobian).template bottomRightCorner<3,4>()
-            = 2*quatRightComp<double>(quatInv<double>(q_)).template topLeftCorner<3,4>();
+            = 2*quatRightComp<T>(quatInv<T>(q_)).template topLeftCorner<3,4>();
     return true;
 }
-
-inline  Quaternion Pose::rotation() const {
+template <typename T>
+inline  Eigen::Matrix<T,4,1> Pose<T>::rotation() const {
     return q_;
 }
+template <typename T>
 
-inline  Eigen::Vector3d Pose::translation() const {
+inline  Eigen::Matrix<T,3,1> Pose<T>::translation() const {
     return r_;
 }
 

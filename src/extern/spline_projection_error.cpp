@@ -28,7 +28,7 @@ bool SplineProjectError::EvaluateWithMinimalJacobians(double const *const *param
                                                        double **jacobians,
                                                        double **jacobiansMinimal) const {
 
-    Pose T0, T1, T2, T3;
+    Pose<double> T0, T1, T2, T3;
     Eigen::Map<const Eigen::Matrix<double, 7, 1>> map_T0(parameters[0]);
     T0.setParameters(map_T0);
 
@@ -46,8 +46,8 @@ bool SplineProjectError::EvaluateWithMinimalJacobians(double const *const *param
     double inv_dep = parameters[4][0];
 
     PoseSplineEvaluation psv0,psv1;
-    Pose T_WI0 = psv0(t0, T0, T1, T2, T3);
-    Pose T_WI1 = psv1(t1, T0, T1, T2, T3);
+    Pose<double> T_WI0 = psv0(t0, T0, T1, T2, T3);
+    Pose<double> T_WI1 = psv1(t1, T0, T1, T2, T3);
 
     Quaternion Q0 = psv0.getRotation();
     Quaternion Q1 = psv1.getRotation();

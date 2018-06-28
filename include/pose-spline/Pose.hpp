@@ -51,15 +51,18 @@
 /// \brief Implements sin(x)/x for all x in R.
 /// @param[in] x The argument of the sinc function.
 /// \return The result.
-double sinc(double x);
+template <typename T>
+T sinc(T x);
 
 /// \brief Implements the exponential map for quaternions.
 /// @param[in] dAlpha a axis*angle (minimal) input in tangent space.
 /// \return The corresponding Quaternion.
-Quaternion deltaQ(const Eigen::Vector3d& dAlpha);
+template <typename T>
+Eigen::Matrix<T,4,1> deltaQ(const Eigen::Matrix<T,3,1>& dAlpha);
 
 /// \brief Right Jacobian, see Forster et al. RSS 2015 eqn. (8)
-Eigen::Matrix3d rightJacobian(const Eigen::Vector3d & PhiVec);
+template <typename T>
+Eigen::Matrix<T,3,3> rightJacobian(const  Eigen::Matrix<T,3,1> & PhiVec);
 
 /// \brief A class that does homogeneous transformations.
 /// This relates a frame A and B: T_AB; it consists of
@@ -71,8 +74,8 @@ Eigen::Matrix3d rightJacobian(const Eigen::Vector3d & PhiVec);
 /// \warning This means the convention is different to SchweizerMesser
 ///          and the RSS'13 / IJRR'14 paper / the Thesis
 
-class Pose
-{
+template <typename T>
+class Pose {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -90,16 +93,16 @@ public:
     /// \brief Construct from a translation and quaternion.
     /// @param[in] r_AB The translation r_AB (represented in frame A).
     /// @param[in] q_AB The Quaternion q_AB .
-    Pose(const Eigen::Vector3d & r_AB, const Quaternion& q_AB);
+    Pose(const Eigen::Matrix<T,3,1> & r_AB, const Eigen::Matrix<T,4,1>& q_AB);
 
     /// \brief Construct from a 7x1 vector.
     /// @param[in] vec The 7x1 vector
-    Pose(const Eigen::Matrix<double,7,1>& vec);
+    Pose(const Eigen::Matrix<T,7,1>& vec);
 
 
     /// \brief Construct from a homogeneous transformation matrix.
     /// @param[in] T_AB The homogeneous transformation matrix.
-    explicit Pose(const Eigen::Matrix4d & T_AB);
+    explicit Pose(const Eigen::Matrix<T,4,4> & T_AB);
 
     /// \brief Trivial destructor.
     ~Pose();
@@ -120,35 +123,35 @@ public:
     }
 
     /// \brief The underlying homogeneous transformation matrix.
-    Eigen::Matrix4d T() const;
+    Eigen::Matrix<T,4,4> Transformation() const;
 
     /// \brief Returns the rotation matrix (cached).
-    const Eigen::Matrix3d & C() const;
+    const Eigen::Matrix<T,3,3> & C() const;
 
     /// \brief Returns the translation vector r_AB (represented in frame A).
-    const Eigen::Map<Eigen::Vector3d> & r() const;
+    const Eigen::Map<Eigen::Matrix<T,3,1>> & r() const;
 
     /// \brief Returns the Quaternion q_AB .
-    const Eigen::Map<Quaternion> & q() const;
+    const Eigen::Map<Eigen::Matrix<T,4,1>> & q() const;
 
     /// \brief Get the upper 3x4 part of the homogeneous transformation matrix T_AB.
-    Eigen::Matrix<double, 3, 4> T3x4() const;
+    Eigen::Matrix<T, 3, 4> T3x4() const;
 
     /// \brief The coefficients (parameters) as [r_AB,q_AB], q_AB as [x,y,z,w] (Eigen internal convention).
-    const Eigen::Matrix<double, 7, 1> & coeffs() const
+    const Eigen::Matrix<T, 7, 1> & coeffs() const
     {
         return parameters_;
     }
 
     /// \brief The parameters (coefficients) as [r_AB,q_AB], q_AB as [x,y,z,w] (Eigen internal convention).
-    const Eigen::Matrix<double, 7, 1> & parameters() const
+    const Eigen::Matrix<T, 7, 1> & parameters() const
     {
         return parameters_;
     }
 
     /// \brief Get the parameters --- support for ceres.
     /// \warning USE WITH CARE!
-    double* parameterPtr()
+    T* parameterPtr()
     {
         return &parameters_[0];
     }
@@ -158,16 +161,16 @@ public:
     /// \brief Set this to a random transformation with bounded rotation and translation.
     /// @param[in] translationMaxMeters Maximum translation [m].
     /// @param[in] rotationMaxRadians Maximum rotation [rad].
-    void setRandom(double translationMaxMeters, double rotationMaxRadians);
+    void setRandom(T translationMaxMeters, T rotationMaxRadians);
 
     /// \brief Set from a homogeneous transformation matrix.
     /// @param[in] T_AB The homogeneous transformation matrix.
-    void set(const Eigen::Matrix4d & T_AB);
+    void set(const Eigen::Matrix<T,4,4> & T_AB);
 
     /// \brief Set from a translation and quaternion.
     /// @param[in] r_AB The translation r_AB (represented in frame A).
     /// @param[in] q_AB The Quaternion q_AB .
-    void set(const Eigen::Vector3d & r_AB, const Quaternion& q_AB);
+    void set(const Eigen::Matrix<T,3,1> & r_AB, const Eigen::Matrix<T,4,1>& q_AB);
 
     /// \brief Set this transformation to identity
     void setIdentity();
@@ -186,11 +189,11 @@ public:
     /// \brief Transform a direction as v_A = C_AB*v_B (with rhs = hp_B)..
     /// \warning This only applies the rotation!
     /// @param[in] rhs The right-hand side direction for this to be multiplied with.
-    Eigen::Vector3d operator*(const Eigen::Vector3d & rhs) const;
+    Eigen::Matrix<T,3,1> operator*(const Eigen::Matrix<T,3,1> & rhs) const;
 
     /// \brief Transform a homogenous point as hp_B = T_AB*hp_B (with rhs = hp_B).
     /// @param[in] rhs The right-hand side direction for this to be multiplied with.
-    Eigen::Vector4d operator*(const Eigen::Vector4d & rhs) const;
+    Eigen::Matrix<T,4,1> operator*(const Eigen::Matrix<T,4,1> & rhs) const;
 
     /// \brief Assignment -- copy. Takes care of proper caching.
     /// @param[in] rhs The rhs for this to be assigned to.
@@ -226,20 +229,17 @@ public:
     template<typename Derived_jacobian>
     bool liftJacobian(const Eigen::MatrixBase<Derived_jacobian> & jacobian) const;
 
-    Quaternion rotation() const;
-    Eigen::Vector3d translation() const;
+    Eigen::Matrix<T,4,1> rotation() const;
+    Eigen::Matrix<T,3,1> translation() const;
 
 protected:
     /// \brief Update the caching of the rotation matrix.
     void updateC();
-    Eigen::Matrix<double, 7, 1> parameters_;  ///< Concatenated parameters [r;q].
-    Eigen::Map<Eigen::Vector3d> r_;  ///< Translation {_A}r_{B}.
-    Eigen::Map<Quaternion> q_;  ///< Quaternion q_{AB}.
-    Eigen::Matrix3d C_; ///< The cached DCM C_{AB}.
+    Eigen::Matrix<T, 7, 1> parameters_;  ///< Concatenated parameters [r;q].
+    Eigen::Map<Eigen::Matrix<T,3,1>> r_;  ///< Translation {_A}r_{B}.
+    Eigen::Map<Eigen::Matrix<T,4,1>> q_;  ///< Quaternion q_{AB}.
+    Eigen::Matrix<T,3,3> C_; ///< The cached DCM C_{AB}.
 };
-
-
-
 
 #include "Pose_imp.hpp"
 

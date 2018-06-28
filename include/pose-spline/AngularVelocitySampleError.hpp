@@ -1,11 +1,11 @@
-#ifndef  QUATERNION_OMEGA_SAMPLE_ERROR
-#define  QUATERNION_OMEGA_SAMPLE_ERROR
+#ifndef  ANGULAR_VELOCITY_SAMPLE_ERROR
+#define  ANGULAR_VELOCITY_SAMPLE_ERROR
 
 #include <ceres/ceres.h>
 #include "pose-spline/QuaternionSplineUtility.hpp"
-struct QuaternionOmegaSampleFunctor{
+struct AngularVelocitySampleFunctor{
 
-    QuaternionOmegaSampleFunctor(const double ts, const double& deltat,
+    AngularVelocitySampleFunctor(const double ts, const double& deltat,
                                const Eigen::Vector3d& omegaSample,
                                 const double& weightScale)
             : ts_(ts),
@@ -79,19 +79,19 @@ private:
 
 
 
-class QuaternionOmegaSampleAutoError : public ceres::SizedCostFunction<3,
-        4, 4, 4, 4> {
+class AngularVelocitySampleAutoError : public ceres::SizedCostFunction<3,
+        7, 7, 7, 7> {
 public:
     // Takes ownership of functor. Uses the template-provided value for the
     // number of residuals ("kNumResiduals").
-    explicit QuaternionOmegaSampleAutoError(QuaternionOmegaSampleFunctor* functor)
+    explicit AngularVelocitySampleAutoError(QuaternionOmegaSampleFunctor* functor)
             : functor_(functor) {
 
     }
 
 
 
-    virtual ~QuaternionOmegaSampleAutoError() {}
+    virtual ~AngularVelocitySampleAutoError() {}
 
     // Implementation details follow; clients of the autodiff cost function should
     // not have to examine below here.
@@ -108,7 +108,7 @@ public:
                                       double** jacobiansMinimal) const;
 
 private:
-    QuaternionOmegaSampleFunctor* functor_;
+    AngularVelocitySampleFunctor* functor_;
 };
 
 #endif

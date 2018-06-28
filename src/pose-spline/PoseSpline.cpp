@@ -37,7 +37,7 @@ namespace ze {
 
     }
 
-    void PoseSpline::addSample(double t, Pose Q) {
+    void PoseSpline::addSample(double t, Pose<double> Q) {
 
         if (getControlPointNum() == 0) {
             initialPoseSplineKnot(t);
@@ -62,13 +62,13 @@ namespace ze {
         }
         // Tricky: do not add point close to t_max
         if (t_max() - t > 0.0001) {
-            mSampleValues.insert(std::pair<double, Pose>(t, Q));
+            mSampleValues.insert(std::pair<double, Pose<double>>(t, Q));
         }
         CHECK_EQ(knots_.size() - spline_order_, getControlPointNum());
 
     }
 
-    void PoseSpline::initialPoseSpline(std::vector<std::pair<double, Pose>> Meas) {
+    void PoseSpline::initialPoseSpline(std::vector<std::pair<double, Pose<double>>> Meas) {
 
         // Build a  least-square problem
         ceres::Problem problem;
@@ -155,14 +155,14 @@ namespace ze {
 
     void PoseSpline::initialNewControlPoint(){
 
-        Pose unit;
+        Pose<double> unit;
         double* data = new double[7];
         memcpy(data, unit.parameterPtr(),sizeof(double)*7);
         mControlPointsParameter.push_back(data);
     }
 
 
-    Pose PoseSpline::evalPoseSpline(real_t t ){
+    Pose<double> PoseSpline::evalPoseSpline(real_t t ){
         std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
         double u = ui.first;
         unsigned int bidx = ui.second - spline_order_ + 1;
@@ -178,8 +178,24 @@ namespace ze {
         Eigen::Map<Eigen::Matrix<double, 4,1>> q3(getControlPoint(bidx+3) + 3);
 
         return PSUtility::EvaluatePS(u,
-                                     Pose(t0, q0), Pose(t1, q1), Pose(t2, q2), Pose(t2,q3));
+                                     Pose<double>(t0, q0), Pose<double>(t1, q1),
+                                     Pose<double>(t2, q2), Pose<double>(t2,q3));
     }
+
+    Eigen::Vector3d PoseSpline::evalLinearVelocity(real_t t ){
+        std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
+        double u = ui.first;
+        unsigned int bidx = ui.second - spline_order_ + 1;
+        Eigen::Map<Eigen::Matrix<double, 3,1>> t0(getControlPoint(bidx));
+        Eigen::Map<Eigen::Matrix<double, 3,1>> t1(getControlPoint(bidx+1));
+        Eigen::Map<Eigen::Matrix<double, 3,1>> t2(getControlPoint(bidx+2));
+        Eigen::Map<Eigen::Matrix<double, 3,1>> t3(getControlPoint(bidx+3));
+
+      
+        return PSUtility::EvaluateLinearVelocity(u, mTimeInterval,
+                                                 t0, t1, t2, t3);
+    }
+    
 
 
     void PoseSpline::printKnots() {

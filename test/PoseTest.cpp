@@ -10,38 +10,38 @@ TEST_CASE( "Pose ", "[operations]"){
 
     PoseLocalParameter* poseLocalParameter = new PoseLocalParameter();
     for (size_t i = 0; i < 100; ++i) {
-        Pose T_AB;
+        Pose<double> T_AB;
         T_AB.setRandom();
-        Pose T_BC;
+        Pose<double> T_BC;
         T_BC.setRandom();
 
 
         // Test inverse
         REQUIRE(
-                ((T_AB * T_AB.inverse()).T() - Eigen::Matrix4d::Identity()).norm()
+                ((T_AB * T_AB.inverse()).Transformation() - Eigen::Matrix4d::Identity()).norm()
                 < 1e-8);
 
         // Test composition
-        REQUIRE(((T_AB * T_BC).T() - T_AB.T() * T_BC.T()).norm() < 1e-8);
+        REQUIRE(((T_AB * T_BC).Transformation() - T_AB.Transformation() * T_BC.Transformation()).norm() < 1e-8);
 
         // Test construction
-        Pose T_AB_alternative(T_AB.T());
-        REQUIRE((T_AB.T() - T_AB_alternative.T()).norm() < 1e-8);
-        Pose T_AB_alternative2(T_AB.r(), T_AB.q());
-        REQUIRE((T_AB.T() - T_AB_alternative2.T()).norm() < 1e-8);
+        Pose<double> T_AB_alternative(T_AB.Transformation());
+        REQUIRE((T_AB.Transformation() - T_AB_alternative.Transformation()).norm() < 1e-8);
+        Pose<double> T_AB_alternative2(T_AB.r(), T_AB.q());
+        REQUIRE((T_AB.Transformation() - T_AB_alternative2.Transformation()).norm() < 1e-8);
 
         // Test =
-        Pose T_AB_alternative3;
+        Pose<double> T_AB_alternative3;
         T_AB_alternative3 = T_AB;
-        REQUIRE((T_AB.T() - T_AB_alternative3.T()).norm() < 1e-8);
+        REQUIRE((T_AB.Transformation() - T_AB_alternative3.Transformation()).norm() < 1e-8);
 
         // Test setters
-        Pose T_AB_alternative4;
+        Pose<double> T_AB_alternative4;
         T_AB_alternative4.set(T_AB.r(), T_AB.q());
-        REQUIRE((T_AB.T() - T_AB_alternative4.T()).norm() < 1e-8);
-        Pose T_AB_alternative5;
-        T_AB_alternative5.set(T_AB.T());
-        REQUIRE((T_AB.T() - T_AB_alternative5.T()).norm() < 1e-8);
+        REQUIRE((T_AB.Transformation() - T_AB_alternative4.Transformation()).norm() < 1e-8);
+        Pose<double> T_AB_alternative5;
+        T_AB_alternative5.set(T_AB.Transformation());
+        REQUIRE((T_AB.Transformation() - T_AB_alternative5.Transformation()).norm() < 1e-8);
 
         T_AB.setRandom();
 
@@ -49,10 +49,10 @@ TEST_CASE( "Pose ", "[operations]"){
         const double dp = 1.0e-6;
         Eigen::Matrix<double, 7, 6, Eigen::RowMajor> jacobian_numDiff;
         for (size_t i = 0; i < 6; ++i) {
-            Pose T_AB_p = T_AB;
-            Pose T_AB_m = T_AB;
+            Pose<double> T_AB_p = T_AB;
+            Pose<double> T_AB_m = T_AB;
 
-            Pose T_AB_param = T_AB;
+            Pose<double> T_AB_param = T_AB;
             Eigen::Matrix<double,7,1> T_AB_p_param;
             Eigen::Matrix<double,7,1> T_AB_m_param;
 

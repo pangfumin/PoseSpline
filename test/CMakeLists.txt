@@ -10,6 +10,10 @@ add_executable(QuaternionSplineCeresTest QuaternionSplineCeresTest.cpp)
 target_link_libraries(QuaternionSplineCeresTest
         PoseSpline)
 
+add_executable(QuaternionOmegaCeresTest QuaternionOmegaCeresTest.cpp)
+target_link_libraries(QuaternionOmegaCeresTest
+        PoseSpline)
+
 add_executable(VectorSplineVelocityCeresTest VectorSplineVelocityCeresTest.cpp)
 target_link_libraries(VectorSplineVelocityCeresTest
         PoseSpline)
@@ -54,6 +58,10 @@ target_link_libraries(testProjectError
 
 add_executable(testPoseSplineSampleError testPoseSplineSampleError.cpp)
 target_link_libraries(testPoseSplineSampleError
+        PoseSpline)
+
+add_executable(testLinearAccelerateSampleError testLinearAccelerateSampleError.cpp)
+target_link_libraries(testLinearAccelerateSampleError
         PoseSpline)
 
 

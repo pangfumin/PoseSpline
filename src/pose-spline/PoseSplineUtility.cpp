@@ -1,7 +1,7 @@
 #include "pose-spline/PoseSplineUtility.hpp"
 
-Pose PSUtility::EvaluatePS(double u, const Pose& P0, const Pose& P1,
-                const Pose& P2, const Pose& P3) {
+Pose<double> PSUtility::EvaluatePS(double u, const Pose<double>& P0, const Pose<double>& P1,
+                const Pose<double>& P2, const Pose<double>& P3) {
 
 
     double b1 = QSUtility::beta1(u);
@@ -28,12 +28,58 @@ Pose PSUtility::EvaluatePS(double u, const Pose& P0, const Pose& P1,
 
     Eigen::Vector3d V = V0 + b1*(V1 - V0) +  b2*(V2 - V1) + b3*(V3 - V2);
 
-    return Pose( V, quatLeftComp(Q0)*quatLeftComp(r1)*quatLeftComp(r2)*r3);
+    return Pose<double>( V, quatLeftComp(Q0)*quatLeftComp(r1)*quatLeftComp(r2)*r3);
+}
+
+Eigen::Vector3d PSUtility::EvaluateLinearVelocity(double u, double dt,
+                                                  const Eigen::Vector3d& V0,
+                                                  const Eigen::Vector3d& V1,
+                                                  const Eigen::Vector3d& V2,
+                                                  const Eigen::Vector3d& V3) {
+
+
+    double  dotBeta1 = QSUtility::dot_beta1(dt, u);
+    double  dotBeta2 = QSUtility::dot_beta2(dt, u);
+    double  dotBeta3 = QSUtility::dot_beta3(dt, u);
+
+    Eigen::Vector3d V =  dotBeta1*(V1 - V0) +  dotBeta2*(V2 - V1) + dotBeta3*(V3 - V2);
+    return V;
+
+}
+
+Eigen::Vector3d PSUtility::EvaluateLinearAccelerate(double u, double dt,
+                                                    const Pose<double>& P0, const Pose<double>& P1,
+                                                  const Pose<double>& P2, const Pose<double>& P3) {
+
+    Eigen::Vector3d V0 = P0.translation();
+    Eigen::Vector3d V1 = P1.translation();
+    Eigen::Vector3d V2 = P2.translation();
+    Eigen::Vector3d V3 = P3.translation();
+
+    Quaternion Q0 =  P0.rotation();
+    Quaternion Q1 =  P1.rotation();
+    Quaternion Q2 =  P2.rotation();
+    Quaternion Q3 =  P3.rotation();
+    double  ddBeta1 = QSUtility::dot_dot_beta1(dt, u);
+    double  ddBeta2 = QSUtility::dot_dot_beta2(dt, u);
+    double  ddBeta3 = QSUtility::dot_dot_beta3(dt, u);
+
+    Quaternion Q_WI = QSUtility::EvaluateQS(u,Q0,Q1,Q2,Q3);
+    Eigen::Matrix3d R_WI = quatToRotMat(Q_WI);
+
+    Eigen::Vector3d accel_in_body_frame
+            = R_WI.transpose() * (ddBeta1*(V1 - V0) +  ddBeta2*(V2 - V1) + ddBeta3*(V3 - V2));
+    return accel_in_body_frame;
 }
 
 
-Pose PoseSplineEvaluation::operator() (double u, const Pose& P0, const Pose& P1,
-                 const Pose& P2, const Pose& P3) {
+
+
+Pose<double> PoseSplineEvaluation::operator() (double u,
+                                               const Pose<double>& P0,
+                                               const Pose<double>& P1,
+                                               const Pose<double>& P2,
+                                               const Pose<double>& P3) {
 
     double b1 = QSUtility::beta1(u);
     double b2 = QSUtility::beta2(u);
@@ -104,5 +150,5 @@ Pose PoseSplineEvaluation::operator() (double u, const Pose& P0, const Pose& P1,
     JacobianRotate2 = temp12 - temp23;
     JacobianRotate3 = temp23;
 
-    return Pose( t, Q);
+    return Pose<double>( t, Q);
 }

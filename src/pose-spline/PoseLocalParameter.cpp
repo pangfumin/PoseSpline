@@ -19,8 +19,7 @@ bool PoseLocalParameter::plus(const double* x, const double* delta,
     Eigen::Map<const Eigen::Matrix<double, 6, 1> > delta_(delta);
 
     // transform to okvis::kinematics framework
-    Pose T(
-            Eigen::Vector3d(x[0], x[1], x[2]),
+    Pose<double> T(Eigen::Vector3d(x[0], x[1], x[2]),
             Quaternion ( x[3], x[4], x[5], x[6]));
 
     // call oplus operator in okvis::kinematis
@@ -49,6 +48,11 @@ bool PoseLocalParameter::plus(const double* x, const double* delta,
 bool PoseLocalParameter::ComputeJacobian(const double *x, double *jacobian) const
 {
 
+    plusJacobian(x,jacobian);
+    return true;
+}
+
+bool PoseLocalParameter::plusJacobian(const double* x,double* jacobian) {
     Eigen::Map<Eigen::Matrix<double, 7, 6, Eigen::RowMajor>> J(jacobian);
     J.setIdentity();
     Eigen::Map<const Quaternion> Q_(x+3);

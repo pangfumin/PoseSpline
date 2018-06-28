@@ -55,7 +55,6 @@ bool RoatateVectorError::EvaluateWithMinimalJacobians(double const* const * para
 
     // define residual
     // For simplity, we define error  =  /hat - meas.
-    // delte_Q = Q_hat*inv(Q_meas) = (inv(Q_meas))oplus Q_hat
     Quaternion Q_hat = quatLeftComp<double>(Q0)*quatLeftComp(r_1)*quatLeftComp(r_2)*r_3;
 
     Eigen::Vector3d rotatedVector_hat = quatToRotMat<double>(Q_hat)*originalVector_;

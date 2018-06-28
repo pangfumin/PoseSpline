@@ -1,3 +1,4 @@
+#include <utility/timer.h>
 #include "pose-spline/Pose.hpp"
 #include "pose-spline/PoseLocalParameter.hpp"
 #include "pose-spline/PoseSplineUtility.hpp"
@@ -90,8 +91,10 @@ int main() {
                             pose2_noised.parameterPtr(), pose3_noised.parameterPtr()};
 
 
+    TimeStatistics::Timer anali_timer;
     linearAccelerateSampleError->EvaluateWithMinimalJacobians(paramters_noised, Residual.data(),
                                                         AnaliJacobians, AnaliJacobians_minimal);
+    std::cout<<"anali_timer: "<<anali_timer.stopAndGetSeconds()<<std::endl;
     std::cout<<"residual: "<< Residual.transpose()<<std::endl;
 
 
@@ -126,6 +129,30 @@ int main() {
 
     std::cout<<"numJacobian_min3: "<<std::endl<<numJacobian_min3<<std::endl;
     std::cout<<"AnaliJacobian_minimal3: "<<
+             std::endl<<AnaliJacobian_minimal3<<std::endl;
+
+
+    /*
+     *  Test Auto Jacobian
+     */
+
+    LinearAccelerateSampleFunctor* linearAccelerateSampleFunctor
+            = new LinearAccelerateSampleFunctor(u_meas, 1.0, a_meas, 1.0);
+    LinearAccelerateSampleError* linearAccelerateSampleError1
+                                        = new LinearAccelerateSampleError(linearAccelerateSampleFunctor);
+    TimeStatistics::Timer auto_timer;
+    linearAccelerateSampleError1->AutoEvaluateWithMinimalJacobians(paramters_noised, Residual.data(),
+                                                              AnaliJacobians, AnaliJacobians_minimal);
+    std::cout<<"auto_timer: "<<auto_timer.stopAndGetSeconds()<<std::endl;
+
+
+    std::cout<<"auto_minimal0: "<<
+             std::endl<<AnaliJacobian_minimal0<<std::endl;
+    std::cout<<"auto_minimal1: "<<
+             std::endl<<AnaliJacobian_minimal1<<std::endl;
+    std::cout<<"auto_minimal2: "<<
+             std::endl<<AnaliJacobian_minimal2<<std::endl;
+    std::cout<<"auto_minimal3: "<<
              std::endl<<AnaliJacobian_minimal3<<std::endl;
 
     return 0;

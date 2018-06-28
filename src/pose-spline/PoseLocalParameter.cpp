@@ -48,6 +48,11 @@ bool PoseLocalParameter::plus(const double* x, const double* delta,
 bool PoseLocalParameter::ComputeJacobian(const double *x, double *jacobian) const
 {
 
+    plusJacobian(x,jacobian);
+    return true;
+}
+
+bool PoseLocalParameter::plusJacobian(const double* x,double* jacobian) {
     Eigen::Map<Eigen::Matrix<double, 7, 6, Eigen::RowMajor>> J(jacobian);
     J.setIdentity();
     Eigen::Map<const Quaternion> Q_(x+3);

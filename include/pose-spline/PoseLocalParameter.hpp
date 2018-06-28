@@ -29,6 +29,7 @@ public:
     // Extent interface
     virtual bool ComputeLiftJacobian(const double* x, double* jacobian) const ;
     static bool liftJacobian(const double* x,double* jacobian);
+    static bool plusJacobian(const double* x,double* jacobian);
     bool VerifyJacobianNumDiff(const double* x, double* jacobian,double* jacobianNumDiff);
 };
 

@@ -139,22 +139,22 @@ public:
      */
     template<typename T >
     static T dot_dot_beta1(const T dt, const T u){
-        Eigen::Matrix<T,4,1> uu(0.0, 0.0, 2.0 ,T(6)*u);
+        Eigen::Matrix<T,4,1> uu(T(0.0), T(0.0), T(2.0) ,T(6)*u);
         return (T(1)/(dt*dt))*uu.transpose()*C<T>().col(1);
     }
 
     template<typename T >
     static T dot_dot_beta2(const T dt, const T u){
 
-        Eigen::Matrix<T,4,1> uu(0.0, 0.0, 2.0 ,T(6)*u);
+        Eigen::Matrix<T,4,1> uu(T(0.0), T(0.0), T(2.0) ,T(6)*u);
         return (T(1)/(dt*dt))*uu.transpose()*C<T>().col(2);
     }
 
     template<typename T >
     static T dot_dot_beta3(const T dt, const T u){
 
-        Eigen::Matrix<T,4,1> uu(0.0, 0.0, 2.0 ,6*u);
-        return (1/(dt*dt))*uu.transpose()*C<T>().col(3);
+        Eigen::Matrix<T,4,1> uu(T(0.0), T(0.0), T(2.0) ,T(6)*u);
+        return (T(1)/(dt*dt))*uu.transpose()*C<T>().col(3);
     }
 
 /*

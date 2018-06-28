@@ -1,6 +1,6 @@
 #include "pose-spline/LinearAccelerateSampleError.hpp"
-#include "pose-spline/QuaternionSplineUtility.hpp"
 #include "pose-spline/PoseLocalParameter.hpp"
+#include "pose-spline/Pose.hpp"
 
 
 LinearAccelerateSampleError::LinearAccelerateSampleError(const double& t_meas,
@@ -9,6 +9,10 @@ LinearAccelerateSampleError::LinearAccelerateSampleError(const double& t_meas,
         t_meas_(t_meas),time_interval_(time_interval), a_Meas_(a_meas){
 
 };
+
+LinearAccelerateSampleError::LinearAccelerateSampleError(LinearAccelerateSampleFunctor* functor):
+        functor_(functor){
+}
 
 LinearAccelerateSampleError::~LinearAccelerateSampleError(){
 
@@ -205,6 +209,83 @@ bool LinearAccelerateSampleError::EvaluateWithMinimalJacobians(double const* con
     }
 
     return true;
+}
+
+bool LinearAccelerateSampleError::AutoEvaluateWithMinimalJacobians(double const* const * parameters,
+                                      double* residuals,
+                                      double** jacobians,
+                                      double** jacobiansMinimal) const {
+
+    Pose<double> T0, T1, T2, T3;
+    Eigen::Map<const Eigen::Matrix<double, 7, 1>> map_T0(parameters[0]);
+    T0.setParameters(map_T0);
+
+    Eigen::Map<const Eigen::Matrix<double, 7, 1>> map_T1(parameters[1]);
+    T1.setParameters(map_T1);
+
+    Eigen::Map<const Eigen::Matrix<double, 7, 1>> map_T2(parameters[2]);
+    T2.setParameters(map_T2);
+
+    Eigen::Map<const Eigen::Matrix<double, 7, 1>> map_T3(parameters[3]);
+    T0.setParameters(map_T3);
+
+
+    if (!jacobians) {
+        return ceres::internal::VariadicEvaluate<
+                LinearAccelerateSampleFunctor, double, 7, 7, 7, 7, 0,0,0,0,0,0>
+        ::Call(*functor_, parameters, residuals);
+    }
+    bool success =  ceres::internal::AutoDiff<LinearAccelerateSampleFunctor, double,
+            7,7,7,7>::Differentiate(
+            *functor_,
+            parameters,
+            SizedCostFunction<3,
+                    7,7,7,7>::num_residuals(),
+            residuals,
+            jacobians);
+
+    if (success && jacobiansMinimal!= NULL) {
+        if( jacobiansMinimal[0] != NULL){
+
+            Eigen::Map<Eigen::Matrix<double,3,6,Eigen::RowMajor>> J0_minimal_map(jacobiansMinimal[0]);
+            Eigen::Matrix<double,7,6,Eigen::RowMajor> J_plus;
+            PoseLocalParameter::plusJacobian(T0.parameterPtr(),J_plus.data());
+            Eigen::Map<Eigen::Matrix<double,3,7,Eigen::RowMajor>> J0_map(jacobians[0]);
+            J0_minimal_map = J0_map*J_plus;
+        }
+
+        if( jacobiansMinimal[1] != NULL){
+
+            Eigen::Map<Eigen::Matrix<double,3,6,Eigen::RowMajor>> J1_minimal_map(jacobiansMinimal[1]);
+            Eigen::Matrix<double,7,6,Eigen::RowMajor> J_plus;
+            PoseLocalParameter::plusJacobian(T1.parameterPtr(),J_plus.data());
+            Eigen::Map<Eigen::Matrix<double,3,7,Eigen::RowMajor>> J1_map(jacobians[1]);
+            J1_minimal_map = J1_map*J_plus;
+        }
+
+        if( jacobiansMinimal[2] != NULL){
+
+            Eigen::Map<Eigen::Matrix<double,3,6,Eigen::RowMajor>> J2_minimal_map(jacobiansMinimal[2]);
+            Eigen::Matrix<double,7,6,Eigen::RowMajor> J_plus;
+            PoseLocalParameter::plusJacobian(T2.parameterPtr(),J_plus.data());
+            Eigen::Map<Eigen::Matrix<double,3,7,Eigen::RowMajor>> J2_map(jacobians[2]);
+            J2_minimal_map = J2_map*J_plus;
+        }
+
+        if( jacobiansMinimal[3] != NULL){
+
+            Eigen::Map<Eigen::Matrix<double,3,6,Eigen::RowMajor>> J3_minimal_map(jacobiansMinimal[3]);
+            Eigen::Matrix<double,7,6,Eigen::RowMajor> J_plus;
+            PoseLocalParameter::plusJacobian(T3.parameterPtr(),J_plus.data());
+            Eigen::Map<Eigen::Matrix<double,3,7,Eigen::RowMajor>> J3_map(jacobians[3]);
+            J3_minimal_map = J3_map*J_plus;
+        }
+
+    }
+
+    return success;
+
+
 }
 
 

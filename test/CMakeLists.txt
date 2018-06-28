@@ -60,6 +60,10 @@ add_executable(testPoseSplineSampleError testPoseSplineSampleError.cpp)
 target_link_libraries(testPoseSplineSampleError
         PoseSpline)
 
+add_executable(testLinearAccelerateSampleError testLinearAccelerateSampleError.cpp)
+target_link_libraries(testLinearAccelerateSampleError
+        PoseSpline)
+
 
 add_executable(testSplineRotateError testSplineRotateError.cpp)
 target_link_libraries(testSplineRotateError

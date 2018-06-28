@@ -41,6 +41,11 @@ bool LinearAccelerateSampleError::EvaluateWithMinimalJacobians(double const* con
     double  ddBeta2 = QSUtility::dot_dot_beta2(time_interval_, t_meas_);
     double  ddBeta3 = QSUtility::dot_dot_beta3(time_interval_, t_meas_);
 
+//    std::cout<<"t_meas_: " << t_meas_<< std::endl;
+//    std::cout<< "ddBeta1: "<< ddBeta1<<std::endl;
+//    std::cout<< "ddBeta2: "<< ddBeta2<<std::endl;
+//    std::cout<< "ddBeta3: "<< ddBeta3<<std::endl;
+
     double  Beta1 = QSUtility::beta1(t_meas_);
     double  Beta2 = QSUtility::beta2(t_meas_);
     double  Beta3 = QSUtility::beta3(t_meas_);
@@ -125,6 +130,8 @@ bool LinearAccelerateSampleError::EvaluateWithMinimalJacobians(double const* con
             J0_minimal = squareRootInformation_*J0_minimal;
             J0 = J0_minimal*lift;
 
+//            std::cout<<"J0_minimal: "<<std::endl<< J0_minimal<<std::endl;
+
             if(jacobiansMinimal != NULL && jacobiansMinimal[0] != NULL){
                 Eigen::Map<Eigen::Matrix<double,3,6,Eigen::RowMajor>> J0_minimal_map(jacobiansMinimal[0]);
                 J0_minimal_map = J0_minimal;
@@ -142,6 +149,10 @@ bool LinearAccelerateSampleError::EvaluateWithMinimalJacobians(double const* con
             PoseLocalParameter::liftJacobian(parameters[1], lift.data());
             J1_minimal = squareRootInformation_*J1_minimal;
             J1 = J1_minimal*lift;
+
+//            std::cout<<"J1_minimal: "<<std::endl<< J1_minimal<<std::endl;
+
+
             if(jacobiansMinimal != NULL && jacobiansMinimal[1] != NULL){
                 Eigen::Map<Eigen::Matrix<double,3,6,Eigen::RowMajor>> J1_minimal_map(jacobiansMinimal[1]);
                 J1_minimal_map = J1_minimal;
@@ -161,6 +172,7 @@ bool LinearAccelerateSampleError::EvaluateWithMinimalJacobians(double const* con
             J2_minimal = squareRootInformation_*J2_minimal;
             J2 = J2_minimal*lift;
 
+//            std::cout<<"J2_minimal: "<<std::endl<< J2_minimal<<std::endl;
 
             if(jacobiansMinimal != NULL &&  jacobiansMinimal[2] != NULL){
                 Eigen::Map<Eigen::Matrix<double,3,6,Eigen::RowMajor>> J2_minimal_map(jacobiansMinimal[2]);
@@ -180,6 +192,10 @@ bool LinearAccelerateSampleError::EvaluateWithMinimalJacobians(double const* con
             PoseLocalParameter::liftJacobian(parameters[2], lift.data());
             J3_minimal = squareRootInformation_*J3_minimal;
             J3 = J3_minimal*lift;
+
+//            std::cout<<"J3_minimal: "<<std::endl<< J3_minimal<<std::endl;
+
+
             if(jacobiansMinimal != NULL &&  jacobiansMinimal[3] != NULL){
 
                 Eigen::Map<Eigen::Matrix<double,3,6,Eigen::RowMajor>> J3_minimal_map(jacobiansMinimal[3]);

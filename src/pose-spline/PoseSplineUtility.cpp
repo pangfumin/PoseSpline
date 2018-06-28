@@ -55,14 +55,24 @@ Eigen::Vector3d PSUtility::EvaluateLinearAccelerate(double u, double dt,
     Eigen::Vector3d V1 = P1.translation();
     Eigen::Vector3d V2 = P2.translation();
     Eigen::Vector3d V3 = P3.translation();
+
+    Quaternion Q0 =  P0.rotation();
+    Quaternion Q1 =  P1.rotation();
+    Quaternion Q2 =  P2.rotation();
+    Quaternion Q3 =  P3.rotation();
     double  ddBeta1 = QSUtility::dot_dot_beta1(dt, u);
     double  ddBeta2 = QSUtility::dot_dot_beta2(dt, u);
     double  ddBeta3 = QSUtility::dot_dot_beta3(dt, u);
 
-    Eigen::Vector3d accel =  ddBeta1*(V1 - V0) +  ddBeta2*(V2 - V1) + ddBeta3*(V3 - V2);
-    return accel;
+    Quaternion Q_WI = QSUtility::EvaluateQS(u,Q0,Q1,Q2,Q3);
+    Eigen::Matrix3d R_WI = quatToRotMat(Q_WI);
 
+    Eigen::Vector3d accel_in_body_frame
+            = R_WI.transpose() * (ddBeta1*(V1 - V0) +  ddBeta2*(V2 - V1) + ddBeta3*(V3 - V2));
+    return accel_in_body_frame;
 }
+
+
 
 
 Pose<double> PoseSplineEvaluation::operator() (double u,

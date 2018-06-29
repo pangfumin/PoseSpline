@@ -313,25 +313,25 @@ namespace ze {
         Quaternion r2 = QSUtility::r(b2,Phi2);
         Quaternion r3 = QSUtility::r(b3,Phi3);
 
-        Quaternion Q_LG =  quatLeftComp(Q0)*quatLeftComp(r1)*quatLeftComp(r2)*r3;
+        Quaternion Q_WI =  quatLeftComp(Q0)*quatLeftComp(r1)*quatLeftComp(r2)*r3;
 
         double dot_b1 = QSUtility::dot_beta1(mTimeInterval,u);
         double dot_b2 = QSUtility::dot_beta2(mTimeInterval,u);
         double dot_b3 = QSUtility::dot_beta3(mTimeInterval,u);
 
 
-        Quaternion dot_Q_LG, part1, part2,part3;
+        Quaternion dot_Q_WI, part1, part2,part3;
         part1 = quatLeftComp(QSUtility::dr_dt(dot_b1,b1,Phi1))*quatLeftComp(r2)*r3;
         part2 = quatLeftComp(r1)*quatLeftComp(QSUtility::dr_dt(dot_b2,b2,Phi2))*r3;
         part3 = quatLeftComp(r1)*quatLeftComp(r2)*QSUtility::dr_dt(dot_b3,b3,Phi3);
 
-        dot_Q_LG = quatLeftComp(Q0)*(part1 + part2 + part3);
+        dot_Q_WI = quatLeftComp(Q0)*(part1 + part2 + part3);
 
         //std::cout<<"Q    : "<<Q_LG.transpose()<<std::endl;
         //std::cout<<"dot_Q: "<<dot_Q_LG.transpose()<<std::endl;
 
 
-        return QSUtility::w<double>(Q_LG,dot_Q_LG);
+        return QSUtility::w_in_body_frame<double>(Q_WI,dot_Q_WI);
     }
 
     Eigen::Vector3d QuaternionSpline::evalAlpha(real_t t){

@@ -251,12 +251,13 @@ public:
 
         return M;
     };
-    /*
- *  using Indrict Kalman filter for 3D attitude estimation.
+/*
+ * Continuous-Time Estimation of attitude using B-splines on Lie groups Equ.35
  */
+
     template<typename T>
-    static Eigen::Matrix<T,3,1> w(const Eigen::Matrix<T,4,1> Q_ba,const Eigen::Matrix<T,4,1> dot_Q_ba){
-        return T(2.0)*(quatLeftComp(dot_Q_ba)*quatInv(Q_ba)).head(3);
+    static Eigen::Matrix<T,3,1> w_in_body_frame(const Eigen::Matrix<T,4,1> Q_WI,const Eigen::Matrix<T,4,1> dot_Q_WI){
+        return T(-2.0)*(quatLeftComp(quatInv(Q_WI))*(dot_Q_WI)).head(3);
     }
 
     template<typename T>

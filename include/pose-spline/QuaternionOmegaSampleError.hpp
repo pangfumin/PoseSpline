@@ -52,7 +52,7 @@ struct QuaternionOmegaSampleFunctor{
 
         dot_q = quatLeftComp(Q0)*(part1 + part2 + part3);
 
-        Eigen::Matrix<T, 3, 1> omega_hat =  QSUtility::w(q,dot_q);
+        Eigen::Matrix<T, 3, 1> omega_hat =  QSUtility::w_in_body_frame(q,dot_q);
 
         Eigen::Map<Eigen::Matrix<T,3,1>> error(residuals);
         //error = omega_hat - Eigen::Matrix<T, 3, 1>(omegaSample_);

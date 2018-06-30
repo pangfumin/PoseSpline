@@ -33,13 +33,7 @@ namespace  ze {
         Pose<double> evalPoseSpline(real_t t);
         Eigen::Vector3d evalLinearVelocity(real_t t );
 
-
-
-        void evalPoseSplineDerivate(real_t t,
-                                    double *Quat,
-                                    double *dot_Qaut = NULL,
-                                    double *dot_dot_Quat = NULL);
-
+        Eigen::Vector3d evalLinearAccelerator(real_t t);
         inline size_t getControlPointNum(){
             return mControlPointsParameter.size();
         }

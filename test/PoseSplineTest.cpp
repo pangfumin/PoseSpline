@@ -24,19 +24,14 @@ std::pair<double,Eigen::Vector3d>  getPositionSample(ze::TupleVector& data, unsi
 };
 
 
-/**
- TODO:: fixme , input Hamilton quaternion into quaternion spline 
-       which will mistake 
-*/
 
 int main(int argc, char** argv){
     //google::InitGoogleLogging(argv[0]);
 
-    std::string dataset = "/media/pang/Plus/dataset/MH_01_easy";
+    std::string dataset = "/home/pang/software/PoseSpline/data/MH_01_easy";
     ze::EurocResultSeries eurocDataReader;
-    eurocDataReader.load(dataset + "/mav0/state_groundtruth_estimate0/data.csv");
-    eurocDataReader.loadIMU(dataset+ "/mav0/imu0/data.csv");
-
+    eurocDataReader.load(dataset + "/state_groundtruth_estimate0/data.csv");
+    eurocDataReader.loadIMU(dataset+ "/imu0/data.csv");
     ze::TupleVector  data = eurocDataReader.getVector();
     Buffer<real_t, 7>& poseBuffer = eurocDataReader.getBuffer();
     LOG(INFO)<<"Get data size: "<<data.size(); // @200Hz
@@ -51,16 +46,24 @@ int main(int argc, char** argv){
     std::vector<Vector3> gyroMeas = eurocDataReader.getGyroMeas();
     LOG(INFO)<<"Get gyro Meas  size: "<<gyroMeas.size(); // @200Hz
 
+    std::vector<Vector3> accelMeas = eurocDataReader.getAccelMeas();
+    LOG(INFO)<<"Get accel Meas  size: "<<accelMeas.size(); // @200Hz
+
     int start  = 1;
-    int end = data.size()/100;
+    int end = data.size()/10;
 
     //ze::QuaternionSpline qspline(4,0.1);
     ze::PoseSpline poseSpline(4, 0.1);
     std::vector<std::pair<double,Pose<double>>> samples, queryMeas;
 
     for(uint i = start; i <end; i++){
+        std::pair<double,Quaternion> sample = getSample( data,  i);
+        Eigen::Quaterniond QuatHamilton(sample.second(3),sample.second(0),sample.second(1),sample.second(2));
+        Eigen::Matrix3d R = QuatHamilton.toRotationMatrix();
+        Quaternion QuatJPL = rotMatToQuat(R);
+        std::pair<double,Quaternion> sampleJPL = std::make_pair(sample.first, QuatJPL);
 
-        Pose<double> pose(getPositionSample( data,  i).second,getSample( data,  i).second);
+        Pose<double> pose(getPositionSample( data,  i).second,sampleJPL.second);
         queryMeas.push_back(std::pair<double,Pose<double>>(getPositionSample( data,  i).first, pose ) );
         if(i % 4  == 0){
             samples.push_back(std::pair<double,Pose<double>>(getPositionSample( data,  i).first, pose ));
@@ -107,6 +110,36 @@ int main(int argc, char** argv){
             std::cout <<"Query: "<< query.transpose()<< std::endl << std::endl;
         }
     }
+
+
+    std::ofstream ofs_debug("/home/pang/debug.txt");
+
+
+    std::map<int64_t,Eigen::Vector3d> accelMap = eurocDataReader.getAccelMeasMap();
+    LOG(INFO)<<"accelMap size: "<<accelMap.size();
+
+    std::map<int64_t,Eigen::Vector3d>::iterator search;
+    for(uint i = start; i <end; i++){
+
+        ze::TrajectoryEle  p0 = data.at(i);
+        int64_t ts = std::get<0>(p0);
+        search = accelMap.find(ts);
+
+        if(search != accelMap.end() && poseSpline.isTsEvaluable(ts*1e-9)){
+            Eigen::Vector3d evalAccel = poseSpline.evalLinearAccelerator(ts*1e-9);
+
+            std::cout<<"Found!"<<std::endl;
+            ofs_debug<< search->second.transpose()<<" "<< evalAccel.transpose()<<std::endl;
+
+        }else{
+            std::cout<<"Not found!"<<std::endl;
+        }
+
+    }
+
+    ofs_debug.close();
+
+
 
     return 0;
 }

@@ -195,7 +195,29 @@ namespace ze {
         return PSUtility::EvaluateLinearVelocity(u, mTimeInterval,
                                                  t0, t1, t2, t3);
     }
-    
+
+    Eigen::Vector3d PoseSpline::evalLinearAccelerator(real_t t) {
+
+        std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
+        double u = ui.first;
+        unsigned int bidx = ui.second - spline_order_ + 1;
+        Eigen::Map<Eigen::Matrix<double, 7,1>> t0(getControlPoint(bidx));
+        Eigen::Map<Eigen::Matrix<double, 7,1>> t1(getControlPoint(bidx+1));
+        Eigen::Map<Eigen::Matrix<double, 7,1>> t2(getControlPoint(bidx+2));
+        Eigen::Map<Eigen::Matrix<double, 7,1>> t3(getControlPoint(bidx+3));
+        Pose<double> Pose0, Pose1,Pose2, Pose3;
+        Pose0.setParameters(t0);
+        Pose1.setParameters(t1);
+        Pose2.setParameters(t2);
+        Pose3.setParameters(t3);
+
+
+        return PSUtility::EvaluateLinearAccelerate(u, mTimeInterval,
+                                                  Pose0, Pose1, Pose2,Pose3);
+
+    }
+
+
 
 
     void PoseSpline::printKnots() {

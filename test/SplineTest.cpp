@@ -17,10 +17,7 @@ std::pair<double,Quaternion>  getSample(ze::TupleVector& data, unsigned int i){
 };
 
 
-/**
- TODO:: fixme , input Hamilton quaternion into quaternion spline 
-       which will mistake 
-*/
+
 
 int main(int argc, char** argv){
     //google::InitGoogleLogging(argv[0]);
@@ -44,6 +41,8 @@ int main(int argc, char** argv){
     std::vector<Vector3> gyroMeas = eurocDataReader.getGyroMeas();
     LOG(INFO)<<"Get gyro Meas  size: "<<gyroMeas.size(); // @200Hz
 
+
+
     int start  = 1;
     int end = data.size() - 2;
 
@@ -51,8 +50,6 @@ int main(int argc, char** argv){
     std::vector<std::pair<double,Quaternion>> samples, queryMeas;
 
     for(uint i = start; i <end; i++){
-
-
         std::pair<double,Quaternion> sample = getSample( data,  i);
         Eigen::Quaterniond QuatHamilton(sample.second(3),sample.second(0),sample.second(1),sample.second(2));
         Eigen::Matrix3d R = QuatHamilton.toRotationMatrix();

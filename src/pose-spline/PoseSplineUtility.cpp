@@ -67,8 +67,10 @@ Eigen::Vector3d PSUtility::EvaluateLinearAccelerate(double u, double dt,
     Quaternion Q_WI = QSUtility::EvaluateQS(u,Q0,Q1,Q2,Q3);
     Eigen::Matrix3d R_WI = quatToRotMat(Q_WI);
 
+    const Eigen::Vector3d G(0.0, 0.0, -9.81);
+    Eigen::Vector3d accel_in_world_frame = ddBeta1*(V1 - V0) +  ddBeta2*(V2 - V1) + ddBeta3*(V3 - V2);
     Eigen::Vector3d accel_in_body_frame
-            = R_WI.transpose() * (ddBeta1*(V1 - V0) +  ddBeta2*(V2 - V1) + ddBeta3*(V3 - V2));
+            = R_WI.transpose() * ( accel_in_world_frame - G);
     return accel_in_body_frame;
 }
 

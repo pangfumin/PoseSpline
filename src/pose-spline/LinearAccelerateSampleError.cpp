@@ -239,8 +239,7 @@ bool LinearAccelerateSampleError::AutoEvaluateWithMinimalJacobians(double const*
             7,7,7,7>::Differentiate(
             *functor_,
             parameters,
-            SizedCostFunction<3,
-                    7,7,7,7>::num_residuals(),
+            SizedCostFunction<3,7,7,7,7>::num_residuals(),
             residuals,
             jacobians);
 

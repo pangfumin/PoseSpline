@@ -17,18 +17,15 @@ std::pair<double,Quaternion>  getSample(ze::TupleVector& data, unsigned int i){
 };
 
 
-/**
- TODO:: fixme , input Hamilton quaternion into quaternion spline 
-       which will mistake 
-*/
+
 
 int main(int argc, char** argv){
     //google::InitGoogleLogging(argv[0]);
 
-    std::string dataset = "/media/pang/Plus/dataset/MH_01_easy";
+    std::string dataset = "/home/pang/software/PoseSpline/data/MH_01_easy";
     ze::EurocResultSeries eurocDataReader;
-    eurocDataReader.load(dataset + "/mav0/state_groundtruth_estimate0/data.csv");
-    eurocDataReader.loadIMU(dataset+ "/mav0/imu0/data.csv");
+    eurocDataReader.load(dataset + "/state_groundtruth_estimate0/data.csv");
+    eurocDataReader.loadIMU(dataset+ "/imu0/data.csv");
 
     ze::TupleVector  data = eurocDataReader.getVector();
     Buffer<real_t, 7>& poseBuffer = eurocDataReader.getBuffer();
@@ -44,6 +41,8 @@ int main(int argc, char** argv){
     std::vector<Vector3> gyroMeas = eurocDataReader.getGyroMeas();
     LOG(INFO)<<"Get gyro Meas  size: "<<gyroMeas.size(); // @200Hz
 
+
+
     int start  = 1;
     int end = data.size() - 2;
 
@@ -51,10 +50,14 @@ int main(int argc, char** argv){
     std::vector<std::pair<double,Quaternion>> samples, queryMeas;
 
     for(uint i = start; i <end; i++){
-
-        queryMeas.push_back(getSample( data,  i));
+        std::pair<double,Quaternion> sample = getSample( data,  i);
+        Eigen::Quaterniond QuatHamilton(sample.second(3),sample.second(0),sample.second(1),sample.second(2));
+        Eigen::Matrix3d R = QuatHamilton.toRotationMatrix();
+        Quaternion QuatJPL = rotMatToQuat(R);
+        std::pair<double,Quaternion> sampleJPL = std::make_pair(sample.first, QuatJPL);
+        queryMeas.push_back(sampleJPL);
         if(i % 4  == 0){
-            samples.push_back(getSample( data,  i));
+            samples.push_back(sampleJPL);
 
         }
     }
@@ -76,8 +79,8 @@ int main(int argc, char** argv){
                                               <<"Query: "<<query.transpose()<<std::endl
                                               <<"diff:  "<<diff.transpose()<<std::endl<<std::endl;
 
-            std::cout <<"Gt:    "<<i.second.transpose()<<std::endl;
-            std::cout <<"Query: "<<query.transpose()<<std::endl;
+//            std::cout <<"Gt:    "<<i.second.transpose()<<std::endl;
+//            std::cout <<"Query: "<<query.transpose()<<std::endl;
 
         }
 
@@ -115,36 +118,36 @@ int main(int argc, char** argv){
 //    CHECK_EQ((evalDotQ - numDotQ).norm()< 0.001,true)<<"EvalDotQ Not equal to num-DotQ!";
 //
 //
-//    std::ofstream ofs_debug("../matlab/script/debug.txt");
+    std::ofstream ofs_debug("/home/pang/debug.txt");
 //
 //
-//    /*
-//     * Test qspline.evalOmega
-//     *
-//     * Passed!
-//     */
-//
-//    std::map<int64_t,Eigen::Vector3d> gyroMap = eurocDataReader.getGyroMeasMap();
-//    LOG(INFO)<<"gyroMap size: "<<gyroMap.size();
-//
-//    std::map<int64_t,Eigen::Vector3d>::iterator search;
-//    for(uint i = 1; i < data.size()-1; i++){
-//
-//        ze::TrajectoryEle  p0 = data.at(i);
-//        int64_t ts = std::get<0>(p0);
-//        search = gyroMap.find(ts);
-//
-//        if(search != gyroMap.end() && qspline.isTsEvaluable(ts*1e-9)){
-//            Eigen::Vector3d evalOmega = qspline.evalOmega(ts*1e-9);
-//
-//            std::cout<<"Found!"<<std::endl;
-//            //ofs_debug<< search->second.transpose()<<" "<< evalOmega.transpose()<<std::endl;
-//
-//        }else{
-//            std::cout<<"Not found!"<<std::endl;
-//        }
-//
-//    }
+    /*
+     * Test qspline.evalOmega
+     *
+     * Passed!
+     */
+
+    std::map<int64_t,Eigen::Vector3d> gyroMap = eurocDataReader.getGyroMeasMap();
+    LOG(INFO)<<"gyroMap size: "<<gyroMap.size();
+
+    std::map<int64_t,Eigen::Vector3d>::iterator search;
+    for(uint i = 1; i < data.size()-1; i++){
+
+        ze::TrajectoryEle  p0 = data.at(i);
+        int64_t ts = std::get<0>(p0);
+        search = gyroMap.find(ts);
+
+        if(search != gyroMap.end() && qspline.isTsEvaluable(ts*1e-9)){
+            Eigen::Vector3d evalOmega = qspline.evalOmega(ts*1e-9);
+
+            std::cout<<"Found!"<<std::endl;
+            ofs_debug<< search->second.transpose()<<" "<< evalOmega.transpose()<<std::endl;
+
+        }else{
+            std::cout<<"Not found!"<<std::endl;
+        }
+
+    }
 //
 //    /*
 //     *  Test getOmegaFromTwoQuaternion
@@ -243,7 +246,7 @@ int main(int argc, char** argv){
 //
 //
 //
-//    ofs_debug.close();
+    ofs_debug.close();
 //
 
     return 0;

@@ -49,7 +49,7 @@ int main(int argc, char** argv){
 
     Quaternion Q_ba = QSUtility::EvaluateQS(0.5,Cp0,Cp1,Cp2,Cp3);
     Quaternion dot_Q_ba = QSUtility::Evaluate_dot_QS(1, 0.5,Cp0,Cp1,Cp2,Cp3);
-    Eigen::Vector3d omega = QSUtility::w(Q_ba, dot_Q_ba);
+    Eigen::Vector3d omega = QSUtility::w_in_body_frame(Q_ba, dot_Q_ba);
     std::cout<<"Omega: "<< omega.transpose() << std::endl;
 
 

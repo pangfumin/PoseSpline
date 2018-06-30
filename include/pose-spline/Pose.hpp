@@ -155,6 +155,10 @@ public:
     {
         return &parameters_[0];
     }
+    T* data()
+    {
+        return &parameters_[0];
+    }
 
     /// \brief Set this to a random transformation.
     void setRandom();

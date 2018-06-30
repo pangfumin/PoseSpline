@@ -28,11 +28,10 @@ std::pair<double,Eigen::Vector3d>  getSamplePosition(ze::TupleVector& data, unsi
 
 int main(int argc, char** argv){
     google::InitGoogleLogging(argv[0]);
-    std::string dataset = "/media/pang/Plus/dataset/MH_01_easy";
-
+    std::string dataset = "/home/pang/software/PoseSpline/data/MH_01_easy";
     ze::EurocResultSeries eurocDataReader;
-    eurocDataReader.load(dataset + "/mav0/state_groundtruth_estimate0/data.csv");
-    eurocDataReader.loadIMU(dataset + "/mav0/imu0/data.csv");
+    eurocDataReader.load(dataset + "/state_groundtruth_estimate0/data.csv");
+    eurocDataReader.loadIMU(dataset+ "/imu0/data.csv");
 
     ze::TupleVector  data = eurocDataReader.getVector();
     Buffer<real_t, 7>& poseBuffer = eurocDataReader.getBuffer();
@@ -51,7 +50,7 @@ int main(int argc, char** argv){
     int start  = 1;
     int end = data.size() - 2;
 
-    ze::VectorSpaceSpline vectorSpaceSpline(4,0.1);
+    VectorSpaceSpline vectorSpaceSpline(0.1);
     std::vector<std::pair<double,Eigen::Vector3d>> samples, queryMeas, queryVelocity;
 
     for(uint i = start; i <end; i++){
@@ -73,6 +72,8 @@ int main(int argc, char** argv){
     /*
      *  Test:
      */
+    std::ofstream ofs_debug("/home/pang/debug.txt");
+
 
     for(auto i: queryMeas){
         if(vectorSpaceSpline.isTsEvaluable(i.first)){
@@ -83,33 +84,13 @@ int main(int argc, char** argv){
                                               <<"Query: "<<query.transpose()<<std::endl
                                               <<"diff:  "<<diff.transpose()<<std::endl<<std::endl;
 
+            ofs_debug<< query.transpose()<<" "<< i.second.transpose()<<std::endl;
         }
 
     }
 
 
-//    int cnt  = 0;
-//
-//    for(auto i : queryVelocity){
-//        if(cnt ++ < 100 ) continue;
-//        if(vectorSpaceSpline.isTsEvaluable(i.first)){
-//            Eigen::Vector3d query = vectorSpaceSpline.evaluateDotSpline(i.first);
-//            Eigen::Vector3d queryNumeric = vectorSpaceSpline.evaluateDotSplineNumeric(i.first);
-//            Eigen::Vector3d diff = query - i.second;
-////            CHECK_EQ(diff.norm() < 0.01,true)<<" Position query is not close to the ground truth!"
-////                                             <<"Gt:    "<<i.second.transpose()<<std::endl
-////                                             <<"Query: "<<query.transpose()<<std::endl
-////                                             <<"diff:  "<<diff.transpose()<<std::endl<<std::endl;
-//            std::cout<<"meas         : "<< i.second.transpose()<<std::endl;
-//            std::cout<<"queryNumeric : "<< queryNumeric.transpose()<<std::endl;
-//            std::cout<<"query        : "<< query.transpose()<<std::endl;
-//
-//        }
-//
-//    }
-//
-
-
+    ofs_debug.close();
 
     return 0;
 }

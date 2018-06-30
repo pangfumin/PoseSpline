@@ -48,7 +48,7 @@ int main(int argc, char** argv){
     Eigen::Vector3d Residual;
 
     real_t sample_t = 0.32;
-    Eigen::Vector3d sample_V = ze::VectorSpaceSpline::evaluateSpline(sample_t,Cp0,Cp1,Cp2,Cp3);
+    Eigen::Vector3d sample_V = VectorSpaceSpline::evaluateSpline(sample_t,Cp0,Cp1,Cp2,Cp3);
     std::cout<<"Sample_V: "<<sample_V.transpose()<<std::endl;
 
     /*
@@ -160,10 +160,10 @@ int main(int argc, char** argv){
     std::cout<<"CP2_init: "<<Cp2_init.transpose()<<std::endl<<"After opt: "<<Cp2.transpose()<<std::endl;
     std::cout<<"CP3_init: "<<Cp3_init.transpose()<<std::endl<<"After opt: "<<Cp3.transpose()<<std::endl;
 
-    Eigen::Vector3d Vhat0 = ze::VectorSpaceSpline::evaluateSpline(u,Cp0,Cp1,Cp2,Cp3);
-    Eigen::Vector3d Vhat1 = ze::VectorSpaceSpline::evaluateSpline(u1,Cp0,Cp1,Cp2,Cp3);
-    Eigen::Vector3d Vhat2 = ze::VectorSpaceSpline::evaluateSpline(u2,Cp0,Cp1,Cp2,Cp3);
-    Eigen::Vector3d Vhat3 = ze::VectorSpaceSpline::evaluateSpline(u3,Cp0,Cp1,Cp2,Cp3);
+    Eigen::Vector3d Vhat0 = VectorSpaceSpline::evaluateSpline(u,Cp0,Cp1,Cp2,Cp3);
+    Eigen::Vector3d Vhat1 = VectorSpaceSpline::evaluateSpline(u1,Cp0,Cp1,Cp2,Cp3);
+    Eigen::Vector3d Vhat2 = VectorSpaceSpline::evaluateSpline(u2,Cp0,Cp1,Cp2,Cp3);
+    Eigen::Vector3d Vhat3 = VectorSpaceSpline::evaluateSpline(u3,Cp0,Cp1,Cp2,Cp3);
 
     std::cout<<"Vmeas0: "<<V_meas.transpose()<<std::endl<<"Vhat0: "<<Vhat0.transpose()<<std::endl;
     std::cout<<"Vmeas1: "<<V_meas1.transpose()<<std::endl<<"Vhat1: "<<Vhat1.transpose()<<std::endl;

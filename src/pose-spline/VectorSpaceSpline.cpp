@@ -7,61 +7,13 @@
 #include <algorithm>
 
 
-namespace ze {
-    VectorSpaceSpline::VectorSpaceSpline(int spline_order)
-            : BSpline(spline_order),mTimeInterval(0) {
+    VectorSpaceSpline::VectorSpaceSpline()
+            : BSplineBase(1.0) {
 
     }
 
-    VectorSpaceSpline::VectorSpaceSpline(int spline_order,double interval)
-            : BSpline(spline_order),mTimeInterval(interval){
-
-    }
-    VectorSpaceSpline::~VectorSpaceSpline(){
-        for (auto i : mControlPointsParameter)
-            delete [] i;
-        mControlPointsParameter.clear();
-    }
-    void VectorSpaceSpline::setTimeInterval(double timeInterval){
-        mTimeInterval = timeInterval;
-
-    }
-    double VectorSpaceSpline::getTimeInterval(){
-        return mTimeInterval ;
-
-    }
-    bool VectorSpaceSpline::isTsEvaluable(double ts){
-        return ts >= t_min() && ts < t_max();
-
-    }
-    void VectorSpaceSpline:: addSample(double t, Eigen::Vector3d Q){
-
-        if(getControlPointNum() == 0){
-            initialSplineKnot(t);
-            //std::cout<<"t: "<<Time(t)<<" t_max: "<<Time(t_max())<<std::endl;
-        }else if(getControlPointNum() >= numCoefficientsRequired(1) ){
-            //std::cout<<"add "<<Time(t - t_max())<<std::endl;
-
-            if(t < t_min()){
-                std::cerr<<"[Error] Inserted t is smaller than t_min()！"<<std::endl;
-                LOG(FATAL) << "Inserted "<<Time(t)<<" is smaller than t_min() "<<Time(t_min())<<std::endl;
-            }else if(t >= t_max()){
-                // add new knot and control Points
-                while(t >= t_max()){
-
-                    //std::cout<<"t: "<<Time(t)<<" t_max: "<<Time(t_max())<<std::endl;
-                    knots_.push_back(knots_.back() + mTimeInterval); // append one;
-                    initialNewControlPoint();
-                }
-
-            }
-
-        }
-        // Tricky: do not add point close to t_max
-        if( t_max() - t > 0.0001){
-            mSampleValues.insert(std::pair<double ,Eigen::Vector3d>(t,Q));
-        }
-        CHECK_EQ(knots_.size() - spline_order_, getControlPointNum());
+    VectorSpaceSpline::VectorSpaceSpline(double interval)
+            : BSplineBase(interval){
 
     }
 
@@ -73,13 +25,13 @@ namespace ze {
         for(auto i : Meas){
             //std::cout<<"-----------------------------------"<<std::endl;
             // add sample
-            addSample(i.first,i.second);
+            addElemenTypeSample(i.first,i.second);
 
             // Returns the normalized u value and the lower-bound time index.
             std::pair<double,unsigned  int> ui = computeUAndTIndex(i.first);
             //VectorX u = computeU(ui.first, ui.second, 0);
             double u = ui.first;
-            int bidx = ui.second - spline_order_ + 1;
+            int bidx = ui.second - spline_order() + 1;
 
             double* cp0 = getControlPoint(bidx);
             double* cp1 = getControlPoint(bidx+1);
@@ -127,42 +79,10 @@ namespace ze {
     }
 
 
-    void VectorSpaceSpline::initialSplineKnot(double t){
-        // Initialize the spline so that it interpolates the two points
-        // and moves between them with a constant velocity.
-
-        // How many knots are required for one time segment?
-        int K = numKnotsRequired(1);
-        // How many coefficients are required for one time segment?
-        int C = numCoefficientsRequired(1);
-
-        // Initialize a uniform knot sequence
-        real_t dt = mTimeInterval;
-        std::vector<real_t> knots(K);
-        for(int i = 0; i < K; i++)
-        {
-            knots[i] = t + (i - spline_order_ + 1) * dt;
-        }
-
-        knots_ = knots;
-
-        for(int i = 0; i < C; i++){
-            initialNewControlPoint();
-        }
-
-
-    }
-    void VectorSpaceSpline::printKnots(){
-        std::cout<<"knot: "<<std::endl;
-        for(auto i: knots_){
-            std::cout<<Time(i)<<std::endl;
-
-        }
-    }
     Eigen::Vector3d VectorSpaceSpline::evaluateSpline(const real_t t){
         std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
         double u = ui.first;
-        unsigned int bidx = ui.second - spline_order_ + 1;
+        unsigned int bidx = ui.second - spline_order() + 1;
 
         return evaluateSpline(u,
                               Eigen::Map<Eigen::Matrix<double,3,1>>(getControlPoint(bidx)),
@@ -174,9 +94,9 @@ namespace ze {
     Eigen::Vector3d VectorSpaceSpline::evaluateDotSpline(const real_t t){
         std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
         double u = ui.first;
-        unsigned int bidx = ui.second - spline_order_ + 1;
+        unsigned int bidx = ui.second - spline_order() + 1;
 
-        return evaluateDotSpline(u,mTimeInterval,
+        return evaluateDotSpline(u,getTimeInterval(),
                               Eigen::Map<Eigen::Matrix<double,3,1>>(getControlPoint(bidx)),
                               Eigen::Map<Eigen::Matrix<double,3,1>>(getControlPoint(bidx+1)),
                               Eigen::Map<Eigen::Matrix<double,3,1>>(getControlPoint(bidx+2)),
@@ -218,12 +138,3 @@ namespace ze {
         Eigen::Vector3d dotV =  dotBeta1*(v1 - v0) +  dotBeta2*(v2 - v1) + dotBeta3*(v3 - v2);
         return dotV;
     }
-
-    void VectorSpaceSpline::initialNewControlPoint(){
-        Eigen::Vector3d vec = (Eigen::Vector3d::Zero());
-        double* data = new double[3];
-        memcpy(data, vec.data(),sizeof(double)*3);
-        mControlPointsParameter.push_back(data);
-    }
-
-}

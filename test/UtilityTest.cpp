@@ -29,7 +29,7 @@ int main(){
 
     std::cout<<Q.transpose()<<std::endl;
 
-    ze::QuaternionSpline qSpline(4);
+    QuaternionSpline qSpline(4);
     qSpline.setTimeInterval(0.1);
 
     std::cout<<qSpline.minimumKnotsRequired()<<std::endl;

@@ -12,8 +12,9 @@ using real_t = double;
 template <typename ElementType, int SplineOrder>
 class BSplineBase {
 public:
-    BSpline(double interval):mTimeInterval(interval) {};
-    virtual ~BSpline() {
+    BSplineBase(double interval):mSplineOrder(SplineOrder),
+                                 mTimeInterval(interval) {};
+    virtual ~BSplineBase() {
         for (auto i : mControlPointsParameter)
             delete [] i;
 
@@ -98,7 +99,7 @@ public:
 
     }
 
-    std::pair<real_t,int> BSpline::computeUAndTIndex(real_t t) const
+    std::pair<real_t,int> computeUAndTIndex(real_t t) const
     {
         std::pair<real_t,int> ui = computeTIndex(t);
 
@@ -131,9 +132,37 @@ public:
         return ts >= t_min() && ts < t_max();
 
     }
+
+    void initialQuaternionSplineKnot(double t){
+        // Initialize the spline so that it interpolates the two points
+        // and moves between them with a constant velocity.
+
+        // How many knots are required for one time segment?
+        int K = numKnotsRequired(1);
+        // How many coefficients are required for one time segment?
+        int C = numCoefficientsRequired(1);
+
+        // Initialize a uniform knot sequence
+        real_t dt = mTimeInterval;
+        std::vector<real_t> knots(K);
+        for(int i = 0; i < K; i++)
+        {
+            knots[i] = t + (i - SplineOrder + 1) * dt;
+        }
+
+        knots_ = knots;
+
+        for(int i = 0; i < C; i++){
+            initialNewControlPoint();
+        }
+
+
+    }
+
     void addElemenTypeSample(double t, ElementType sample){
 
         if(getControlPointNum() == 0){
+
             initialQuaternionSplineKnot(t);
             //std::cout<<"t: "<<Time(t)<<" t_max: "<<Time(t_max())<<std::endl;
         }else if(getControlPointNum() >= numCoefficientsRequired(1) ){
@@ -154,7 +183,7 @@ public:
         }
         // Tricky: do not add point close to t_max
         if( t_max() - t > 0.0001){
-            mSampleValues.insert(std::pair<double ,Quaternion>(t,Q));
+            mSampleValues.insert(std::pair<double ,ElementType>(t,sample));
         }
         CHECK_EQ(knots_.size() - SplineOrder, getControlPointNum());
 
@@ -171,9 +200,9 @@ public:
 
 private:
     void initialNewControlPoint(){
-        TypeTraits<ElementType>::TypeT zero_ele = TypeTraits<ElementType>::zero();
+        typename TypeTraits<ElementType>::TypeT zero_ele = TypeTraits<ElementType>::zero();
         double* data = new double[TypeTraits<ElementType>::Dim];
-        memcpy(data, zero_ele.data(),sizeof(double)*TypeTraits<ElementType>::Dim);
+        memcpy(data, zero_ele.data(),sizeof(double)* TypeTraits<ElementType>::Dim);
         mControlPointsParameter.push_back(data);
     }
 
@@ -182,6 +211,7 @@ private:
 
     std::vector<double*> mControlPointsParameter;
     std::map<double, ElementType> mSampleValues;
+    int mSplineOrder;
     double mTimeInterval;
 
 };

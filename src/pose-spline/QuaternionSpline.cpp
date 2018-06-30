@@ -5,65 +5,18 @@
 #include "utility/Time.hpp"
 #include <algorithm>
 
-namespace ze {
-    QuaternionSpline::QuaternionSpline(int spline_order)
-            : BSpline(spline_order),mTimeInterval(0) {
+    QuaternionSpline::QuaternionSpline()
+            : BSplineBase(1.0){
 
     }
 
-    QuaternionSpline::QuaternionSpline(int spline_order,double interval)
-            : BSpline(spline_order),mTimeInterval(interval){
+    QuaternionSpline::QuaternionSpline(double interval)
+            : BSplineBase(interval){
 
     }
     QuaternionSpline::~QuaternionSpline(){
-
-        for (auto i : mControlPointsParameter)
-            delete [] i;
-
-        mControlPointsParameter.clear();
     }
-    void QuaternionSpline::setTimeInterval(double timeInterval){
-        mTimeInterval = timeInterval;
 
-    }
-    double QuaternionSpline::getTimeInterval(){
-        return mTimeInterval ;
-
-    }
-    bool QuaternionSpline::isTsEvaluable(double ts){
-        return ts >= t_min() && ts < t_max();
-
-    }
-    void QuaternionSpline:: addSample(double t, Quaternion Q){
-
-        if(getControlPointNum() == 0){
-            initialQuaternionSplineKnot(t);
-            //std::cout<<"t: "<<Time(t)<<" t_max: "<<Time(t_max())<<std::endl;
-        }else if(getControlPointNum() >= numCoefficientsRequired(1) ){
-            //std::cout<<"add "<<Time(t - t_max())<<std::endl;
-
-            if(t < t_min()){
-                std::cerr<<"[Error] Inserted t is smaller than t_min()！"<<std::endl;
-                LOG(FATAL) << "Inserted "<<Time(t)<<" is smaller than t_min() "<<Time(t_min())<<std::endl;
-            }else if(t >= t_max()){
-                // add new knot and control Points
-                while(t >= t_max()){
-
-                    //std::cout<<"t: "<<Time(t)<<" t_max: "<<Time(t_max())<<std::endl;
-                    knots_.push_back(knots_.back() + mTimeInterval); // append one;
-                    initialNewControlPoint();
-                }
-
-            }
-
-        }
-        // Tricky: do not add point close to t_max
-        if( t_max() - t > 0.0001){
-            mSampleValues.insert(std::pair<double ,Quaternion>(t,Q));
-        }
-        CHECK_EQ(knots_.size() - spline_order_, getControlPointNum());
-
-    }
 
     void QuaternionSpline::initialQuaternionSpline(std::vector<std::pair<double,Quaternion>> Meas){
         // Build a  least-square problem
@@ -73,13 +26,13 @@ namespace ze {
         for(auto i : Meas){
             //std::cout<<"-----------------------------------"<<std::endl;
             // add sample
-            addSample(i.first,i.second);
+            addElemenTypeSample(i.first,i.second);
 
             // Returns the normalized u value and the lower-bound time index.
             std::pair<double,unsigned  int> ui = computeUAndTIndex(i.first);
             //VectorX u = computeU(ui.first, ui.second, 0);
             double u = ui.first;
-            int bidx = ui.second - spline_order_ + 1;
+            int bidx = ui.second - spline_order() + 1;
 /*
             std::cout<<"Knot: "<<knots_.size()<<std::endl;
             std::cout<<"ContrPoint: "<<getControlPointNum()<<std::endl;
@@ -138,43 +91,19 @@ namespace ze {
     }
 
 
-    void QuaternionSpline::initialQuaternionSplineKnot(double t){
-        // Initialize the spline so that it interpolates the two points
-        // and moves between them with a constant velocity.
 
-        // How many knots are required for one time segment?
-        int K = numKnotsRequired(1);
-        // How many coefficients are required for one time segment?
-        int C = numCoefficientsRequired(1);
-
-        // Initialize a uniform knot sequence
-        real_t dt = mTimeInterval;
-        std::vector<real_t> knots(K);
-        for(int i = 0; i < K; i++)
-        {
-            knots[i] = t + (i - spline_order_ + 1) * dt;
-        }
-
-        knots_ = knots;
-
-        for(int i = 0; i < C; i++){
-            initialNewControlPoint();
-        }
-
-
-    }
-    void QuaternionSpline::printKnots(){
-        std::cout<<"knot: "<<std::endl;
-        for(auto i: knots_){
-            std::cout<<Time(i)<<std::endl;
-
-        }
-    }
+//    void QuaternionSpline::printKnots(){
+//        std::cout<<"knot: "<<std::endl;
+//        for(auto i: knots_){
+//            std::cout<<Time(i)<<std::endl;
+//
+//        }
+//    }
 
     Quaternion QuaternionSpline::evalQuatSpline(real_t t ){
         std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
         double u = ui.first;
-        unsigned int bidx = ui.second - spline_order_ + 1;
+        unsigned int bidx = ui.second - spline_order() + 1;
 
         return QSUtility::EvaluateQS(u,
                                    quatMap<double>(getControlPoint(bidx)),
@@ -187,9 +116,9 @@ namespace ze {
 
         std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
         double u = ui.first;
-        unsigned int bidx = ui.second - spline_order_ + 1;
+        unsigned int bidx = ui.second - spline_order() + 1;
 
-        return QSUtility::Evaluate_dot_QS(mTimeInterval,u,quatMap<double>(getControlPoint(bidx)),
+        return QSUtility::Evaluate_dot_QS(getTimeInterval(),u,quatMap<double>(getControlPoint(bidx)),
                                           quatMap<double>(getControlPoint(bidx+1)),
                                           quatMap<double>(getControlPoint(bidx+2)),
                                           quatMap<double>(getControlPoint(bidx+3)));
@@ -198,8 +127,8 @@ namespace ze {
     Quaternion QuaternionSpline::evalDotDotQuatSpline(real_t t){
         std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
         double u = ui.first;
-        unsigned int bidx = ui.second - spline_order_ + 1;
-        return QSUtility::Evaluate_dot_dot_QS(mTimeInterval,u,quatMap<double>(getControlPoint(bidx)),
+        unsigned int bidx = ui.second - spline_order() + 1;
+        return QSUtility::Evaluate_dot_dot_QS(getTimeInterval(),u,quatMap<double>(getControlPoint(bidx)),
                                               quatMap<double>(getControlPoint(bidx+1)),
                                               quatMap<double>(getControlPoint(bidx+2)),
                                               quatMap<double>(getControlPoint(bidx+3)));
@@ -212,7 +141,7 @@ namespace ze {
                                                    double* dot_dot_Quat){
         std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
         double u = ui.first;
-        unsigned int bidx = ui.second - spline_order_ + 1;
+        unsigned int bidx = ui.second - spline_order() + 1;
 
         Quaternion Q0 = quatMap<double>(getControlPoint(bidx));
         Quaternion Q1 = quatMap<double>(getControlPoint(bidx + 1));
@@ -236,9 +165,9 @@ namespace ze {
         Q_LG =  quatLeftComp(Q0)*quatLeftComp(r1)*quatLeftComp(r2)*r3;
 
         if(dot_Qaut != NULL){
-            double dot_b1 = QSUtility::dot_beta1(mTimeInterval,u);
-            double dot_b2 = QSUtility::dot_beta2(mTimeInterval,u);
-            double dot_b3 = QSUtility::dot_beta3(mTimeInterval,u);
+            double dot_b1 = QSUtility::dot_beta1(getTimeInterval(),u);
+            double dot_b2 = QSUtility::dot_beta2(getTimeInterval(),u);
+            double dot_b3 = QSUtility::dot_beta3(getTimeInterval(),u);
 
 
             Quaternion  part1, part2,part3;
@@ -255,9 +184,9 @@ namespace ze {
                 Quaternion dr2 = QSUtility::dr_dt(dot_b2,b2,Phi2);
                 Quaternion dr3 = QSUtility::dr_dt(dot_b3,b3,Phi3);
 
-                double dot_dot_b1 = QSUtility::dot_dot_beta1(mTimeInterval,u);
-                double dot_dot_b2 = QSUtility::dot_dot_beta2(mTimeInterval,u);
-                double dot_dot_b3 = QSUtility::dot_dot_beta3(mTimeInterval,u);
+                double dot_dot_b1 = QSUtility::dot_dot_beta1(getTimeInterval(),u);
+                double dot_dot_b2 = QSUtility::dot_dot_beta2(getTimeInterval(),u);
+                double dot_dot_b3 = QSUtility::dot_dot_beta3(getTimeInterval(),u);
 
                 Quaternion  ddr1 = QSUtility::d2r_dt2(dot_dot_b1,dot_b1,b1,Phi1);
                 Quaternion  ddr2 = QSUtility::d2r_dt2(dot_dot_b2,dot_b2,b2,Phi2);
@@ -294,7 +223,7 @@ namespace ze {
 
         std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
         double u = ui.first;
-        unsigned int bidx = ui.second - spline_order_ + 1;
+        unsigned int bidx = ui.second - spline_order() + 1;
 
         Quaternion Q0 = quatMap<double>(getControlPoint(bidx));
         Quaternion Q1 = quatMap<double>(getControlPoint(bidx + 1));
@@ -315,9 +244,9 @@ namespace ze {
 
         Quaternion Q_WI =  quatLeftComp(Q0)*quatLeftComp(r1)*quatLeftComp(r2)*r3;
 
-        double dot_b1 = QSUtility::dot_beta1(mTimeInterval,u);
-        double dot_b2 = QSUtility::dot_beta2(mTimeInterval,u);
-        double dot_b3 = QSUtility::dot_beta3(mTimeInterval,u);
+        double dot_b1 = QSUtility::dot_beta1(getTimeInterval(),u);
+        double dot_b2 = QSUtility::dot_beta2(getTimeInterval(),u);
+        double dot_b3 = QSUtility::dot_beta3(getTimeInterval(),u);
 
 
         Quaternion dot_Q_WI, part1, part2,part3;
@@ -338,7 +267,7 @@ namespace ze {
 
         std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
         double u = ui.first;
-        unsigned int bidx = ui.second - spline_order_ + 1;
+        unsigned int bidx = ui.second - spline_order() + 1;
 
         Quaternion Q0 = quatMap<double>(getControlPoint(bidx));
         Quaternion Q1 = quatMap<double>(getControlPoint(bidx + 1));
@@ -354,13 +283,13 @@ namespace ze {
         double b2 = QSUtility::beta2(u);
         double b3 = QSUtility::beta3(u);
 
-        double dot_b1 = QSUtility::dot_beta1(mTimeInterval,u);
-        double dot_b2 = QSUtility::dot_beta2(mTimeInterval,u);
-        double dot_b3 = QSUtility::dot_beta3(mTimeInterval,u);
+        double dot_b1 = QSUtility::dot_beta1(getTimeInterval(),u);
+        double dot_b2 = QSUtility::dot_beta2(getTimeInterval(),u);
+        double dot_b3 = QSUtility::dot_beta3(getTimeInterval(),u);
 
-        double dot_dot_b1 = QSUtility::dot_dot_beta1(mTimeInterval,u);
-        double dot_dot_b2 = QSUtility::dot_dot_beta2(mTimeInterval,u);
-        double dot_dot_b3 = QSUtility::dot_dot_beta3(mTimeInterval,u);
+        double dot_dot_b1 = QSUtility::dot_dot_beta1(getTimeInterval(),u);
+        double dot_dot_b2 = QSUtility::dot_dot_beta2(getTimeInterval(),u);
+        double dot_dot_b3 = QSUtility::dot_dot_beta3(getTimeInterval(),u);
 
         Quaternion  ddr1 = QSUtility::d2r_dt2(dot_dot_b1,dot_b1,b1,Phi1);
         Quaternion  ddr2 = QSUtility::d2r_dt2(dot_dot_b2,dot_b2,b2,Phi2);
@@ -414,13 +343,5 @@ namespace ze {
 
     }
 
-    void QuaternionSpline::initialNewControlPoint(){
-
-        Quaternion unit = unitQuat<double>();
-        double* data = new double[4];
-        memcpy(data, unit.data(),sizeof(double)*4);
-        mControlPointsParameter.push_back(data);
-    }
 
 
-}

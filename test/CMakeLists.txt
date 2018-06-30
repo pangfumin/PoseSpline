@@ -24,11 +24,12 @@ target_link_libraries(VectorSplineCeresTest
 
 
 
-add_executable(SplineTest SplineTest.cpp)
-target_link_libraries(SplineTest
+
+
+
+add_executable(QuaternionSplineTest QuaternionSplineTest.cpp)
+target_link_libraries(QuaternionSplineTest
         PoseSpline)
-
-
 
 add_executable(PoseSplineTest PoseSplineTest.cpp)
 target_link_libraries(PoseSplineTest

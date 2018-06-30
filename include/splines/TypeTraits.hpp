@@ -10,21 +10,21 @@ class TypeTraits;
 template <>
 class TypeTraits<Quaternion> {
 public:
-    typename Quaternion TypeT;
+    typedef Quaternion TypeT;
     enum {Dim = 4, miniDim = 3};
     static TypeT zero() {
-        return unitQuat();
+        return unitQuat<double>();
     }
 };
 
 
 template <>
-class TypeTraits<Pose> {
+class TypeTraits<Pose<double>> {
 public:
-    typename Pose TypeT;
+    typedef Pose<double> TypeT;
     enum {Dim = 7, miniDim = 6};
     static TypeT zero() {
-        return Pose();
+        return Pose<double>();
     }
 };
 
@@ -32,7 +32,7 @@ public:
 template <>
 class TypeTraits<Eigen::Vector3d> {
 public:
-    typename Eigen::Vector3d TypeT;
+    typedef Eigen::Vector3d TypeT;
     enum {Dim = 3, miniDim = 3};
     static TypeT zero() {
         return Eigen::Vector3d::Identity();

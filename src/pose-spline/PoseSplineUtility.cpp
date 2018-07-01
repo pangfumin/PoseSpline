@@ -42,8 +42,8 @@ Eigen::Vector3d PSUtility::EvaluateLinearVelocity(double u, double dt,
     double  dotBeta2 = QSUtility::dot_beta2(dt, u);
     double  dotBeta3 = QSUtility::dot_beta3(dt, u);
 
-    Eigen::Vector3d V =  dotBeta1*(V1 - V0) +  dotBeta2*(V2 - V1) + dotBeta3*(V3 - V2);
-    return V;
+    Eigen::Vector3d velocity_in_world_frame =  dotBeta1*(V1 - V0) +  dotBeta2*(V2 - V1) + dotBeta3*(V3 - V2);
+    return velocity_in_world_frame;
 
 }
 

@@ -17,7 +17,7 @@ public:
 
     void initialPoseSpline(std::vector<std::pair<double, Pose<double>>> Meas) ;
 
-        Pose<double> evalPoseSpline(real_t t);
+    Pose<double> evalPoseSpline(real_t t);
     Eigen::Vector3d evalLinearVelocity(real_t t );
 
     Eigen::Vector3d evalLinearAccelerator(real_t t);

@@ -42,7 +42,21 @@ Eigen::Vector3d PSUtility::EvaluateLinearVelocity(double u, double dt,
     double  dotBeta2 = QSUtility::dot_beta2(dt, u);
     double  dotBeta3 = QSUtility::dot_beta3(dt, u);
 
-    Eigen::Vector3d V =  dotBeta1*(V1 - V0) +  dotBeta2*(V2 - V1) + dotBeta3*(V3 - V2);
+    Eigen::Vector3d velocity_in_world_frame =  dotBeta1*(V1 - V0) +  dotBeta2*(V2 - V1) + dotBeta3*(V3 - V2);
+    return velocity_in_world_frame;
+
+}
+
+Eigen::Vector3d PSUtility::EvaluatePosition(double u,
+                                 const Eigen::Vector3d& V0,
+                                 const Eigen::Vector3d& V1,
+                                 const Eigen::Vector3d& V2,
+                                 const Eigen::Vector3d& V3) {
+    double  Beta1 = QSUtility::beta1(u);
+    double  Beta2 = QSUtility::beta2( u);
+    double  Beta3 = QSUtility::beta3( u);
+
+    Eigen::Vector3d V =  V0 + Beta1*(V1 - V0) +  Beta2*(V2 - V1) + Beta3*(V3 - V2);
     return V;
 
 }

@@ -3,70 +3,16 @@
 #include "pose-spline/PoseLocalParameter.hpp"
 #include "pose-spline/PoseSplineSampleError.hpp"
 #include "pose-spline/PoseSplineUtility.hpp"
-namespace ze {
-    PoseSpline::PoseSpline(int spline_order)
-            : BSpline(spline_order), mTimeInterval(0) {
+    PoseSpline::PoseSpline()
+            : BSplineBase(1.0) {
 
     }
 
-    PoseSpline::PoseSpline(int spline_order, double interval)
-            : BSpline(spline_order), mTimeInterval(interval) {
+    PoseSpline::PoseSpline( double interval)
+            : BSplineBase(interval) {
 
     }
 
-    PoseSpline::~PoseSpline() {
-
-        for (auto i : mControlPointsParameter)
-            delete[] i;
-
-        mControlPointsParameter.clear();
-    }
-
-    void PoseSpline::setTimeInterval(double timeInterval) {
-        mTimeInterval = timeInterval;
-
-    }
-
-    double PoseSpline::getTimeInterval() {
-        return mTimeInterval;
-
-    }
-
-    bool PoseSpline::isTsEvaluable(double ts) {
-        return ts >= t_min() && ts < t_max();
-
-    }
-
-    void PoseSpline::addSample(double t, Pose<double> Q) {
-
-        if (getControlPointNum() == 0) {
-            initialPoseSplineKnot(t);
-            //std::cout<<"t: "<<Time(t)<<" t_max: "<<Time(t_max())<<std::endl;
-        } else if (getControlPointNum() >= numCoefficientsRequired(1)) {
-            //std::cout<<"add "<<Time(t - t_max())<<std::endl;
-
-            if (t < t_min()) {
-                std::cerr << "[Error] Inserted t is smaller than t_min()！" << std::endl;
-                LOG(FATAL) << "Inserted " << Time(t) << " is smaller than t_min() " << Time(t_min()) << std::endl;
-            } else if (t >= t_max()) {
-                // add new knot and control Points
-                while (t >= t_max()) {
-
-                    //std::cout<<"t: "<<Time(t)<<" t_max: "<<Time(t_max())<<std::endl;
-                    knots_.push_back(knots_.back() + mTimeInterval); // append one;
-                    initialNewControlPoint();
-                }
-
-            }
-
-        }
-        // Tricky: do not add point close to t_max
-        if (t_max() - t > 0.0001) {
-            mSampleValues.insert(std::pair<double, Pose<double>>(t, Q));
-        }
-        CHECK_EQ(knots_.size() - spline_order_, getControlPointNum());
-
-    }
 
     void PoseSpline::initialPoseSpline(std::vector<std::pair<double, Pose<double>>> Meas) {
 
@@ -77,13 +23,13 @@ namespace ze {
         for (auto i : Meas) {
             //std::cout<<"-----------------------------------"<<std::endl;
             // add sample
-            addSample(i.first, i.second);
+            addElemenTypeSample(i.first, i.second);
 
             // Returns the normalized u value and the lower-bound time index.
             std::pair<double, unsigned int> ui = computeUAndTIndex(i.first);
             //VectorX u = computeU(ui.first, ui.second, 0);
             double u = ui.first;
-            int bidx = ui.second - spline_order_ + 1;
+            int bidx = ui.second - spline_order() + 1;
 
             double *cp0 = getControlPoint(bidx);
             double *cp1 = getControlPoint(bidx + 1);
@@ -128,44 +74,13 @@ namespace ze {
     }
 
 
-    void PoseSpline::initialPoseSplineKnot(double t) {
-        // Initialize the spline so that it interpolates the two points
-        // and moves between them with a constant velocity.
 
-        // How many knots are required for one time segment?
-        int K = numKnotsRequired(1);
-        // How many coefficients are required for one time segment?
-        int C = numCoefficientsRequired(1);
-
-        // Initialize a uniform knot sequence
-        real_t dt = mTimeInterval;
-        std::vector<real_t> knots(K);
-        for (int i = 0; i < K; i++) {
-            knots[i] = t + (i - spline_order_ + 1) * dt;
-        }
-
-        knots_ = knots;
-
-        for (int i = 0; i < C; i++) {
-            initialNewControlPoint();
-        }
-
-
-    }
-
-    void PoseSpline::initialNewControlPoint(){
-
-        Pose<double> unit;
-        double* data = new double[7];
-        memcpy(data, unit.parameterPtr(),sizeof(double)*7);
-        mControlPointsParameter.push_back(data);
-    }
 
 
     Pose<double> PoseSpline::evalPoseSpline(real_t t ){
         std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
         double u = ui.first;
-        unsigned int bidx = ui.second - spline_order_ + 1;
+        unsigned int bidx = ui.second - spline_order() + 1;
 //
         Eigen::Map<Eigen::Matrix<double, 3,1>> t0(getControlPoint(bidx));
         Eigen::Map<Eigen::Matrix<double, 3,1>> t1(getControlPoint(bidx+1));
@@ -185,14 +100,14 @@ namespace ze {
     Eigen::Vector3d PoseSpline::evalLinearVelocity(real_t t ){
         std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
         double u = ui.first;
-        unsigned int bidx = ui.second - spline_order_ + 1;
+        unsigned int bidx = ui.second - spline_order() + 1;
         Eigen::Map<Eigen::Matrix<double, 3,1>> t0(getControlPoint(bidx));
         Eigen::Map<Eigen::Matrix<double, 3,1>> t1(getControlPoint(bidx+1));
         Eigen::Map<Eigen::Matrix<double, 3,1>> t2(getControlPoint(bidx+2));
         Eigen::Map<Eigen::Matrix<double, 3,1>> t3(getControlPoint(bidx+3));
 
       
-        return PSUtility::EvaluateLinearVelocity(u, mTimeInterval,
+        return PSUtility::EvaluateLinearVelocity(u, getTimeInterval(),
                                                  t0, t1, t2, t3);
     }
 
@@ -200,7 +115,7 @@ namespace ze {
 
         std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
         double u = ui.first;
-        unsigned int bidx = ui.second - spline_order_ + 1;
+        unsigned int bidx = ui.second - spline_order() + 1;
         Eigen::Map<Eigen::Matrix<double, 7,1>> t0(getControlPoint(bidx));
         Eigen::Map<Eigen::Matrix<double, 7,1>> t1(getControlPoint(bidx+1));
         Eigen::Map<Eigen::Matrix<double, 7,1>> t2(getControlPoint(bidx+2));
@@ -212,20 +127,9 @@ namespace ze {
         Pose3.setParameters(t3);
 
 
-        return PSUtility::EvaluateLinearAccelerate(u, mTimeInterval,
+        return PSUtility::EvaluateLinearAccelerate(u, getTimeInterval(),
                                                   Pose0, Pose1, Pose2,Pose3);
 
     }
 
 
-
-
-    void PoseSpline::printKnots() {
-        std::cout << "knot: " << std::endl;
-        for (auto i: knots_) {
-            std::cout << Time(i) << std::endl;
-
-        }
-    }
-
-}

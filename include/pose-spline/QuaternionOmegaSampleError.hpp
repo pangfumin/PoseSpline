@@ -4,11 +4,10 @@
 #include <ceres/ceres.h>
 #include "pose-spline/QuaternionSplineUtility.hpp"
 struct QuaternionOmegaSampleFunctor{
-
-    QuaternionOmegaSampleFunctor(const double ts, const double& deltat,
+    QuaternionOmegaSampleFunctor(const double u, const double& deltat,
                                const Eigen::Vector3d& omegaSample,
                                 const double& weightScale)
-            : ts_(ts),
+            : u_(u),
               deltaT_(deltat),
               omegaSample_(omegaSample),
               weightScale_(weightScale){
@@ -28,7 +27,7 @@ struct QuaternionOmegaSampleFunctor{
         Eigen::Matrix<T,3,1> Phi2 = QSUtility::Phi(Q1,Q2);
         Eigen::Matrix<T,3,1> Phi3 = QSUtility::Phi(Q2,Q3);
 
-        T u = ts_ / T(deltaT_);
+        T u = T(u_);
         T b1 = QSUtility::beta1(u);
         T b2 = QSUtility::beta2(u);
         T b3 = QSUtility::beta3(u);
@@ -68,9 +67,12 @@ struct QuaternionOmegaSampleFunctor{
     }
 
 
+    double getU() {return u_;};
+    double getDeltaT() {return deltaT_;};
+    static double num_residuals() {return 3;};
 
 private:
-    double ts_;
+    double u_;
     double deltaT_;
     Eigen::Vector3d omegaSample_;
 

@@ -19,14 +19,6 @@ include_directories(include
         )
 include_directories( ${GLOG_INCLUDE_DIRS})
 
-add_library(Spline
-        src/spline/bspline.cpp
-        )
-target_link_libraries(Spline
-        ${CERES_LIBRARIES}
-        ${OPENCV_LIBRARIES}
-        ${GLOG_LIBRARIES})
-
 
 add_library( PoseSpline
         src/utility/Duration.cpp
@@ -50,11 +42,11 @@ add_library( PoseSpline
         src/pose-spline/VectorSplineSampleAutoError.cpp
         src/pose-spline/VectorSplineSampleVelocityError.cpp
         src/pose-spline/LinearAccelerateSampleError.cpp
+        src/pose-spline/AngularVelocitySampleError.cpp
         src/pose-spline/csv_trajectory.cpp)
 
 
 target_link_libraries(PoseSpline
-        Spline
         ${CERES_LIBRARIES}
         ${OPENCV_LIBRARIES}
         ${GLOG_LIBRARIES})

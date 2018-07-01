@@ -3,7 +3,6 @@
 #include <ceres/ceres.h>
 
 #include "common/csv_trajectory.hpp"
-#include "splines/bspline.hpp"
 #include "pose-spline/Quaternion.hpp"
 #include "pose-spline/QuaternionSpline.hpp"
 #include "pose-spline/QuaternionSplineUtility.hpp"
@@ -12,27 +11,6 @@
 
 int main(){
 
-    ze::BSpline bSpline(4);
-
-    ze::real_t  t0 = 1;
-    ze::real_t  t1 = 2;
-    Eigen::VectorXd v0,v1;
-    v0 = Eigen::Vector3d(0,0,0);
-    v1 = Eigen::Vector3d(1,0,0);
-
-
-    bSpline.initSpline(t0,t1,v0,v1);
-    std::cout<<bSpline.t_min()<<" "<<bSpline.t_max()<<std::endl;
-    std::cout<<bSpline.minimumKnotsRequired()<<std::endl;
-
-    Quaternion Q = unitQuat<double>();
-
-    std::cout<<Q.transpose()<<std::endl;
-
-    ze::QuaternionSpline qSpline(4);
-    qSpline.setTimeInterval(0.1);
-
-    std::cout<<qSpline.minimumKnotsRequired()<<std::endl;
 
 
 // test exp and log
@@ -120,11 +98,6 @@ int main(){
     std::cout<<"Num diff d2r_dt2 and analytics d2r_dt2: "<<std::endl;
     std::cout<< dot_dot_r.transpose()<<std::endl;
     std::cout<< numDiff_drdt.transpose()<<std::endl;
-
-
-
-
-
 
 
     return 0;

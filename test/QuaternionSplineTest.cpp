@@ -2,7 +2,7 @@
 #include <fstream>
 
 #include "common/csv_trajectory.hpp"
-#include "splines/bspline.hpp"
+#include "splines/BSplineBase.hpp"
 #include "pose-spline/Quaternion.hpp"
 #include "pose-spline/QuaternionSpline.hpp"
 #include <pose-spline/QuaternionSplineUtility.hpp>
@@ -46,7 +46,7 @@ int main(int argc, char** argv){
     int start  = 1;
     int end = data.size() - 2;
 
-    ze::QuaternionSpline qspline(4,0.1);
+    QuaternionSpline qspline(0.1);
     std::vector<std::pair<double,Quaternion>> samples, queryMeas;
 
     for(uint i = start; i <end; i++){

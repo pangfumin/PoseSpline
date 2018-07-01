@@ -24,11 +24,15 @@ target_link_libraries(VectorSplineCeresTest
 
 
 
-add_executable(SplineTest SplineTest.cpp)
-target_link_libraries(SplineTest
+
+add_executable(AngularVelocitySampleTest AngularVelocitySampleTest.cpp)
+target_link_libraries(AngularVelocitySampleTest
         PoseSpline)
 
 
+add_executable(QuaternionSplineTest QuaternionSplineTest.cpp)
+target_link_libraries(QuaternionSplineTest
+        PoseSpline)
 
 add_executable(PoseSplineTest PoseSplineTest.cpp)
 target_link_libraries(PoseSplineTest
@@ -44,9 +48,7 @@ add_executable(UtilityTest UtilityTest.cpp)
 target_link_libraries(UtilityTest
         PoseSpline)
 
-add_executable(QuaternionOmegaSampleErrorTest QuaternionOmegaSampleErrorTest.cpp)
-target_link_libraries(QuaternionOmegaSampleErrorTest
-        PoseSpline)
+
 
 add_executable(testPinholeProjectFactor testPinholeProjectFactor.cpp)
 target_link_libraries(testPinholeProjectFactor

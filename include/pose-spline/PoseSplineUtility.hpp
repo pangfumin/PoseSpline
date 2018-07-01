@@ -14,6 +14,12 @@ public:
                                                   const Eigen::Vector3d& V1,
                                                   const Eigen::Vector3d& V2,
                                                   const Eigen::Vector3d& V3);
+
+    static Eigen::Vector3d EvaluatePosition(double u,
+                                                  const Eigen::Vector3d& V0,
+                                                  const Eigen::Vector3d& V1,
+                                                  const Eigen::Vector3d& V2,
+                                                  const Eigen::Vector3d& V3);
     static Eigen::Vector3d EvaluateLinearAccelerate(double u, double dt, const Pose<double>& P0, const Pose<double>& P1,
                                                         const Pose<double>& P2, const Pose<double>& P3);
 };

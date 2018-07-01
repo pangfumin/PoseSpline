@@ -49,7 +49,7 @@ int main(int argc, char** argv){
 
     real_t sample_t = 0.32;
     real_t Dt = 0.1;
-    Eigen::Vector3d sampleVelocity = ze::VectorSpaceSpline::evaluateDotSpline(sample_t,Dt,Cp0,Cp1,Cp2,Cp3);
+    Eigen::Vector3d sampleVelocity = VectorSpaceSpline::evaluateDotSpline(sample_t,Dt,Cp0,Cp1,Cp2,Cp3);
     std::cout<<"sampleVelocity: "<<sampleVelocity.transpose()<<std::endl;
 
 

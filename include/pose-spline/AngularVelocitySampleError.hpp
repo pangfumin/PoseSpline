@@ -6,7 +6,7 @@
 #include "pose-spline/QuaternionOmegaSampleError.hpp"
 
 class AngularVelocitySampleAutoError : public ceres::SizedCostFunction<3,
-        7, 7, 7, 7> {
+        7, 7, 7, 7,3,3,3,3> {
 public:
     explicit AngularVelocitySampleAutoError(QuaternionOmegaSampleFunctor* functor)
             : functor_(functor) {

@@ -77,7 +77,7 @@ struct LinearAccelerateSampleFunctor{
         return true;
     }
 
-
+    static int num_residuals() {return 3;};
 
 private:
     double ts_;
@@ -88,7 +88,7 @@ private:
 };
 
 
-class LinearAccelerateSampleError: public ceres::SizedCostFunction<3,7,7,7,7>{
+class LinearAccelerateSampleError: public ceres::SizedCostFunction<3,7,7,7,7,3,3,3,3>{
 public:
     typedef Eigen::Matrix<double, 3, 3> covariance_t;
     typedef covariance_t information_t;

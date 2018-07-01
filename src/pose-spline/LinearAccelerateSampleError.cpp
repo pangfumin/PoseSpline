@@ -41,6 +41,13 @@ bool LinearAccelerateSampleError::EvaluateWithMinimalJacobians(double const* con
     Eigen::Map<const Quaternion> Q2(parameters[2]+3);
     Eigen::Map<const Quaternion> Q3(parameters[3]+3);
 
+    Eigen::Map<const Eigen::Vector3d> ba0(parameters[4]);
+    Eigen::Map<const Eigen::Vector3d> ba1(parameters[5]);
+    Eigen::Map<const Eigen::Vector3d> ba2(parameters[6]);
+    Eigen::Map<const Eigen::Vector3d> ba3(parameters[7]);
+
+
+
     double  ddBeta1 = QSUtility::dot_dot_beta1(time_interval_, t_meas_);
     double  ddBeta2 = QSUtility::dot_dot_beta2(time_interval_, t_meas_);
     double  ddBeta3 = QSUtility::dot_dot_beta3(time_interval_, t_meas_);
@@ -62,6 +69,11 @@ bool LinearAccelerateSampleError::EvaluateWithMinimalJacobians(double const* con
     Quaternion r_2 = QSUtility::r(Beta2,phi2);
     Quaternion r_3 = QSUtility::r(Beta3,phi3);
 
+    Eigen::Vector3d bias =  ba0 + Beta1*(ba1 - ba0) +  Beta2*(ba2 - ba1) + Beta3*(ba3 - ba2);
+
+    //std::cout<<"bias: "<<bias.transpose() << std::endl;
+
+
     // define residual
     // For simplity, we define error  =  /hat - meas.
     Quaternion Q_WI = quatLeftComp<double>(Q0)*quatLeftComp(r_1)*quatLeftComp(r_2)*r_3;
@@ -70,14 +82,15 @@ bool LinearAccelerateSampleError::EvaluateWithMinimalJacobians(double const* con
     // define residual
     // For simplity, we define error  =  /hat - meas.
     // /hat = R_WI^T( W_a)
+    const Eigen::Vector3d G(0.0, 0.0, -9.81);
     Eigen::Vector3d Wa = ddBeta1*(V1 - V0) +  ddBeta2*(V2 - V1) + ddBeta3*(V3 - V2);
     Eigen::Vector3d a_hat
-            = R_WI.transpose()*Wa;
+            = R_WI.transpose()*(Wa - G);
 
     Eigen::Map<Eigen::Vector3d> error(residuals);
 
     squareRootInformation_ = Eigen::Matrix3d::Identity();
-    error = squareRootInformation_*(a_hat - a_Meas_);
+    error = squareRootInformation_*(a_hat + bias - a_Meas_);
 
     if(jacobians != NULL){
 
@@ -86,7 +99,7 @@ bool LinearAccelerateSampleError::EvaluateWithMinimalJacobians(double const* con
 
         Eigen::Matrix<double,3,4> J_1st;
         J_1st.setZero();
-        J_1st = - R_WI.transpose()*crossMat<double>(Wa) * lift;
+        J_1st = - R_WI.transpose()*crossMat<double>(Wa - G) * lift;
 
         Eigen::Matrix<double,4,3> Vee = QSUtility::V<double>();
 
@@ -206,6 +219,77 @@ bool LinearAccelerateSampleError::EvaluateWithMinimalJacobians(double const* con
                 J3_minimal_map = J3_minimal;
             }
         }
+
+        if (jacobians[4] != NULL) {
+            Eigen::Map<Eigen::Matrix<double,3,3,Eigen::RowMajor>> J4(jacobians[0]);
+            Eigen::Matrix<double,3,3,Eigen::RowMajor> J4_minimal;
+
+            J4_minimal  = (1 - Beta1)*Eigen::Matrix3d::Identity();
+            J4 = J4_minimal ;
+            if(jacobiansMinimal != NULL && jacobiansMinimal[4] != NULL){
+
+                Eigen::Map<Eigen::Matrix<double,3,3,Eigen::RowMajor>> J4_minimal_map(jacobiansMinimal[4]);
+                J4_minimal_map = J4_minimal;
+
+                //std::cout<<"J0_minimal_map: "<<std::endl<<J0_minimal_map<<std::endl;
+
+            }
+        }
+
+        if(jacobians[5] != NULL){
+            Eigen::Map<Eigen::Matrix<double,3,3,Eigen::RowMajor>> J5(jacobians[5]);
+            Eigen::Matrix<double,3,3,Eigen::RowMajor> J5_minimal;
+
+            J5_minimal = (Beta1 - Beta2)*Eigen::Matrix3d::Identity();
+
+            J5 = J5_minimal ;
+
+            //std::cout<<"J1: "<<std::endl<<J1<<std::endl;
+
+            if(jacobiansMinimal != NULL && jacobiansMinimal[5] != NULL){
+
+                Eigen::Map<Eigen::Matrix<double,3,3,Eigen::RowMajor>> J5_minimal_map(jacobiansMinimal[5]);
+                J5_minimal_map = J5_minimal;
+
+            }
+
+        }
+        if(jacobians[6] != NULL){
+            Eigen::Map<Eigen::Matrix<double,3,3,Eigen::RowMajor>> J6(jacobians[6]);
+            Eigen::Matrix<double,3,3,Eigen::RowMajor> J6_minimal;
+
+            J6_minimal = (Beta2 - Beta3)*Eigen::Matrix3d::Identity();
+
+            J6 = J6_minimal;
+
+
+            if(jacobiansMinimal != NULL &&  jacobiansMinimal[6] != NULL){
+
+                Eigen::Map<Eigen::Matrix<double,3,3,Eigen::RowMajor>> J6_minimal_map(jacobiansMinimal[6]);
+                J6_minimal_map = J6_minimal;
+
+            }
+
+        }
+        if(jacobians[7] != NULL){
+
+            Eigen::Map<Eigen::Matrix<double,3,3,Eigen::RowMajor>> J7(jacobians[7]);
+            Eigen::Matrix<double,3,3,Eigen::RowMajor> J7_minimal;
+            //
+            J7_minimal = Beta3*Eigen::Matrix3d::Identity();
+            J7 = J7_minimal;
+
+            //std::cout<<"J3: "<<std::endl<<J3<<std::endl;
+
+            if(jacobiansMinimal != NULL &&  jacobiansMinimal[7] != NULL){
+
+                Eigen::Map<Eigen::Matrix<double,3,3,Eigen::RowMajor>> J7_minimal_map(jacobiansMinimal[7]);
+                J7_minimal_map = J7_minimal;
+
+            }
+
+        }
+
     }
 
     return true;
@@ -239,7 +323,7 @@ bool LinearAccelerateSampleError::AutoEvaluateWithMinimalJacobians(double const*
             7,7,7,7>::Differentiate(
             *functor_,
             parameters,
-            SizedCostFunction<3,7,7,7,7>::num_residuals(),
+            LinearAccelerateSampleFunctor::num_residuals(),
             residuals,
             jacobians);
 

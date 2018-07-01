@@ -2,7 +2,6 @@
 #include <fstream>
 
 #include "common/csv_trajectory.hpp"
-#include "splines/bspline.hpp"
 #include "pose-spline/Quaternion.hpp"
 #include "pose-spline/VectorSpaceSpline.hpp"
 #include <pose-spline/QuaternionSplineUtility.hpp>

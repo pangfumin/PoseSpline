@@ -47,6 +47,20 @@ Eigen::Vector3d PSUtility::EvaluateLinearVelocity(double u, double dt,
 
 }
 
+Eigen::Vector3d PSUtility::EvaluatePosition(double u,
+                                 const Eigen::Vector3d& V0,
+                                 const Eigen::Vector3d& V1,
+                                 const Eigen::Vector3d& V2,
+                                 const Eigen::Vector3d& V3) {
+    double  Beta1 = QSUtility::beta1(u);
+    double  Beta2 = QSUtility::beta2( u);
+    double  Beta3 = QSUtility::beta3( u);
+
+    Eigen::Vector3d V =  V0 + Beta1*(V1 - V0) +  Beta2*(V2 - V1) + Beta3*(V3 - V2);
+    return V;
+
+}
+
 Eigen::Vector3d PSUtility::EvaluateLinearAccelerate(double u, double dt,
                                                     const Pose<double>& P0, const Pose<double>& P1,
                                                   const Pose<double>& P2, const Pose<double>& P3) {

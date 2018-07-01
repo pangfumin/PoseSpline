@@ -1,5 +1,6 @@
 #include "pose-spline/AngularVelocitySampleError.hpp"
 #include "pose-spline/QuaternionLocalParameter.hpp"
+#include "pose-spline/PoseSplineUtility.hpp"
 
 bool AngularVelocitySampleAutoError::Evaluate(double const* const* parameters,
               double* residuals,
@@ -26,6 +27,7 @@ bool AngularVelocitySampleAutoError::EvaluateWithMinimalJacobians(double const* 
 
 
     double u = functor_->getU();
+    //std::cout<<"u " << u << std::endl;
     double  Beta1 = QSUtility::beta1(u);
     double  Beta2 = QSUtility::beta2(u);
     double  Beta3 = QSUtility::beta3(u);
@@ -33,6 +35,9 @@ bool AngularVelocitySampleAutoError::EvaluateWithMinimalJacobians(double const* 
     // define residual
     // For simplity, we define error  =  /hat - meas.
     Eigen::Vector3d bias =  bw0 + Beta1*(bw1 - bw0) +  Beta2*(bw2 - bw1) + Beta3*(bw3 - bw2);
+
+    //std::cout<<"bias: "<<bias.transpose() << std::endl;
+
 
     const double* temp_parameters[4] = {Q0.data(), Q1.data(), Q2.data(), Q3.data()};
     Eigen::Vector3d temp_residual;

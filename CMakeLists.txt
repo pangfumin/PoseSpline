@@ -20,6 +20,15 @@ include_directories(include
 include_directories( ${GLOG_INCLUDE_DIRS})
 
 
+add_library(cv
+        src/okvis_cv/CameraBase.cpp
+        src/okvis_cv/NCameraSystem.cpp)
+
+
+target_link_libraries(cv
+        ${OPENCV_LIBRARIES}
+        ${GLOG_LIBRARIES})
+
 add_library( PoseSpline
         src/utility/Duration.cpp
         src/utility/Time.cpp

@@ -78,16 +78,11 @@ target_link_libraries(testSplineRotateError
 
 
 
-#
-#add_executable(testDataReader testDataReader.cpp)
-#target_link_libraries(testDataReader
-#        PoseSpline)
-#
 
 
-add_executable(test_main
-        test_main.cpp PoseTest.cpp)
-target_link_libraries(test_main PoseSpline Catch)
+# add_executable(test_main
+#         test_main.cpp PoseTest.cpp)
+# target_link_libraries(test_main PoseSpline Catch)
 
 # gtest
 enable_testing()
@@ -101,7 +96,7 @@ set(FRAME_TEST_SOURCES
   frame/TestPinholeCamera.cpp)
 
 add_executable(frame_test ${FRAME_TEST_SOURCES} ./gtest/gtest-all.cc)
-target_link_libraries(frame_test pthread  cv ${OpenCV_LIBRARIES} PoseSpline)
+target_link_libraries(frame_test pthread  cv util  ${OpenCV_LIBRARIES})
 set_target_properties(frame_test PROPERTIES COMPILE_FLAGS "-std=c++11 -Wno-deprecated-register")
 
 add_test(NAME frame_test COMMAND frame_test --gtest_color=yes)

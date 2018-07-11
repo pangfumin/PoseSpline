@@ -53,7 +53,7 @@
 #endif
 #endif
 
-#include "utility/Time.hpp"
+#include "okvis_util/Time.hpp"
 #include <cmath>
 #include <ctime>
 #include <iomanip>

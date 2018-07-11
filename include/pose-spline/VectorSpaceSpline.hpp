@@ -3,7 +3,7 @@
 
 #include "pose-spline/Quaternion.hpp"
 #include "splines/BSplineBase.hpp"
-#include "utility/Time.hpp"
+#include "okvis_util/Time.hpp"
 
 
 class VectorSpaceSpline : public BSplineBase<Eigen::Vector3d, 4> {

@@ -52,7 +52,7 @@
 #pragma GCC diagnostic ignored "-Woverloaded-virtual"
 #include <opencv2/features2d/features2d.hpp> // Code that causes warning goes here
 #pragma GCC diagnostic pop
-#include <utility/Time.hpp>
+#include <okvis_util/Time.hpp>
 #include <okvis_util/assert_macros.hpp>
 #include "okvis_cv/cameras/CameraBase.hpp"
 

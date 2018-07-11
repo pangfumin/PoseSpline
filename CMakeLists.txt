@@ -58,7 +58,8 @@ add_library( PoseSpline
 target_link_libraries(PoseSpline
         ${CERES_LIBRARIES}
         ${OPENCV_LIBRARIES}
-        ${GLOG_LIBRARIES})
+        ${GLOG_LIBRARIES}
+        cv)
 
 
 ## Test

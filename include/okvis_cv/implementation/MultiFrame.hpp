@@ -44,7 +44,7 @@ MultiFrame::MultiFrame() : id_(0) {}
 
 // Construct from NCameraSystem
 MultiFrame::MultiFrame(const cameras::NCameraSystem & cameraSystem,
-                       const okvis::Time & timestamp, uint64_t id)
+                       const Time & timestamp, uint64_t id)
     : timestamp_(timestamp),
       id_(id)
 {
@@ -71,7 +71,7 @@ void MultiFrame::resetCameraSystemAndFrames(
 }
 
 // (Re)set the timestamp
-void MultiFrame::setTimestamp(const okvis::Time & timestamp)
+void MultiFrame::setTimestamp(const Time & timestamp)
 {
   timestamp_ = timestamp;
 }
@@ -83,7 +83,7 @@ void MultiFrame::setId(uint64_t id)
 }
 
 // Obtain the frame timestamp
-const okvis::Time & MultiFrame::timestamp() const
+const Time & MultiFrame::timestamp() const
 {
   return timestamp_;
 }
@@ -100,7 +100,7 @@ size_t MultiFrame::numFrames() const
   return frames_.size();
 }
 
-std::shared_ptr<const okvis::kinematics::Transformation> MultiFrame::T_SC(size_t cameraIdx) const {
+std::shared_ptr<const Pose<double>> MultiFrame::T_SC(size_t cameraIdx) const {
   return cameraSystem_.T_SC(cameraIdx);
 }
 

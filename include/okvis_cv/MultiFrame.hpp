@@ -42,9 +42,9 @@
 #define INCLUDE_OKVIS_MULTIFRAME_HPP_
 
 #include <memory>
-#include <okvis/assert_macros.hpp>
-#include <okvis/Frame.hpp>
-#include <okvis/cameras/NCameraSystem.hpp>
+#include <okvis_util/assert_macros.hpp>
+#include <okvis_cv/Frame.hpp>
+#include <okvis_cv/cameras/NCameraSystem.hpp>
 
 /// \brief okvis Main namespace of this package.
 namespace okvis {
@@ -66,7 +66,7 @@ class MultiFrame
   /// @param[in] timestamp The time this frame was recorded.
   /// @param[in] id A unique frame Id.
   inline MultiFrame(const cameras::NCameraSystem & cameraSystem,
-                    const okvis::Time & timestamp, uint64_t id = 0);
+                    const Time & timestamp, uint64_t id = 0);
 
   /// \brief Destructor...
   inline virtual ~MultiFrame();
@@ -78,7 +78,7 @@ class MultiFrame
 
   /// \brief (Re)set the timestamp
   /// @param[in] timestamp The time this frame was recorded.
-  inline void setTimestamp(const okvis::Time & timestamp);
+  inline void setTimestamp(const Time & timestamp);
 
   /// \brief (Re)set the id
   /// @param[in] id A unique frame Id.
@@ -86,7 +86,7 @@ class MultiFrame
 
   /// \brief Obtain the frame timestamp
   /// \return The time this frame was recorded.
-  inline const okvis::Time & timestamp() const;
+  inline const Time & timestamp() const;
 
   /// \brief Obtain the frame id
   /// \return The unique frame Id.
@@ -99,7 +99,7 @@ class MultiFrame
   /// \brief Get the extrinsics of a camera
   /// @param[in] cameraIdx The camera index for which the extrinsics are queried.
   /// \return The extrinsics as T_SC.
-  inline std::shared_ptr<const okvis::kinematics::Transformation> T_SC(
+  inline std::shared_ptr<const Pose<double>> T_SC(
       size_t cameraIdx) const;
 
   //////////////////////////////////////////////////////////////
@@ -263,7 +263,7 @@ class MultiFrame
   }
 
  protected:
-  okvis::Time timestamp_;  ///< the frame timestamp
+  Time timestamp_;  ///< the frame timestamp
   uint64_t id_;  ///< the frame id
   std::vector<Frame, Eigen::aligned_allocator<Frame>> frames_;  ///< the individual frames
   cameras::NCameraSystem cameraSystem_;  ///< the camera system

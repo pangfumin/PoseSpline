@@ -22,6 +22,11 @@ add_executable(VectorSplineCeresTest VectorSplineCeresTest.cpp)
 target_link_libraries(VectorSplineCeresTest
         PoseSpline)
 
+add_executable(testCamera testCamera.cpp)
+target_link_libraries(testCamera
+        PoseSpline)
+
+
 
 
 

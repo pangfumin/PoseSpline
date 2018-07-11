@@ -3,7 +3,6 @@
 #include <ceres/ceres.h>
 
 #include "common/csv_trajectory.hpp"
-#include "pose-spline/Quaternion.hpp"
 #include "pose-spline/QuaternionSpline.hpp"
 #include "pose-spline/QuaternionSplineUtility.hpp"
 #include "pose-spline/PoseLocalParameter.hpp"

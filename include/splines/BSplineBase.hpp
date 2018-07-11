@@ -5,7 +5,7 @@
 #include <Eigen/Core>
 #include <glog/logging.h>
 #include "TypeTraits.hpp"
-#include "utility/Time.hpp"
+#include "okvis_util/Time.hpp"
 
 using real_t = double;
 

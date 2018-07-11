@@ -1,6 +1,6 @@
 #ifndef POSE_H
 #define POSE_H
-#include "pose-spline/Quaternion.hpp"
+#include "geometry/Quaternion.hpp"
 /*********************************************************************************
  *  OKVIS - Open Keyframe-based Visual-Inertial SLAM
  *  Copyright (c) 2015, Autonomous Systems Lab / ETH Zurich
@@ -94,6 +94,8 @@ public:
     /// @param[in] r_AB The translation r_AB (represented in frame A).
     /// @param[in] q_AB The Quaternion q_AB .
     Pose(const Eigen::Matrix<T,3,1> & r_AB, const Eigen::Matrix<T,4,1>& q_AB);
+
+    Pose(const Eigen::Matrix<T,3,1> & r_AB, const Eigen::Quaternion<T>& q_AB);
 
     /// \brief Construct from a 7x1 vector.
     /// @param[in] vec The 7x1 vector

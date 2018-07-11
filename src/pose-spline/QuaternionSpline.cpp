@@ -2,7 +2,7 @@
 #include "pose-spline/QuaternionSplineUtility.hpp"
 #include "pose-spline/QuaternionSplineSampleError.hpp"
 #include "pose-spline/QuaternionSplineSampleAutoError.hpp"
-#include "utility/Time.hpp"
+#include "okvis_util/Time.hpp"
 #include <algorithm>
 
     QuaternionSpline::QuaternionSpline()

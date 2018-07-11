@@ -6,7 +6,7 @@
 #include <iostream>
 #include "pose-spline/QuaternionLocalParameter.hpp"
 #include "pose-spline/ErrorInterface.hpp"
-#include "pose-spline/Pose.hpp"
+#include "geometry/Pose.hpp"
 
 
 class PoseSplineSampleError

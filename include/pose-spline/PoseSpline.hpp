@@ -3,7 +3,7 @@
 
 
 #include "splines/BSplineBase.hpp"
-#include "pose-spline/Pose.hpp"
+#include "geometry/Pose.hpp"
 
 
 class PoseSpline : public BSplineBase<Pose<double>, 4> {
@@ -22,7 +22,4 @@ public:
 
     Eigen::Vector3d evalLinearAccelerator(real_t t);
 };
-
-
-
 #endif

@@ -46,7 +46,7 @@
  * @author Andreas Forster
  */
 
-#include "utility/Duration.hpp"
+#include "okvis_util/Duration.hpp"
 
 
 void normalizeSecNSecSigned(int64_t& sec, int64_t& nsec) {

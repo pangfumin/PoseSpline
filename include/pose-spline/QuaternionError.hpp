@@ -3,6 +3,7 @@
 
 #include <ceres/ceres.h>
 #include <iostream>
+#include "geometry/Quaternion.hpp"
 #include "pose-spline/QuaternionLocalParameter.hpp"
 #include "pose-spline/ErrorInterface.hpp"
 #include "pose-spline/NumbDifferentiator.hpp"

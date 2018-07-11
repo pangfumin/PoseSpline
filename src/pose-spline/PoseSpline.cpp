@@ -1,5 +1,5 @@
 #include "pose-spline/PoseSpline.hpp"
-#include "utility/Time.hpp"
+#include "okvis_util/Time.hpp"
 #include "pose-spline/PoseLocalParameter.hpp"
 #include "pose-spline/PoseSplineSampleError.hpp"
 #include "pose-spline/PoseSplineUtility.hpp"
@@ -12,8 +12,6 @@
             : BSplineBase(interval) {
 
     }
-
-
     void PoseSpline::initialPoseSpline(std::vector<std::pair<double, Pose<double>>> Meas) {
 
         // Build a  least-square problem
@@ -69,7 +67,6 @@
         ceres::Solver::Summary summary;
         ceres::Solve(options, &problem, &summary);
         std::cout << summary.FullReport() << std::endl;
-
 
     }
 

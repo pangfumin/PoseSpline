@@ -14,15 +14,28 @@ find_package(OpenCV REQUIRED)
 find_package(Glog REQUIRED)
 
 include_directories(include
+        ${OpenCV_INCLUDE_DIRS}
         ${EIGEN3_INCLUDE_DIR}
         ${CERES_INCLUDE_DIRS}
+        ${GLOG_INCLUDE_DIRS}
         )
-include_directories( ${GLOG_INCLUDE_DIRS})
 
+
+add_library(util
+        src/okvis_util/Duration.cpp
+        src/okvis_util/Time.cpp)
+
+add_library(cv
+        src/okvis_cv/CameraBase.cpp
+        src/okvis_cv/NCameraSystem.cpp)
+
+
+target_link_libraries(cv
+        util
+        ${OPENCV_LIBRARIES}
+        ${GLOG_LIBRARIES})
 
 add_library( PoseSpline
-        src/utility/Duration.cpp
-        src/utility/Time.cpp
         src/extern/spline_projection_error.cpp
         src/extern/pinhole_project_error.cpp
         src/extern/project_error.cpp
@@ -47,16 +60,17 @@ add_library( PoseSpline
 
 
 target_link_libraries(PoseSpline
+        util
         ${CERES_LIBRARIES}
-        ${OPENCV_LIBRARIES}
+        ${OpenCV_LIBRARIES}
         ${GLOG_LIBRARIES})
 
 
 ## Test
 
 # Prepare "Catch" library for other executables
-set(CATCH_INCLUDE_DIR include/utility/catch)
-add_library(Catch INTERFACE)
-target_include_directories(Catch INTERFACE ${CATCH_INCLUDE_DIR})
+# set(CATCH_INCLUDE_DIR include/utility/catch)
+# add_library(Catch INTERFACE)
+# target_include_directories(Catch INTERFACE ${CATCH_INCLUDE_DIR})
 
 add_subdirectory(test)

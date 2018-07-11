@@ -2,8 +2,7 @@
 #define _TYPE_TRAITS_H_
 
 #include <Eigen/Core>
-#include "pose-spline/Quaternion.hpp"
-#include "pose-spline/Pose.hpp"
+#include "geometry/Pose.hpp"
 template <typename T>
 class TypeTraits;
 

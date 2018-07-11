@@ -1,6 +1,6 @@
 #include "pose-spline/LinearAccelerateSampleError.hpp"
 #include "pose-spline/PoseLocalParameter.hpp"
-#include "pose-spline/Pose.hpp"
+#include "geometry/Pose.hpp"
 
 
 LinearAccelerateSampleError::LinearAccelerateSampleError(const double& t_meas,

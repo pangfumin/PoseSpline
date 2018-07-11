@@ -3,7 +3,6 @@
 
 
 #include <eigen3/Eigen/Dense>
-#include "pose-spline/Quaternion.hpp"
 #include <ceres/ceres.h>
 #include "pose-spline/LocalParamizationAdditionalInterfaces.hpp"
 

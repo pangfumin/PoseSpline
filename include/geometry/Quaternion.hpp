@@ -7,11 +7,6 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <eigen3/Eigen/Dense>
-#include <ceres/ceres.h>
-
-
-
-
 /*
  * R.f.:
  * [1] Pose estimation using linearized rotations and quaternion algebra.
@@ -29,13 +24,9 @@ typedef  double real_t;
 
 template<typename T>
 Eigen::Matrix<T,4,1> unitQuat(){
-    Eigen::Matrix<T,4,1> unit;
-    unit<< T(0.0),T(0.0),T(0.0),T(1.0);
-
-    return unit;
+    return (Eigen::Matrix<T,4,1>() 
+        << T(0.0),T(0.0),T(0.0),T(1.0)).finished();
 };
-
-
 
 template<typename T>
 Eigen::Matrix<T,4,1> quatMap(T* ptr){

@@ -118,6 +118,14 @@ inline Pose<T>::Pose(const Eigen::Matrix<T,3,1> & r_AB,
     q_ = q_AB.normalized();
     updateC();
 }
+template <typename T>
+inline Pose<T>::Pose(const Eigen::Matrix<T,3,1> & r_AB, const Eigen::Quaternion<T>& q_AB) 
+        : r_(&parameters_[0]),
+          q_(&parameters_[3]) {
+    r_ = r_AB;
+    q_ = q_AB.coeffs();
+    updateC();
+}
 
 template <typename T>
 inline Pose<T>::Pose(const Eigen::Matrix<T,7,1>& vec): r_(&parameters_[0]),

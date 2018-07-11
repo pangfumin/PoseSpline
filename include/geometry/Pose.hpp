@@ -1,6 +1,6 @@
 #ifndef POSE_H
 #define POSE_H
-#include "pose-spline/Quaternion.hpp"
+#include "geometry/Quaternion.hpp"
 /*********************************************************************************
  *  OKVIS - Open Keyframe-based Visual-Inertial SLAM
  *  Copyright (c) 2015, Autonomous Systems Lab / ETH Zurich

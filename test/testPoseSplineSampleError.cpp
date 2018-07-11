@@ -1,4 +1,3 @@
-#include "pose-spline/Pose.hpp"
 #include "pose-spline/PoseLocalParameter.hpp"
 #include "pose-spline/PoseSplineUtility.hpp"
 #include "pose-spline/PoseSplineSampleError.hpp"

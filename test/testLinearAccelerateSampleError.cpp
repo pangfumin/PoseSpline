@@ -1,5 +1,4 @@
 #include <okvis_util/timer.h>
-#include "pose-spline/Pose.hpp"
 #include "pose-spline/PoseLocalParameter.hpp"
 #include "pose-spline/PoseSplineUtility.hpp"
 #include "pose-spline/LinearAccelerateSampleError.hpp"

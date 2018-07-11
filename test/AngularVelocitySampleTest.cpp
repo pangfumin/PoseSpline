@@ -4,7 +4,7 @@
 
 #include "pose-spline/QuaternionSplineUtility.hpp"
 #include "pose-spline/PoseLocalParameter.hpp"
-#include "pose-spline/Pose.hpp"
+#include "geometry/Pose.hpp"
 
 int main(int argc, char** argv){
     google::InitGoogleLogging(argv[0]);

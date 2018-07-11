@@ -3,7 +3,7 @@
 
 
 #include "pose-spline/QuaternionSplineUtility.hpp"
-#include "Pose.hpp"
+#include "geometry/Pose.hpp"
 
 class PSUtility {
 public:

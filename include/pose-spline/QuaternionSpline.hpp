@@ -1,7 +1,7 @@
 #ifndef QUATERNIONSPLINE_H
 #define QUATERNIONSPLINE_H
 
-#include "pose-spline/Quaternion.hpp"
+#include "geometry/Quaternion.hpp"
 #include "splines/BSplineBase.hpp"
 #include "okvis_util/Time.hpp"
 

@@ -1,4 +1,5 @@
 #include "pose-spline/QuaternionLocalParameter.hpp"
+#include "geometry/Quaternion.hpp"
 
 //Instances of LocalParameterization implement the ⊞ operation.
 bool QuaternionLocalParameter::Plus(const double *x, const double *delta, double *x_plus_delta) const

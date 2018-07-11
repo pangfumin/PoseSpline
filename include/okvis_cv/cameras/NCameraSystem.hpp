@@ -46,7 +46,7 @@
 #pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
 #include <opencv2/core/core.hpp> // Code that causes warning goes here
 #pragma GCC diagnostic pop
-#include <pose-spline/Pose.hpp>
+#include <geometry/Pose.hpp>
 #include <okvis_util/assert_macros.hpp>
 #include "okvis_cv/cameras/CameraBase.hpp"
 

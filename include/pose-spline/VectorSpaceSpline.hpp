@@ -1,7 +1,7 @@
 #ifndef VECTORSPACESPLINE_H
 #define VECTORSPACESPLINE_H
 
-#include "pose-spline/Quaternion.hpp"
+#include <Eigen/Core>
 #include "splines/BSplineBase.hpp"
 #include "okvis_util/Time.hpp"
 

@@ -14,10 +14,12 @@ find_package(OpenCV REQUIRED)
 find_package(Glog REQUIRED)
 
 include_directories(include
+        ${OpenCV_INCLUDE_DIRS}
         ${EIGEN3_INCLUDE_DIR}
         ${CERES_INCLUDE_DIRS}
+        ${GLOG_INCLUDE_DIRS}
         )
-include_directories( ${GLOG_INCLUDE_DIRS})
+
 
 
 add_library(cv
@@ -57,9 +59,8 @@ add_library( PoseSpline
 
 target_link_libraries(PoseSpline
         ${CERES_LIBRARIES}
-        ${OPENCV_LIBRARIES}
-        ${GLOG_LIBRARIES}
-        cv)
+        ${OpenCV_LIBRARIES}
+        ${GLOG_LIBRARIES})
 
 
 ## Test

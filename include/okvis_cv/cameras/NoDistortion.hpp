@@ -41,7 +41,7 @@
 
 #include <memory>
 #include <Eigen/Core>
-#include "okvis/cameras/DistortionBase.hpp"
+#include "okvis_cv/cameras/DistortionBase.hpp"
 
 /// \brief okvis Main namespace of this package.
 namespace okvis {

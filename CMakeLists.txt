@@ -65,12 +65,13 @@ target_link_libraries(PoseSpline
         ${OpenCV_LIBRARIES}
         ${GLOG_LIBRARIES})
 
+add_library( simulate
+        src/simulator/camera_simulate.cpp)
+target_link_libraries(simulate
+        cv
+        util
+        geometry)
+
 
 ## Test
-
-# Prepare "Catch" library for other executables
-# set(CATCH_INCLUDE_DIR include/utility/catch)
-# add_library(Catch INTERFACE)
-# target_include_directories(Catch INTERFACE ${CATCH_INCLUDE_DIR})
-
 add_subdirectory(test)

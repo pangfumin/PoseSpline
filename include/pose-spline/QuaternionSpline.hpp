@@ -2,7 +2,7 @@
 #define QUATERNIONSPLINE_H
 
 #include "geometry/Quaternion.hpp"
-#include "splines/BSplineBase.hpp"
+#include "pose-spline/BSplineBase.hpp"
 #include "okvis_util/Time.hpp"
 
 

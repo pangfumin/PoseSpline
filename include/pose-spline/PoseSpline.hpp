@@ -2,7 +2,7 @@
 #define POSE_SPLINE_H_
 
 
-#include "splines/BSplineBase.hpp"
+#include "pose-spline/BSplineBase.hpp"
 #include "geometry/Pose.hpp"
 
 

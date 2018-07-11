@@ -56,29 +56,29 @@ TEST(Frame, functions)
   cameras.push_back(
       okvis::cameras::PinholeCamera<okvis::cameras::EquidistantDistortion>::createTestObject());
 
-  for (size_t c = 0; c < cameras.size(); ++c) {
-
-#ifdef __ARM_NEON__
-   std::shared_ptr<cv::FeatureDetector> detector(
-        new brisk::BriskFeatureDetector(34, 2));
-#else
-   std::shared_ptr<cv::FeatureDetector> detector(
-        new brisk::ScaleSpaceFeatureDetector<brisk::HarrisScoreCalculator>(
-            34, 2, 800, 450));
-#endif
- 
-    std::shared_ptr<cv::DescriptorExtractor> extractor(
-        new cv::BriskDescriptorExtractor(true, false));
-
-    // create a stupid random image
-    Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic> eigenImage(752,480);
-    eigenImage.setRandom();
-    cv::Mat image(480, 752, CV_8UC1, eigenImage.data());
-    okvis::Frame frame(image, cameras.at(c), detector, extractor);
-
-    // run
-    frame.detect();
-    frame.describe();
-  }
+//  for (size_t c = 0; c < cameras.size(); ++c) {
+//
+//#ifdef __ARM_NEON__
+//   std::shared_ptr<cv::FeatureDetector> detector(
+//        new brisk::BriskFeatureDetector(34, 2));
+//#else
+//   std::shared_ptr<cv::FeatureDetector> detector(
+//        new brisk::ScaleSpaceFeatureDetector<brisk::HarrisScoreCalculator>(
+//            34, 2, 800, 450));
+//#endif
+//
+//    std::shared_ptr<cv::DescriptorExtractor> extractor(
+//        new cv::BriskDescriptorExtractor(true, false));
+//
+//    // create a stupid random image
+//    Eigen::Matrix<unsigned char,Eigen::Dynamic,Eigen::Dynamic> eigenImage(752,480);
+//    eigenImage.setRandom();
+//    cv::Mat image(480, 752, CV_8UC1, eigenImage.data());
+//    okvis::Frame frame(image, cameras.at(c), detector, extractor);
+//
+//    // run
+//    frame.detect();
+//    frame.describe();
+//  }
 }
 

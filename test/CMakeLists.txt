@@ -26,10 +26,6 @@ add_executable(testCamera testCamera.cpp)
 target_link_libraries(testCamera
         PoseSpline)
 
-
-
-
-
 add_executable(AngularVelocitySampleTest AngularVelocitySampleTest.cpp)
 target_link_libraries(AngularVelocitySampleTest
         PoseSpline)
@@ -38,12 +34,6 @@ target_link_libraries(AngularVelocitySampleTest
 add_executable(QuaternionSplineTest QuaternionSplineTest.cpp)
 target_link_libraries(QuaternionSplineTest
         PoseSpline)
-
-add_executable(PoseSplineTest PoseSplineTest.cpp)
-target_link_libraries(PoseSplineTest
-        PoseSpline)
-
-
 
 add_executable(VectorSpaceSplineTest VectorSpaceSplineTest.cpp)
 target_link_libraries(VectorSpaceSplineTest
@@ -93,4 +83,12 @@ target_link_libraries(UtilityTest pthread PoseSpline)
 set_target_properties(pose_test PROPERTIES COMPILE_FLAGS "-std=c++11 -Wno-deprecated-register")
 
 
+add_executable(PoseSplineTest PoseSplineTest.cpp ./gtest/gtest-all.cc)
+target_link_libraries(PoseSplineTest pthread PoseSpline)
+set_target_properties(PoseSplineTest PROPERTIES COMPILE_FLAGS "-std=c++11 -Wno-deprecated-register")
+
 add_test(NAME frame_test COMMAND frame_test --gtest_color=yes)
+
+
+# # Copy test data.
+# file(COPY ./data DESTINATION ${CMAKE_BINARY_DIR})

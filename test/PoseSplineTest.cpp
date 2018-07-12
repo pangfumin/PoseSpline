@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-
+#include <gtest/gtest.h>
 #include "common/csv_trajectory.hpp"
 
 #include "pose-spline/QuaternionSpline.hpp"
@@ -24,7 +24,7 @@ std::pair<double,Eigen::Vector3d>  getPositionSample(ze::TupleVector& data, unsi
 
 
 
-int main(int argc, char** argv){
+TEST(PoseSplineTest, initialAndEvaluate){
     //google::InitGoogleLogging(argv[0]);
 
     std::string dataset = "/home/pang/software/PoseSpline/data/MH_01_easy";
@@ -49,7 +49,7 @@ int main(int argc, char** argv){
     LOG(INFO)<<"Get accel Meas  size: "<<accelMeas.size(); // @200Hz
 
     int start  = 1;
-    int end = data.size()/10;
+    int end = data.size()/5;
 
     PoseSpline poseSpline(0.1);
     std::vector<std::pair<double,Pose<double>>> samples, queryMeas;
@@ -76,17 +76,18 @@ int main(int argc, char** argv){
      */
 
     for(auto i: queryMeas){
-
         if(poseSpline.isTsEvaluable(i.first)){
             Pose<double> query = poseSpline.evalPoseSpline(i.first);
 //
 //            std::cout <<"Gt:    "<<i.second.r().transpose() << " " << i.second.q().transpose()<<std::endl;
 //            std::cout <<"Query: "<<query.r().transpose()<<" "<< query.q().transpose()<< std::endl << std::endl;
+            EXPECT_TRUE((i.second.r() -query.r()).squaredNorm() < 0.01);
+            EXPECT_TRUE((i.second.q() -query.q()).squaredNorm() < 0.0001);
         }
 
     }
 
-    LOG(INFO)<<" - QuaternionSpline initialization passed!";
+    //LOG(INFO)<<" - QuaternionSpline initialization passed!";
 
     /*
      * Check PoseSpline linear velocity
@@ -95,8 +96,8 @@ int main(int argc, char** argv){
      */
 
     std::vector<std::pair<double,Eigen::Vector3d>> velocitySamples;
+    int inlier_cnt = 0;
     for(uint i = start; i <end; i++){
-
         std::pair<double,Eigen::Vector3d> velocity;
         velocity.first = (double)linearVelocities.at(i).first* 1e-9;
         velocity.second = linearVelocities.at(i).second;
@@ -104,19 +105,22 @@ int main(int argc, char** argv){
         if(poseSpline.isTsEvaluable(velocity.first)){
             Eigen::Vector3d query = poseSpline.evalLinearVelocity(velocity.first);
 
-            std::cout <<"Gt:    "<< velocity.second.transpose()<<std::endl;
-            std::cout <<"Query: "<< query.transpose()<< std::endl << std::endl;
+            // std::cout <<"Gt:    "<< velocity.second.transpose()<<std::endl;
+            // std::cout <<"Query: "<< query.transpose()<< std::endl << std::endl;
+            inlier_cnt += (velocity.second -query).squaredNorm() < 0.01; 
         }
     }
+    EXPECT_TRUE(inlier_cnt / (double)(end - start) > 0.97);
 
 
-    std::ofstream ofs_debug("/home/pang/debug.txt");
+    // std::ofstream ofs_debug("/home/pang/debug.txt");
 
 
     std::map<int64_t,Eigen::Vector3d> accelMap = eurocDataReader.getAccelMeasMap();
-    LOG(INFO)<<"accelMap size: "<<accelMap.size();
+    //LOG(INFO)<<"accelMap size: "<<accelMap.size();
 
     std::map<int64_t,Eigen::Vector3d>::iterator search;
+    inlier_cnt = 0;
     for(uint i = start; i <end; i++){
 
         ze::TrajectoryEle  p0 = data.at(i);
@@ -126,18 +130,16 @@ int main(int argc, char** argv){
         if(search != accelMap.end() && poseSpline.isTsEvaluable(ts*1e-9)){
             Eigen::Vector3d evalAccel = poseSpline.evalLinearAccelerator(ts*1e-9);
 
-            std::cout<<"Found!"<<std::endl;
-            ofs_debug<< search->second.transpose()<<" "<< evalAccel.transpose()<<std::endl;
-
+            //std::cout<<"Found!"<<std::endl;
+            //ofs_debug<< search->second.transpose()<<" "<< evalAccel.transpose()<<std::endl;
+            inlier_cnt += (search->second - evalAccel).norm() < 1.0; 
         }else{
-            std::cout<<"Not found!"<<std::endl;
+            //std::cout<<"Not found!"<<std::endl;
         }
-
     }
+    std::cout<< "inlier_cnt / (double)(end - start): " << inlier_cnt / (double)(end - start)<< std::endl;
+    EXPECT_TRUE(inlier_cnt / (double)(end - start) > 0.75);
 
-    ofs_debug.close();
 
-
-
-    return 0;
+    // ofs_debug.close();
 }

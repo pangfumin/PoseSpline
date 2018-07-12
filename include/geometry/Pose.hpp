@@ -238,6 +238,8 @@ public:
     Eigen::Matrix<T,4,1> rotation() const;
     Eigen::Matrix<T,3,1> translation() const;
 
+   Eigen::Matrix<T, 3, Eigen::Dynamic> transformVector3d(const Eigen::Matrix<T, 3, Eigen::Dynamic>& vec);
+
 protected:
     /// \brief Update the caching of the rotation matrix.
     void updateC();

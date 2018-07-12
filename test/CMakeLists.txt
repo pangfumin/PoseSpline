@@ -49,11 +49,6 @@ add_executable(VectorSpaceSplineTest VectorSpaceSplineTest.cpp)
 target_link_libraries(VectorSpaceSplineTest
         PoseSpline)
 
-add_executable(UtilityTest UtilityTest.cpp)
-target_link_libraries(UtilityTest
-        PoseSpline)
-
-
 
 add_executable(testPinholeProjectFactor testPinholeProjectFactor.cpp)
 target_link_libraries(testPinholeProjectFactor
@@ -79,11 +74,9 @@ target_link_libraries(testSplineRotateError
 
 # gtest
 enable_testing()
-
-
 set(FRAME_TEST_SOURCES
-  frame/TestFrame.cpp
-  frame/TestMultiFrame.cpp 
+  #frame/TestFrame.cpp
+  #frame/TestMultiFrame.cpp 
   frame/TestNCameraSystem.cpp  
   frame/TestPinholeCamera.cpp)
 
@@ -94,5 +87,10 @@ set_target_properties(frame_test PROPERTIES COMPILE_FLAGS "-std=c++11 -Wno-depre
 add_executable(pose_test PoseTest.cpp ./gtest/gtest-all.cc)
 target_link_libraries(pose_test  pthread  util PoseSpline  )
 set_target_properties(pose_test PROPERTIES COMPILE_FLAGS "-std=c++11 -Wno-deprecated-register")
+
+add_executable(UtilityTest UtilityTest.cpp ./gtest/gtest-all.cc)
+target_link_libraries(UtilityTest pthread PoseSpline)
+set_target_properties(pose_test PROPERTIES COMPILE_FLAGS "-std=c++11 -Wno-deprecated-register")
+
 
 add_test(NAME frame_test COMMAND frame_test --gtest_color=yes)

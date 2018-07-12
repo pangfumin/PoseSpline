@@ -1,31 +1,28 @@
 
 #include <iostream>
 #include <ceres/ceres.h>
-
+#include <gtest/gtest.h>
 #include "common/csv_trajectory.hpp"
 #include "pose-spline/QuaternionSpline.hpp"
 #include "pose-spline/QuaternionSplineUtility.hpp"
 #include "pose-spline/PoseLocalParameter.hpp"
 
 
-int main(){
+TEST(QuaternionUtility, function)
+{
 
-
-
-// test exp and log
+    // test exp and log
     Eigen::Vector3d delta_phi(1.1,1.43,-0.9);
 
     Quaternion Q_exp = quatExp(delta_phi);
     Eigen::Vector3d phi_log = quatLog(Q_exp);
-    CHECK_EQ((delta_phi - phi_log).squaredNorm() < 0.0001,true);
+    EXPECT_TRUE((delta_phi - phi_log).squaredNorm() < 0.0001);
 
-    std::cout<<"S(phi)*L(q): "<<std::endl<<quatS(delta_phi)*quatL(Q_exp)<<std::endl;
+    EXPECT_TRUE((quatS(delta_phi)*quatL(Q_exp) - Eigen::Matrix3d::Identity()).squaredNorm() < 0.0001);
 
     RotMat rot  = axisAngleToRotMat(delta_phi);
     Quaternion quatFromRot = rotMatToQuat(rot);
-
-
-    CHECK_EQ((quatFromRot - Q_exp).squaredNorm() < 0.0001,true);
+    EXPECT_TRUE((quatFromRot - Q_exp).squaredNorm() < 0.0001);
 
     RotMat rot_X = rotX(3.1415/2);
     RotMat rotAA = axisAngleToRotMat(Eigen::Vector3d(3.1415/2,0,0));
@@ -35,7 +32,7 @@ int main(){
     Eigen::Matrix4d Q_R= quatRightComp(Q_exp);
     Eigen::Matrix4d  invQ_R= quatRightComp(quatInv(Q_exp));
 
-    std::cout<<Q_R*invQ_R<<std::endl;
+    EXPECT_TRUE((Q_R*invQ_R - Eigen::Matrix4d::Identity()).squaredNorm() < 0.0001);
 
 
     Quaternion Cp0,Cp1,Cp2,Cp3;
@@ -55,7 +52,7 @@ int main(){
 
     double b1 = QSUtility::beta1(u);
     Eigen::Vector3d phi1 = QSUtility::Phi(Cp1,Cp2);
-    std::cout<<phi1.transpose()<<std::endl;
+    //std::cout<<phi1.transpose()<<std::endl;
     double db1 = QSUtility::dot_beta1(dt,u);
     Quaternion  r = QSUtility::r(b1,phi1);
     Quaternion  dot_r = QSUtility::dr_dt(db1,b1,Cp1,Cp2);
@@ -78,9 +75,10 @@ int main(){
     numdiff_r = quatNorm(numdiff_r);
 
 
-    std::cout<<"Num diff dr_dt and analytics dr_dt: "<<std::endl;
-    std::cout<< dot_r.transpose()<<std::endl;
-    std::cout<< numdiff_r.transpose()<<std::endl;
+    // std::cout<<"Num diff dr_dt and analytics dr_dt: "<<std::endl;
+    // std::cout<< dot_r.transpose()<<std::endl;
+    // std::cout<< numdiff_r.transpose()<<std::endl;
+    EXPECT_TRUE((dot_r - numdiff_r).squaredNorm() < 0.0001);
 
     /*
      * test d2r_dt2
@@ -94,10 +92,9 @@ int main(){
 
     Quaternion numDiff_drdt = (dot_r_p - dot_r_m)/(2.0*eps);
 
-    std::cout<<"Num diff d2r_dt2 and analytics d2r_dt2: "<<std::endl;
-    std::cout<< dot_dot_r.transpose()<<std::endl;
-    std::cout<< numDiff_drdt.transpose()<<std::endl;
+    // std::cout<<"Num diff d2r_dt2 and analytics d2r_dt2: "<<std::endl;
+    // std::cout<< dot_dot_r.transpose()<<std::endl;
+    // std::cout<< numDiff_drdt.transpose()<<std::endl;
 
-
-    return 0;
+    EXPECT_TRUE((dot_dot_r - numDiff_drdt).squaredNorm() < 0.0001);
 }

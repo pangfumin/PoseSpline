@@ -36,35 +36,35 @@ CameraMeasurements CameraSimulator::visibleLandmarks(
     const Size2u image_size ( nCameraSystem_.cameraGeometry(cam_idx)->imageWidth(),
                               nCameraSystem_.cameraGeometry(cam_idx)->imageHeight());
     const auto lm_W = landmarks_W_.middleCols(lm_min_idx, num_landmarks);
-    const auto T_C_W = (T_W_B * (*nCameraSystem_.T_SC(cam_idx))).inverse();
+    auto T_C_W = (T_W_B * (*nCameraSystem_.T_SC(cam_idx))).inverse();
 
-    const auto lm_C =
-    Keypoints px = rig_->at(cam_idx).projectVectorized(lm_C);
-    std::vector<uint32_t> visible_indices;
-    for (uint32_t i = 0u; i < num_landmarks; ++i)
-    {
-        if (lm_C(2,i) < options_.min_depth_m ||
-            lm_C(2,i) > options_.max_depth_m)
-        {
-            // Landmark is either behind or too far from the camera.
-            continue;
-        }
+    const auto lm_C = T_C_W.transformVector3d(lm_W);
+    // Keypoints px = nCameraSystem_->at(cam_idx).projectVectorized(lm_C);
+    // std::vector<uint32_t> visible_indices;
+    // for (uint32_t i = 0u; i < num_landmarks; ++i)
+    // {
+    //     if (lm_C(2,i) < options_.min_depth_m ||
+    //         lm_C(2,i) > options_.max_depth_m)
+    //     {
+    //         // Landmark is either behind or too far from the camera.
+    //         continue;
+    //     }
 
-        if (isVisible(image_size, px.col(i)))
-        {
-            visible_indices.push_back(i);
-        }
-    }
+    //     if (isVisible(image_size, px.col(i)))
+    //     {
+    //         visible_indices.push_back(i);
+    //     }
+    // }
 
     // Copy visible indices into Camera Measurements struct:
     CameraMeasurements m;
-    m.keypoints_.resize(Eigen::NoChange, visible_indices.size());
-    m.global_landmark_ids_.resize(visible_indices.size());
-    for (size_t i = 0; i < visible_indices.size(); ++i)
-    {
-        m.keypoints_.col(i) = px.col(visible_indices[i]);
-        m.global_landmark_ids_[i] = visible_indices[i];
-    }
+    // m.keypoints_.resize(Eigen::NoChange, visible_indices.size());
+    // m.global_landmark_ids_.resize(visible_indices.size());
+    // for (size_t i = 0; i < visible_indices.size(); ++i)
+    // {
+    //     m.keypoints_.col(i) = px.col(visible_indices[i]);
+    //     m.global_landmark_ids_[i] = visible_indices[i];
+    // }
 
     return m;
 }

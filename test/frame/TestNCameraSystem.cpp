@@ -60,6 +60,7 @@ TEST(NCameraSystem, functions)
       okvis::cameras::PinholeCamera<okvis::cameras::EquidistantDistortion>::createTestObject());
   distortions.push_back(okvis::cameras::NCameraSystem::Equidistant);
 
+
   // the mounting transformations. The third one is opposite direction
   std::vector<std::shared_ptr<const Pose<double>>> T_SC;
   T_SC.push_back(

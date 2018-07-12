@@ -357,3 +357,9 @@ inline  Eigen::Matrix<T,3,1> Pose<T>::translation() const {
     return r_;
 }
 
+template <typename T>
+inline Eigen::Matrix<T, 3, Eigen::Dynamic> 
+Pose<T>::transformVector3d(const Eigen::Matrix<T, 3, Eigen::Dynamic>& vec) {
+    return (quatToRotMat<T>(q_)*vec).colwise() + r_;
+}
+

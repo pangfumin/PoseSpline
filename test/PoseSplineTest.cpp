@@ -26,7 +26,6 @@ std::pair<double,Eigen::Vector3d>  getPositionSample(ze::TupleVector& data, unsi
 
 TEST(PoseSplineTest, initialAndEvaluate){
     //google::InitGoogleLogging(argv[0]);
-
     std::string dataset = "/home/pang/software/PoseSpline/data/MH_01_easy";
     ze::EurocResultSeries eurocDataReader;
     eurocDataReader.load(dataset + "/state_groundtruth_estimate0/data.csv");
@@ -137,7 +136,7 @@ TEST(PoseSplineTest, initialAndEvaluate){
             //std::cout<<"Not found!"<<std::endl;
         }
     }
-    std::cout<< "inlier_cnt / (double)(end - start): " << inlier_cnt / (double)(end - start)<< std::endl;
+    //std::cout<< "inlier_cnt / (double)(end - start): " << inlier_cnt / (double)(end - start)<< std::endl;
     EXPECT_TRUE(inlier_cnt / (double)(end - start) > 0.75);
 
 

@@ -23,7 +23,8 @@ include_directories(include
 
 add_library(util
         src/okvis_util/Duration.cpp
-        src/okvis_util/Time.cpp)
+        src/okvis_util/Time.cpp
+        src/okvis_util/random.cpp)
 
 add_library(cv
         src/okvis_cv/CameraBase.cpp

@@ -2,11 +2,12 @@
 #include "simulator/camera_simulate.hpp"
 #include "okvis_util/size.hpp"
 #include "okvis_util/random.hpp"
-
+#include "okvis_cv/cameras/camera_util.hpp"
 #include <glog/logging.h>
 #include <opencv2/opencv.hpp>
 
 #define ZE_USE_OPENCV
+
 CameraSimulator::CameraSimulator(const std::shared_ptr<Trajectory>& trajectory,
                                  const okvis::cameras::NCameraSystem& nCameraSystem,
                 const CameraSimulatorOptions cameraSimulatorOptions ):
@@ -14,7 +15,78 @@ trajectory_(trajectory), nCameraSystem_(nCameraSystem),
 options_(cameraSimulatorOptions), num_landmarks_(0),
 landmark_preAlooc_num_(20*cameraSimulatorOptions.min_num_keypoints_per_frame) {
     landmarks_W_.conservativeResize(Eigen::NoChange, landmark_preAlooc_num_);
+    trajectory_itr_ = trajectory_->begin();
     initializeMap();
+}
+
+bool CameraSimulator::hasNextMeasurement() {
+    return trajectory_itr_ != trajectory_->end();
+}
+
+okvis::MultiFramePtr CameraSimulator::getNextMeasurement() {
+    Time ts = trajectory_itr_->first;
+    Pose<double> T_W_B = trajectory_itr_->second;
+    size_t  num_camera = nCameraSystem_.numCameras();
+    okvis::MultiFramePtr multiFramePtr = std::make_shared<okvis::MultiFrame>(nCameraSystem_,ts);
+    for (size_t cam_idx = 0 ; cam_idx < num_camera; cam_idx ++) {
+        CameraMeasurements measurements = visibleLandmarks(cam_idx, T_W_B, 0u, num_landmarks_);
+
+        for (int i = 0; i < measurements.keypoints_.cols(); i ++) {
+            cv::KeyPoint kp(static_cast<float>(measurements.keypoints_.col(i)[0])
+                    , static_cast<float>(measurements.keypoints_.col(i)[1]),1.0);
+
+            multiFramePtr->appendKeypoint(cam_idx,kp);
+            multiFramePtr->setLandmarkId(cam_idx,i,
+                                         static_cast<uint64_t>(measurements.global_landmark_ids_[i]));
+        }
+        //multiFramePtr->resetKeypoints(cam_idx, keypoints);
+
+#ifdef ZE_USE_OPENCV
+        if (cam_idx == 0) {
+            cv::Mat img_0(nCameraSystem_.cameraGeometry(cam_idx)->imageHeight(),
+                          nCameraSystem_.cameraGeometry(cam_idx)->imageWidth(), CV_8UC1, cv::Scalar(0));
+
+
+            for (int i = 0; i <  multiFramePtr->numKeypoints(cam_idx); ++i)
+            {
+                Eigen::Vector2d  keypoint;
+                multiFramePtr->getKeypoint(cam_idx,i,keypoint);
+
+                cv::Point p(keypoint(0), keypoint(1));
+                cv::circle(img_0, p, 1, cv::Scalar(255), 1);
+
+                char name[5];
+                sprintf(name, "%d", multiFramePtr->landmarkId(cam_idx,i));
+                cv::putText(img_0, name, p, cv::FONT_HERSHEY_SIMPLEX, 0.40, cv::Scalar( 200));
+            }
+            cv::imshow("img_0", img_0);
+            cv::waitKey(1);
+        }
+        if (cam_idx == 1) {
+            cv::Mat img_0(nCameraSystem_.cameraGeometry(cam_idx)->imageHeight(),
+                          nCameraSystem_.cameraGeometry(cam_idx)->imageWidth(), CV_8UC1, cv::Scalar(0));
+
+
+            for (int i = 0; i <  multiFramePtr->numKeypoints(cam_idx); ++i)
+            {
+                Eigen::Vector2d  keypoint;
+                multiFramePtr->getKeypoint(cam_idx,i,keypoint);
+
+                cv::Point p(keypoint(0), keypoint(1));
+                cv::circle(img_0, p, 1, cv::Scalar(255), 1);
+
+                char name[5];
+                sprintf(name, "%d", multiFramePtr->landmarkId(cam_idx,i));
+                cv::putText(img_0, name, p, cv::FONT_HERSHEY_SIMPLEX, 0.40, cv::Scalar( 200));
+            }
+            cv::imshow("img_1", img_0);
+            cv::waitKey(1);
+        }
+#endif
+    }
+
+    trajectory_itr_ ++;
+    return multiFramePtr;
 }
 
 void CameraSimulator::initializeMap() {
@@ -26,28 +98,7 @@ void CameraSimulator::initializeMap() {
         for (size_t cam_idx = 0 ; cam_idx < num_camera; cam_idx ++) {
             CameraMeasurements measurements = visibleLandmarks(cam_idx, T_W_B, 0u, num_landmarks_);
 
-#ifdef ZE_USE_OPENCV
-            if (cam_idx == 1) {
-                cv::Mat img_0(nCameraSystem_.cameraGeometry(cam_idx)->imageHeight(),
-                              nCameraSystem_.cameraGeometry(cam_idx)->imageWidth(), CV_8UC1, cv::Scalar(0));
 
-                for (int i = 0; i < measurements.keypoints_.cols(); ++i)
-                {
-                    cv::circle(img_0, cv::Point(measurements.keypoints_(0,i), measurements.keypoints_(1,i)), 1,
-                               cv::Scalar(255), 1);
-
-                    char name[5];
-                    sprintf(name, "%d", measurements.global_landmark_ids_[i]);
-                    cv::putText(img_0, name,
-                                cv::Point(measurements.keypoints_(0,i), measurements.keypoints_(1,i)),
-                                cv::FONT_HERSHEY_SIMPLEX, 0.40, cv::Scalar( 200));
-                }
-                cv::imshow("img_0", img_0);
-                cv::waitKey(1);
-            }
-
-
-#endif
 
             int num_visible = measurements.keypoints_.cols();
             if (num_visible >= options_.min_num_keypoints_per_frame)
@@ -82,7 +133,10 @@ void CameraSimulator::initializeMap() {
     }
 
     landmarks_W_ = landmarks_W_.middleCols(0u, num_landmarks_);
-    std::cout<< "num_landmarks_: "<<num_landmarks_ << std::endl;
+    std::cout<< " - Init map : " << std::endl;
+    std::cout<< " - Trajectory    : " << trajectory_->size() <<  std::endl;
+    std::cout<< " - Camera        : " << nCameraSystem_.numCameras() <<  std::endl;
+    std::cout<< " - Landmarks     : " << num_landmarks_ <<  std::endl;
 
 }
 
@@ -134,73 +188,5 @@ CameraMeasurements CameraSimulator::visibleLandmarks(
      }
 
     return m;
-}
-
-// -----------------------------------------------------------------------------
-Keypoints CameraSimulator::generateRandomKeypoints(
-        const Size2u size,
-        const uint32_t margin,
-        const uint32_t num_keypoints)
-{
-//    DEBUG_CHECK_GT(size.width(), margin + 1u);
-//    DEBUG_CHECK_GT(size.height(), margin + 1u);
-
-    Keypoints kp(2, num_keypoints);
-    for(uint32_t i = 0u; i < num_keypoints; ++i)
-    {
-        kp(0,i) = sampleUniformRealDistribution<real_t>(false, margin, size.width() - 1 - margin);
-        kp(1,i) = sampleUniformRealDistribution<real_t>(false, margin, size.height() - 1 - margin);
-    }
-    return kp;
-}
-
-// -----------------------------------------------------------------------------
-Keypoints CameraSimulator::generateUniformKeypoints(
-        const Size2u size,
-        const uint32_t margin,
-        const uint32_t num_cols)
-{
-//    DEBUG_CHECK_GT(size.width(), margin + 1u);
-//    DEBUG_CHECK_GT(size.height(), margin + 1u);
-    const uint32_t num_rows = num_cols * size.height() / size.width();
-
-    // Compute width and height of a cell:
-    real_t w = (static_cast<real_t>(size.width() - 0.01)  - 2.0 * margin) / (num_cols - 1);
-    real_t h = (static_cast<real_t>(size.height() - 0.01) - 2.0 * margin) / (num_rows - 1);
-
-    // Sample keypoints:
-    Keypoints kp(2, num_rows * num_cols);
-    for (uint32_t y = 0u; y < num_rows; ++y)
-    {
-        for (uint32_t x = 0u; x < num_cols; ++x)
-        {
-            uint32_t i = y * num_cols + x;
-            kp(0,i) = margin + x * w;
-            kp(1,i) = margin + y * h;
-        }
-    }
-    return kp;
-}
-
-// -----------------------------------------------------------------------------
-std::tuple<Keypoints, Bearings, Positions> CameraSimulator::generateRandomVisible3dPoints(
-        const okvis::cameras::NCameraSystem& cam,
-        const int cam_id,
-        const uint32_t num_points,
-        const uint32_t margin,
-        const real_t min_depth,
-        const real_t max_depth)
-{
-    Size2u size(cam.cameraGeometry(cam_id)->imageWidth(), cam.cameraGeometry(cam_id)->imageHeight());
-    Keypoints px = generateRandomKeypoints(size, margin, num_points);
-
-    Bearings  f(3, num_points);
-    cam.cameraGeometry(cam_id)->backProjectBatch(px,&f,NULL);
-    Positions pos  = f;
-    for(uint32_t i = 0u; i < num_points; ++i)
-    {
-        pos.col(i) *= sampleUniformRealDistribution<real_t>(false, min_depth, max_depth);
-    }
-    return std::make_tuple(px, f, pos);
 }
 

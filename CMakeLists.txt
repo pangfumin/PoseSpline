@@ -28,7 +28,8 @@ add_library(util
 
 add_library(cv
         src/okvis_cv/CameraBase.cpp
-        src/okvis_cv/NCameraSystem.cpp)
+        src/okvis_cv/NCameraSystem.cpp
+        src/okvis_cv/camera/camera_util.cpp)
 
 
 target_link_libraries(cv

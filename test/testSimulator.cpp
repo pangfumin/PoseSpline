@@ -26,8 +26,8 @@ TEST(TestSimulator, cameraSimulator) {
 
     std::shared_ptr<okvis::cameras::NCameraSystem> ncamera
             = std::make_shared<okvis::cameras::NCameraSystem>(parameters.nCameraSystem);
-    size_t start = 0;
-    size_t end  = data.size() ;
+    size_t start = data.size()*5/10;
+    size_t end  = data.size()*6/10 ;
     std::shared_ptr<Trajectory> trajectory = std::make_shared<Trajectory >();
     for (size_t i = start; i < end; i++) {
         ze::TrajectoryEle  p0 = data.at(i);
@@ -46,5 +46,9 @@ TEST(TestSimulator, cameraSimulator) {
 
     CameraSimulatorOptions cameraSimulatorOptions;
     CameraSimulator cameraSimulator(trajectory,*ncamera,cameraSimulatorOptions);
+
+    while (cameraSimulator.hasNextMeasurement()) {
+        cameraSimulator.getNextMeasurement();
+    }
 
 }

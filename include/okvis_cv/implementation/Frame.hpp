@@ -296,6 +296,11 @@ inline bool Frame::resetKeypoints(const std::vector<cv::KeyPoint> & keypoints) {
   return true;
 }
 
+inline bool Frame::appendKeypoint(const cv::KeyPoint & keypoint) {
+  keypoints_.push_back(keypoint);
+  landmarkIds_.push_back(0);
+  return true;
+}
 // provide descriptors externally
 inline bool Frame::resetDescriptors(const cv::Mat & descriptors) {
   descriptors_ = descriptors;

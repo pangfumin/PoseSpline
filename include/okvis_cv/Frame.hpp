@@ -178,6 +178,10 @@ class Frame
   /// \return whether or not the operation was successful.
   inline bool resetKeypoints(const std::vector<cv::KeyPoint> & keypoints);
 
+  inline bool appendKeypoint(const cv::KeyPoint & keypoint);
+
+
+
   /// \brief provide descriptors externally
   /// @param[in] descriptors A vector of descriptors.
   /// \return whether or not the operation was successful.

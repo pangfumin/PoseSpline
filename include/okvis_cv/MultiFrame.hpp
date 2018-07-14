@@ -225,6 +225,8 @@ class MultiFrame
   inline bool resetKeypoints(size_t cameraIdx,
                              const std::vector<cv::KeyPoint> & keypoints);
 
+  inline bool appendKeypoint(size_t cameraIdx, const cv::KeyPoint & keypoint);
+
   /// \brief provide descriptors externally
   /// @param[in] cameraIdx The camera index.
   /// @param[in] descriptors A vector of descriptors.

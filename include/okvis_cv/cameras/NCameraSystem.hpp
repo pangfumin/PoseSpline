@@ -105,7 +105,7 @@ class NCameraSystem
   inline void addCamera(std::shared_ptr<const Pose<double >> T_SC,
                         std::shared_ptr<const cameras::CameraBase> cameraGeometry,
                         DistortionType distortionType,
-                        bool computeOverlaps = true);
+                        bool computeOverlaps = false);
 
   /// \brief Obtatin the number of cameras currently added.
   /// @return The number of cameras.

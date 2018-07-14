@@ -251,7 +251,14 @@ bool MultiFrame::resetKeypoints(size_t cameraIdx, const std::vector<cv::KeyPoint
   return frames_[cameraIdx].resetKeypoints(keypoints);
 }
 
-// provide descriptors externally
+// provide keypoints externally
+bool MultiFrame::appendKeypoint(size_t cameraIdx, const cv::KeyPoint & keypoint){
+  OKVIS_ASSERT_TRUE_DBG(Exception, cameraIdx < frames_.size(), "Out of range");
+  return frames_[cameraIdx].appendKeypoint(keypoint);
+}
+
+
+    // provide descriptors externally
 bool MultiFrame::resetDescriptors(size_t cameraIdx, const cv::Mat & descriptors) {
   OKVIS_ASSERT_TRUE_DBG(Exception, cameraIdx < frames_.size(), "Out of range");
   return frames_[cameraIdx].resetDescriptors(descriptors);

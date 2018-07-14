@@ -191,6 +191,10 @@ class Frame
   /// \return The number of keypoints.
   inline size_t numKeypoints() const;
 
+  inline std::vector<uint64_t> getLandmarkIds() const {
+    return landmarkIds_;
+  }
+
  protected:
   cv::Mat image_;  ///< the image as OpenCV's matrix
   std::shared_ptr<const cameras::CameraBase> cameraGeometry_;  ///< the camera geometry

@@ -270,6 +270,7 @@ class MultiFrame
     }
     inline Pose<double> getPose() {return T_W_B_;}
     inline  Pose<double> getCameraPose(const size_t cameraIndex);
+    inline bool isLandmarkSeenBy(const size_t cameraIndex, const uint64_t landmark_id,size_t& keypoint_id);
 
  protected:
   Time timestamp_;  ///< the frame timestamp

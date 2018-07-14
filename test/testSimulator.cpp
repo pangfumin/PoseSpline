@@ -70,6 +70,11 @@ TEST(TestSimulator, cameraSimulator) {
                     multiFramePtr->geometry(cam_id)->project(C_landmark, &imagePoint);
 
                     EXPECT_TRUE((kp - imagePoint).norm() < 0.001);
+
+                    size_t query_kp_id;
+                    EXPECT_TRUE(multiFramePtr->isLandmarkSeenBy(cam_id,landmark_id,query_kp_id) && query_kp_id == kp_id);
+
+
                 }
             }
         }

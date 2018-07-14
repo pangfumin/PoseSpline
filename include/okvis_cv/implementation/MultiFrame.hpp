@@ -281,5 +281,16 @@ Pose<double> MultiFrame::getCameraPose(const size_t cameraIndex) {
   return T_W_B_* (*cameraSystem_.T_SC(cameraIndex));
 }
 
+bool MultiFrame::isLandmarkSeenBy(const size_t cameraIndex, const uint64_t landmark_id, size_t& keypoint_id) {
+    std::vector<uint64_t> landmarkIds = frames_[cameraIndex].getLandmarkIds();
+    std::vector<uint64_t>::iterator itr;
+    itr = std::find(landmarkIds.begin(),landmarkIds.end(),landmark_id);
+    if (itr != landmarkIds.end()) {
+        keypoint_id = std::distance(landmarkIds.begin(),itr);
+        return true;
+    }
+    return false;
+}
+
 
 }// namespace okvis

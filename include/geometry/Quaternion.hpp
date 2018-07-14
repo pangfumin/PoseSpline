@@ -401,6 +401,18 @@ Eigen::Matrix<T,4,1> randomQuat() {
     return q_;
 }
 
+template<typename T>
+Eigen::Matrix<T,3,3> toHamiltonRotMatrix(const Eigen::Matrix<T,4,1>& hamiltonQuat) {
+    Eigen::Quaternion<T> QuatHamilton(hamiltonQuat(3),hamiltonQuat(0),hamiltonQuat(1),hamiltonQuat(2));
+    return  QuatHamilton.toRotationMatrix();
+};
+
+template<typename T>
+Eigen::Matrix<T,4,1> HamiltonToJPL (const Eigen::Matrix<T,4,1>& hamiltonQuat) {
+    Eigen::Matrix<T,3,3> R = toHamiltonRotMatrix(hamiltonQuat);
+    return  rotMatToQuat<T>(R);
+};
+
 
 
 /*

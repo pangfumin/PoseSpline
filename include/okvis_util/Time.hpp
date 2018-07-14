@@ -267,6 +267,22 @@ std::ostream &operator <<(std::ostream &os, const Time &rhs);
 std::ostream &operator <<(std::ostream &os, const WallTime &rhs);
 
 
+inline int64_t NanoFromSeconds(int32_t value) {
+    return static_cast<int64_t>(value * 1e9);
+}
+
+inline int64_t TimeToNanoseconds(const Time& time) {
+    int64_t t = NanoFromSeconds(static_cast<int64_t>(time.sec)) +
+                static_cast<int64_t>(time.nsec);
+    return t;
+}
+
+inline Time NanosecondsToTime(const uint64_t& time) {
+    uint32_t sec = static_cast<uint32_t>(time/1e9);
+    uint32_t nsec = static_cast<uint32_t>(time - static_cast<uint64_t>(sec*1e9));
+    return Time(sec, nsec);
+}
+
 #include "Time_imp.hpp"
 
 

@@ -28,6 +28,15 @@ TEST(QuaternionUtility, function)
     RotMat rotAA = axisAngleToRotMat(Eigen::Vector3d(3.1415/2,0,0));
 
 
+    // Hamiltion vs JPL
+    Quaternion hamilton = randomQuat<double>();
+    Quaternion JPL = HamiltonToJPL(hamilton);
+
+    EXPECT_TRUE((toHamiltonRotMatrix(hamilton) - quatToRotMat(JPL)).squaredNorm() < 0.0001);
+
+
+
+
 
     Eigen::Matrix4d Q_R= quatRightComp(Q_exp);
     Eigen::Matrix4d  invQ_R= quatRightComp(quatInv(Q_exp));

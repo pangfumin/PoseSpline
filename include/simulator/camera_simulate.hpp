@@ -41,6 +41,8 @@ public:
     CameraSimulator(const std::shared_ptr<Trajectory>& trajectory,
                     const okvis::cameras::NCameraSystem& nCameraSystem,
                     const CameraSimulatorOptions cameraSimulatorOptions );
+
+    uint32_t getLandmarksNum() {return num_landmarks_;};
 private:
 
     void initializeMap();
@@ -62,6 +64,7 @@ private:
 
     std::tuple<Keypoints, Bearings, Positions> generateRandomVisible3dPoints(
             const okvis::cameras::NCameraSystem& cam,
+            const int cam_id,
             const uint32_t num_points,
             const uint32_t margin,
             const real_t min_depth,
@@ -72,7 +75,10 @@ private:
     std::shared_ptr<Trajectory> trajectory_;
     CameraSimulatorOptions options_;
 
+    uint32_t num_landmarks_;
     Positions landmarks_W_;
+
+    const uint32_t landmark_preAlooc_num_;
 };
 
 #endif

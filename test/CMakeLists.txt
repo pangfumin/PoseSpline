@@ -65,8 +65,8 @@ target_link_libraries(testSplineRotateError
 # gtest
 enable_testing()
 set(FRAME_TEST_SOURCES
-  #frame/TestFrame.cpp
-  #frame/TestMultiFrame.cpp 
+  frame/TestFrame.cpp
+  frame/TestMultiFrame.cpp
   frame/TestNCameraSystem.cpp  
   frame/TestPinholeCamera.cpp)
 

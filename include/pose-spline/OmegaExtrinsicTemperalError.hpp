@@ -5,7 +5,6 @@
 #include <ceres/ceres.h>
 #include <iostream>
 #include "pose-spline/QuaternionLocalParameter.hpp"
-#include "pose-spline/ErrorInterface.hpp"
 
 class OmegaExtrinsicTemperalError: public ceres::SizedCostFunction<3,4,1>{
 

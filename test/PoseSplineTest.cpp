@@ -106,11 +106,11 @@ TEST(PoseSplineTest, initialAndEvaluate){
 
             // std::cout <<"Gt:    "<< velocity.second.transpose()<<std::endl;
             // std::cout <<"Query: "<< query.transpose()<< std::endl << std::endl;
-            inlier_cnt += (velocity.second -query).squaredNorm() < 0.01; 
+            inlier_cnt += (velocity.second -query).squaredNorm() < 0.01;
         }
     }
     EXPECT_TRUE(inlier_cnt / (double)(end - start) > 0.97);
-
+//
 
     // std::ofstream ofs_debug("/home/pang/debug.txt");
 
@@ -131,7 +131,7 @@ TEST(PoseSplineTest, initialAndEvaluate){
 
             //std::cout<<"Found!"<<std::endl;
             //ofs_debug<< search->second.transpose()<<" "<< evalAccel.transpose()<<std::endl;
-            inlier_cnt += (search->second - evalAccel).norm() < 1.0; 
+            inlier_cnt += (search->second - evalAccel).norm() < 1.0;
         }else{
             //std::cout<<"Not found!"<<std::endl;
         }

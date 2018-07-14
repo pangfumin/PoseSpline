@@ -4,7 +4,7 @@
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
- *
+ * 
  *   * Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
  *   * Redistributions in binary form must reproduce the above copyright notice,
@@ -26,73 +26,69 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- *  Created on: Sep 12, 2013
+ *  Created on: Mar 11, 2015
  *      Author: Stefan Leutenegger (s.leutenegger@imperial.ac.uk)
  *********************************************************************************/
 
 /**
- * @file ErrorInterface.hpp
- * @brief Header file for the ErrorInterface class. A simple interface class that
-          other error classes should inherit from.
+ * @file operators.hpp
+ * @brief File with some helper functions related to matrix/vector operations.
  * @author Stefan Leutenegger
  */
 
-#ifndef INCLUDE_OKVIS_CERES_ERRORINTERFACE_HPP_
-#define INCLUDE_OKVIS_CERES_ERRORINTERFACE_HPP_
+#ifndef INCLUDE_OKVIS_KINEMATICS_OPERATORS_HPP_
+#define INCLUDE_OKVIS_KINEMATICS_OPERATORS_HPP_
 
+#include <stdint.h>
 #include <vector>
 #include <Eigen/Core>
+#include <Eigen/Geometry>
 
-
-/// @brief Simple interface class the errors implemented here should inherit from.
-class ErrorInterface {
-public:
-
-
-
-    /// @brief Constructor
-    ErrorInterface() {
-    }
-    /// @brief Destructor (does nothing).
-    virtual ~ErrorInterface() {
-    }
-
-    /// @name Sizes
-    /// @{
-
-    /// @brief Get dimension of residuals.
-    /// @return The residual dimension.
-    virtual size_t residualDim() const = 0;
-
-    /// @brief Get the number of parameter blocks this is connected to.
-    /// @return The number of parameter blocks.
-    virtual size_t parameterBlocks() const = 0;
-
-    /**
-     * @brief get the dimension of a parameter block this is connected to.
-     * @param parameterBlockId The ID of the parameter block of interest.
-     * @return Its dimension.
-     */
-    virtual size_t parameterBlockDim(size_t parameterBlockId) const = 0;
-
-    /// @}
-    // Error and Jacobian computation
-    /**
-     * @brief This evaluates the error term and additionally computes
-     *        the Jacobians in the minimal internal representation.
-     * @param parameters Pointer to the parameters (see ceres)
-     * @param residuals Pointer to the residual vector (see ceres)
-     * @param jacobians Pointer to the Jacobians (see ceres)
-     * @param jacobiansMinimal Pointer to the minimal Jacobians (equivalent to jacobians).
-     * @return Success of the evaluation.
-     */
-    virtual bool EvaluateWithMinimalJacobians(
-            double const* const * parameters, double* residuals, double** jacobians,
-            double** jacobiansMinimal) const = 0;
-
-
-};
+/// \brief okvis Main namespace of this package.
+namespace okvis {
 
 
 
-#endif /* INCLUDE_OKVIS_CERES_ERRORINTERFACE_HPP_ */
+// some free helper functions
+
+/// \brief Cross matrix of a vector [x,y,z].
+///        Adopted from Schweizer-Messer by Paul Furgale.
+/// \tparam Scalar_T The scalar type, auto-deducible (typically double).
+/// @param[in] x First vector element.
+/// @param[in] y Second vector element.
+/// @param[in] z Third vector element.
+template<typename Scalar_T>
+inline Eigen::Matrix<Scalar_T, 3, 3> crossMx(Scalar_T x, Scalar_T y, Scalar_T z)
+{
+  Eigen::Matrix<Scalar_T, 3, 3> C;
+  C(0, 0) = 0.0;
+  C(0, 1) = -z;
+  C(0, 2) = y;
+  C(1, 0) = z;
+  C(1, 1) = 0.0;
+  C(1, 2) = -x;
+  C(2, 0) = -y;
+  C(2, 1) = x;
+  C(2, 2) = 0.0;
+  return C;
+}
+
+/// \brief Cross matrix of a vector v.
+///        Adopted from Schweizer-Messer by Paul Furgale.
+/// \tparam Derived_T The vector type, auto-deducible.
+/// @param[in] v The vector.
+template<typename Derived_T>
+inline Eigen::Matrix<typename Eigen::internal::traits<Derived_T>::Scalar, 3, 3> crossMx(
+    Eigen::MatrixBase<Derived_T> const & v)
+{
+  EIGEN_STATIC_ASSERT_VECTOR_SPECIFIC_SIZE(Eigen::MatrixBase<Derived_T>, 3);
+  assert((v.cols()==3 && v.rows()==1)||(v.rows()==3 && v.cols()==1));
+  return crossMx(v(0, 0), v(1, 0), v(2, 0));
+}
+
+} // namespace okvis
+
+
+
+#endif /* INCLUDE_OKVIS_KINEMATICS_OPERATORS_HPP_ */
+

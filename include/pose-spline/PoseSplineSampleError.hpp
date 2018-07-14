@@ -5,7 +5,7 @@
 #include <ceres/ceres.h>
 #include <iostream>
 #include "pose-spline/QuaternionLocalParameter.hpp"
-#include "pose-spline/ErrorInterface.hpp"
+//#include "pose-spline/ErrorInterface.hpp"
 #include "geometry/Pose.hpp"
 
 

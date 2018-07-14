@@ -95,7 +95,7 @@ public:
     /// @param[in] q_AB The Quaternion q_AB .
     Pose(const Eigen::Matrix<T,3,1> & r_AB, const Eigen::Matrix<T,4,1>& q_AB);
 
-    Pose(const Eigen::Matrix<T,3,1> & r_AB, const Eigen::Quaternion<T>& q_AB);
+    //Pose(const Eigen::Matrix<T,3,1> & r_AB, const Eigen::Quaternion<T>& q_AB);
 
     /// \brief Construct from a 7x1 vector.
     /// @param[in] vec The 7x1 vector

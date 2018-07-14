@@ -2,6 +2,7 @@
 #include "simulator/camera_simulate.hpp"
 #include "common/csv_trajectory.hpp"
 #include "estimator/VioParametersReader.hpp"
+#include "frontend/triangulate/stereo_triangulation.hpp"
 #include <glog/logging.h>
 using namespace ze;
 

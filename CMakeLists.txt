@@ -37,6 +37,20 @@ target_link_libraries(cv
         ${OPENCV_LIBRARIES}
         ${GLOG_LIBRARIES})
 
+
+add_library(ceres_ext
+        src/ceres/PoseError.cpp
+        src/ceres/PoseLocalParameterization.cpp
+        src/ceres/PoseParameterBlock.cpp
+        src/ceres/HomogeneousPointLocalParameterization.cpp
+        src/ceres/HomogeneousPointParameterBlock.cpp
+        )
+target_link_libraries(ceres_ext
+        cv
+        util
+        ${CERES_LIBRARIES})
+
+
 add_library( PoseSpline
         src/extern/spline_projection_error.cpp
         src/extern/pinhole_project_error.cpp
@@ -63,6 +77,7 @@ add_library( PoseSpline
 
 target_link_libraries(PoseSpline
         util
+        ceres_ext
         ${CERES_LIBRARIES}
         ${OpenCV_LIBRARIES}
         ${GLOG_LIBRARIES})
@@ -73,6 +88,15 @@ target_link_libraries(simulate
         cv
         util
         ${OpenCV_INCLUDE_DIRS})
+
+
+add_library(frontend
+        src/frontend/stereo_triangulation.cpp
+        src/frontend/ProbabilisticStereoTriangulator.cpp)
+target_link_libraries(frontend
+        cv
+        util)
+
 
 add_library(estimator
         src/estimator/VioParametersReader.cpp)

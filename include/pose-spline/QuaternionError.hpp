@@ -5,10 +5,10 @@
 #include <iostream>
 #include "geometry/Quaternion.hpp"
 #include "pose-spline/QuaternionLocalParameter.hpp"
-#include "pose-spline/ErrorInterface.hpp"
+//#include "pose-spline/ErrorInterface.hpp"
 #include "pose-spline/NumbDifferentiator.hpp"
 
-class QuaternionErrorCostFunction: public  ceres::SizedCostFunction<3,4> ,ErrorInterface{
+class QuaternionErrorCostFunction: public  ceres::SizedCostFunction<3,4> {
 
 public:
 

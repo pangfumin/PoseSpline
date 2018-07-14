@@ -65,15 +65,15 @@ TEST(MulitFrame, functions)
   T_SC.push_back(
       std::shared_ptr<Pose<double>>(
           new Pose<double>(Eigen::Vector3d(0.1, 0.1, 0.1),
-                                                Eigen::Quaterniond(1, 0, 0, 0))));
+                           Quaternion( 0, 0, 0,1))));
   T_SC.push_back(
       std::shared_ptr<Pose<double>>(
           new Pose<double>(
-              Eigen::Vector3d(0.1, -0.1, -0.1), Eigen::Quaterniond(1, 0, 0, 0))));
+              Eigen::Vector3d(0.1, -0.1, -0.1), Quaternion( 0, 0, 0,1))));
   T_SC.push_back(
       std::shared_ptr<Pose<double>>(
           new Pose<double>(
-              Eigen::Vector3d(0.1, -0.1, -0.1), Eigen::Quaterniond(0, 0, 1, 0))));
+              Eigen::Vector3d(0.1, -0.1, -0.1), Quaternion( 0, 0, 0,1))));
 
   okvis::cameras::NCameraSystem nCameraSystem(T_SC, cameras, distortions, true);  // computes overlaps
   okvis::MultiFrame multiFrame(nCameraSystem, Time::now(), 1);

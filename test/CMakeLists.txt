@@ -88,7 +88,7 @@ target_link_libraries(PoseSplineTest pthread PoseSpline)
 set_target_properties(PoseSplineTest PROPERTIES COMPILE_FLAGS "-std=c++11 -Wno-deprecated-register")
 
 add_executable(testSimulator testSimulator.cpp ./gtest/gtest-all.cc)
-target_link_libraries(testSimulator pthread util simulate PoseSpline estimator)
+target_link_libraries(testSimulator pthread util simulate PoseSpline estimator ceres_ext frontend)
 set_target_properties(testSimulator PROPERTIES COMPILE_FLAGS "-std=c++11 -Wno-deprecated-register")
 
 

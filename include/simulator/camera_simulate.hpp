@@ -46,6 +46,7 @@ public:
                     const CameraSimulatorOptions cameraSimulatorOptions );
 
     uint32_t getLandmarksNum() {return num_landmarks_;};
+    Position getLandmark(const uint64_t& id) {return landmarks_W_.col(id);};
 
     bool hasNextMeasurement();
     okvis::MultiFramePtr  getNextMeasurement();
@@ -57,8 +58,6 @@ private:
             const Pose<double>& T_W_B,
             const uint32_t lm_min_idx,
             const uint32_t lm_max_idx);
-
-
 
     okvis::cameras::NCameraSystem nCameraSystem_;
     std::vector<std::shared_ptr<okvis::MultiFrame>> frame_;

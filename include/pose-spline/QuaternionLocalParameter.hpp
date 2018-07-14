@@ -4,10 +4,8 @@
 
 #include <eigen3/Eigen/Dense>
 #include <ceres/ceres.h>
-#include "pose-spline/LocalParamizationAdditionalInterfaces.hpp"
 
-class QuaternionLocalParameter: public  ceres::LocalParameterization,
-                                        LocalParamizationAdditionalInterfaces{
+class QuaternionLocalParameter: public  ceres::LocalParameterization {
 
 
 public:

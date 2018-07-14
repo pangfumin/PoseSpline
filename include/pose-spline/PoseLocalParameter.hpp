@@ -4,15 +4,13 @@
 
 #include <eigen3/Eigen/Dense>
 #include <ceres/ceres.h>
-#include "pose-spline/LocalParamizationAdditionalInterfaces.hpp"
 
 
 /*
  * PoseLocalParameter
  * Hers we define the pose representaion: first translate , then rotation quaternion
  */
-class PoseLocalParameter: public  ceres::LocalParameterization,
-                                LocalParamizationAdditionalInterfaces{
+class PoseLocalParameter: public  ceres::LocalParameterization {
 
 
 public:

@@ -6,7 +6,6 @@
 
 
 TEST(Pose, operate){
-
     PoseLocalParameter* poseLocalParameter = new PoseLocalParameter();
     for (size_t i = 0; i < 100; ++i) {
         Pose<double> T_AB;
@@ -102,8 +101,10 @@ TEST(Pose, operate){
         EXPECT_TRUE(
                 (lift_jacobian * jacobian - Eigen::Matrix<double, 6, 6>::Identity())
                         .norm() < 1e-8);
-
-
     }
+
+}
+
+TEST(Pose, parameter) {
 
 }

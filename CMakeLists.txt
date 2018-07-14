@@ -44,6 +44,7 @@ add_library(ceres_ext
         src/ceres/PoseParameterBlock.cpp
         src/ceres/HomogeneousPointLocalParameterization.cpp
         src/ceres/HomogeneousPointParameterBlock.cpp
+        src/ceres/LocalParamizationAdditionalInterfaces.cpp
         )
 target_link_libraries(ceres_ext
         cv
@@ -95,7 +96,8 @@ add_library(frontend
         src/frontend/ProbabilisticStereoTriangulator.cpp)
 target_link_libraries(frontend
         cv
-        util)
+        util
+        ceres_ext)
 
 
 add_library(estimator

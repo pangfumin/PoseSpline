@@ -264,11 +264,19 @@ class MultiFrame
     return cameraSystem_.hasOverlap(cameraIndexSeenBy, cameraIndex);
   }
 
+    inline bool setPose(const Pose<double>& pose) {
+      T_W_B_ = pose;
+      return true;
+    }
+    inline Pose<double> getPose() {return T_W_B_;}
+    inline  Pose<double> getCameraPose(const size_t cameraIndex);
+
  protected:
   Time timestamp_;  ///< the frame timestamp
   uint64_t id_;  ///< the frame id
   std::vector<Frame, Eigen::aligned_allocator<Frame>> frames_;  ///< the individual frames
   cameras::NCameraSystem cameraSystem_;  ///< the camera system
+    Pose<double> T_W_B_;
 };
 
 typedef std::shared_ptr<MultiFrame> MultiFramePtr;  ///< For convenience.

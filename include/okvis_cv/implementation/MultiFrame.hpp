@@ -276,5 +276,10 @@ size_t MultiFrame::numKeypoints() const
   return numKeypoints;
 }
 
+Pose<double> MultiFrame::getCameraPose(const size_t cameraIndex) {
+  OKVIS_ASSERT_TRUE_DBG(Exception, cameraIndex < frames_.size(), "Out of range");
+  return T_W_B_* (*cameraSystem_.T_SC(cameraIndex));
+}
+
 
 }// namespace okvis

@@ -28,6 +28,7 @@ okvis::MultiFramePtr CameraSimulator::getNextMeasurement() {
     Pose<double> T_W_B = trajectory_itr_->second;
     size_t  num_camera = nCameraSystem_.numCameras();
     okvis::MultiFramePtr multiFramePtr = std::make_shared<okvis::MultiFrame>(nCameraSystem_,ts);
+    multiFramePtr->setPose(T_W_B);
     for (size_t cam_idx = 0 ; cam_idx < num_camera; cam_idx ++) {
         CameraMeasurements measurements = visibleLandmarks(cam_idx, T_W_B, 0u, num_landmarks_);
 

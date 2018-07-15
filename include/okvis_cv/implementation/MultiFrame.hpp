@@ -292,5 +292,15 @@ bool MultiFrame::isLandmarkSeenBy(const size_t cameraIndex, const uint64_t landm
     return false;
 }
 
+bool MultiFrame::getBearing(const size_t cameraIndex, const uint64_t keypoint_id, Eigen::Vector3d bearing) {
+  OKVIS_ASSERT_TRUE_DBG(Exception, cameraIndex < frames_.size(), "Out of range");
+  Eigen::Vector2d keypointCoordinatesA;
+  Eigen::Vector3d backProjectionDirectionA_inA;
+  getKeypoint(cameraIndex, keypoint_id, keypointCoordinatesA);
+  this->geometry(cameraIndex)->backProject(
+          keypointCoordinatesA, &backProjectionDirectionA_inA);
+  bearing = backProjectionDirectionA_inA.normalized();
+  return true;
+}
 
 }// namespace okvis

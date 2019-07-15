@@ -62,6 +62,7 @@ if(CATKIN_ENABLE_TESTING)
     catkin_add_gtest(spline_tests
             test/test_main.cpp
             test/PoseSplineTest.cpp
+            test/QuaternionSplineTest.cpp
             )
     if(TARGET spline_tests)
         target_link_libraries(spline_tests ${PROJECT_NAME})

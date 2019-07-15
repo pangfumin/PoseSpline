@@ -47,15 +47,15 @@ add_library( PoseSpline
         src/pose-spline/PoseSplineSampleError.cpp
         src/pose-spline/PoseSplineUtility.cpp
         src/pose-spline/OmegaExtrinsicTemperalError.cpp
-        src/pose-spline/QuaternionOmegaSampleError.cpp
+        #src/pose-spline/QuaternionOmegaSampleError.cpp
         src/pose-spline/PoseSpline.cpp
         src/pose-spline/PoseLocalParameter.cpp
         src/pose-spline/VectorSpaceSpline.cpp
         src/pose-spline/VectorSplineSampleError.cpp
         src/pose-spline/VectorSplineSampleAutoError.cpp
         src/pose-spline/VectorSplineSampleVelocityError.cpp
-        src/pose-spline/LinearAccelerateSampleError.cpp
-        src/pose-spline/AngularVelocitySampleError.cpp
+#        src/pose-spline/LinearAccelerateSampleError.cpp
+#        src/pose-spline/AngularVelocitySampleError.cpp
         src/pose-spline/csv_trajectory.cpp)
 
 

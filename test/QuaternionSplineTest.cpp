@@ -244,8 +244,8 @@ TEST( Spline , quaternionSplineInitialization) {
         if(qspline.isTsEvaluable(ts)){
             Eigen::Vector3d query = qspline.evalOmega(ts);
 
-            std::cout <<"Gt:    "<< stampedImu.gyro_.transpose()<<std::endl;
-            std::cout <<"Query: "<< query.transpose()<< std::endl << std::endl;
+//            std::cout <<"Gt:    "<< stampedImu.gyro_.transpose()<<std::endl;
+//            std::cout <<"Query: "<< query.transpose()<< std::endl << std::endl;
 
 //            ofs_debug << stampedImu.gyro_.transpose() << " " << query.transpose() << std::endl;
 

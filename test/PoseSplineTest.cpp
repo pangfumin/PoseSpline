@@ -185,10 +185,21 @@ TEST( Spline , poseSplineInitialization){
 
         }
     }
-//        ofs_debug.close();
 
-//
+    for(uint i = start; i < end; i++){
+        StampedImu stampedImu = testSample.imu_vec_.at(i);
+        auto ts = Time(stampedImu.timestamp_).toSec();
+        if(poseSpline.isTsEvaluable(ts)){
+            Eigen::Vector3d query = poseSpline.evalOmega(ts);
 
+//            std::cout <<"Gt:    "<< stampedImu.gyro_.transpose()<<std::endl;
+//            std::cout <<"Query: "<< query.transpose()<< std::endl << std::endl;
 
+//            ofs_debug << stampedImu.gyro_.transpose() << " " << query.transpose() << std::endl;
+
+//            std::cout << i << "/" << end << std::endl;
+        }
+    }
+//    ofs_debug.close();
 
 }

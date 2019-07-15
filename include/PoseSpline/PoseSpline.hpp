@@ -21,5 +21,6 @@ public:
     Eigen::Vector3d evalLinearVelocity(real_t t );
 
     Eigen::Vector3d evalLinearAccelerator(real_t t);
+    Eigen::Vector3d evalOmega(real_t t);
 };
 #endif

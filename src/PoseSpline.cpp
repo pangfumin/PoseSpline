@@ -129,4 +129,45 @@
 
     }
 
+    Eigen::Vector3d PoseSpline::evalOmega(real_t t){
+        std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
+        double u = ui.first;
+        unsigned int bidx = ui.second - spline_order() + 1;
+
+        Quaternion Q0 = quatMap<double>(getControlPoint(bidx) + 3);
+        Quaternion Q1 = quatMap<double>(getControlPoint(bidx + 1) + 3);
+        Quaternion Q2 = quatMap<double>(getControlPoint(bidx + 2) + 3);
+        Quaternion Q3 = quatMap<double>(getControlPoint(bidx + 3) + 3);
+
+        double b1 = QSUtility::beta1(u);
+        double b2 = QSUtility::beta2(u);
+        double b3 = QSUtility::beta3(u);
+
+        Eigen::Vector3d Phi1 = QSUtility::Phi(Q0,Q1);
+        Eigen::Vector3d Phi2 = QSUtility::Phi(Q1,Q2);
+        Eigen::Vector3d Phi3 = QSUtility::Phi(Q2,Q3);
+
+        Quaternion r1 = QSUtility::r(b1,Phi1);
+        Quaternion r2 = QSUtility::r(b2,Phi2);
+        Quaternion r3 = QSUtility::r(b3,Phi3);
+
+        Quaternion Q_WI =  quatLeftComp(Q0)*quatLeftComp(r1)*quatLeftComp(r2)*r3;
+
+        double dot_b1 = QSUtility::dot_beta1(getTimeInterval(),u);
+        double dot_b2 = QSUtility::dot_beta2(getTimeInterval(),u);
+        double dot_b3 = QSUtility::dot_beta3(getTimeInterval(),u);
+
+
+        Quaternion dot_Q_WI, part1, part2,part3;
+        part1 = quatLeftComp(QSUtility::dr_dt(dot_b1,b1,Phi1))*quatLeftComp(r2)*r3;
+        part2 = quatLeftComp(r1)*quatLeftComp(QSUtility::dr_dt(dot_b2,b2,Phi2))*r3;
+        part3 = quatLeftComp(r1)*quatLeftComp(r2)*QSUtility::dr_dt(dot_b3,b3,Phi3);
+
+        dot_Q_WI = quatLeftComp(Q0)*(part1 + part2 + part3);
+
+        //std::cout<<"Q    : "<<Q_LG.transpose()<<std::endl;
+        //std::cout<<"dot_Q: "<<dot_Q_LG.transpose()<<std::endl;
+        return QSUtility::w_in_body_frame<double>(Q_WI,dot_Q_WI);
+    }
+
 

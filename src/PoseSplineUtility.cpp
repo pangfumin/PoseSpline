@@ -89,8 +89,6 @@ Eigen::Vector3d PSUtility::EvaluateLinearAccelerate(double u, double dt,
 }
 
 
-
-
 Pose<double> PoseSplineEvaluation::operator() (double u,
                                                const Pose<double>& P0,
                                                const Pose<double>& P1,

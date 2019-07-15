@@ -5,6 +5,7 @@
 #include "PoseSpline/QuaternionSpline.hpp"
 #include <PoseSpline/QuaternionSplineUtility.hpp>
 #include <PoseSpline/PoseSpline.hpp>
+#include <PoseSpline/VectorSpaceSpline.hpp>
 #include "csv.h"
 #include "PoseSpline/Time.hpp"
 
@@ -109,8 +110,11 @@ TEST( Spline , poseSplineInitialization){
     int end = testSample.states_vec_.size()/5;
 
     PoseSpline poseSpline(0.1);
+    VectorSpaceSpline vectorSpaceSpline(0.1);
+
     std::vector<std::pair<double,Pose<double>>> samples, queryMeas;
     std::vector<std::pair<double,Eigen::Vector3d>> queryVelocityMeas;
+    std::vector<std::pair<double,Eigen::Vector3d>> positionSamples;
 
 
     //
@@ -128,11 +132,13 @@ TEST( Spline , poseSplineInitialization){
 
         if(i % 5  == 0){
             samples.push_back(std::pair<double,Pose<double>>(Time(stampedPose.timestamp_).toSec(), pose ) );
+            positionSamples.push_back(std::pair<double, Eigen::Vector3d>(Time(stampedPose.timestamp_).toSec(), stampedPose.t_ ) );
         }
 
     }
 
     poseSpline.initialPoseSpline(samples);
+    vectorSpaceSpline.initialSpline(positionSamples);
 
     /*
      *  Test: pose spline evalPoseSpline
@@ -146,6 +152,11 @@ TEST( Spline , poseSplineInitialization){
 
             GTEST_ASSERT_LT((pair.second.r() - query.r()).norm(), 5e-2);
             GTEST_ASSERT_LT((pair.second.q() - query.q()).norm(), 5e-2);
+
+            // evaluate vector
+            Eigen::Vector3d queryPosition = vectorSpaceSpline.evaluateSpline(pair.first);
+            GTEST_ASSERT_LT((pair.second.r() - queryPosition).norm(), 5e-2);
+
         }
 
     }

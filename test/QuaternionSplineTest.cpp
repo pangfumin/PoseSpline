@@ -249,7 +249,7 @@ TEST( Spline , quaternionSplineInitialization) {
 
 //            ofs_debug << stampedImu.gyro_.transpose() << " " << query.transpose() << std::endl;
 
-            std::cout << i << "/" << end << std::endl;
+//            std::cout << i << "/" << end << std::endl;
         }
     }
 

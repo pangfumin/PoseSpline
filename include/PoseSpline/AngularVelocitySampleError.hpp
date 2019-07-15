@@ -2,8 +2,8 @@
 #define  ANGULAR_VELOCITY_SAMPLE_ERROR
 
 #include <ceres/ceres.h>
-#include "pose-spline/QuaternionSplineUtility.hpp"
-#include "pose-spline/QuaternionOmegaSampleError.hpp"
+#include "PoseSpline/QuaternionSplineUtility.hpp"
+#include "PoseSpline/QuaternionOmegaSampleError.hpp"
 
 class AngularVelocitySampleAutoError : public ceres::SizedCostFunction<3,
         7, 7, 7, 7,3,3,3,3> {

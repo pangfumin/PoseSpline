@@ -1,8 +1,8 @@
-#include "pose-spline/VectorSplineSampleError.hpp"
-#include "pose-spline/NumbDifferentiator.hpp"
+#include "PoseSpline/VectorSplineSampleError.hpp"
+#include "PoseSpline/NumbDifferentiator.hpp"
 
-#include "pose-spline/QuaternionSplineUtility.hpp"
-#include "pose-spline/VectorSpaceSpline.hpp"
+#include "PoseSpline/QuaternionSplineUtility.hpp"
+#include "PoseSpline/VectorSpaceSpline.hpp"
 
 int main(int argc, char** argv){
     google::InitGoogleLogging(argv[0]);

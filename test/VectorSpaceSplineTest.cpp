@@ -2,8 +2,8 @@
 #include <fstream>
 
 #include "common/csv_trajectory.hpp"
-#include "pose-spline/VectorSpaceSpline.hpp"
-#include <pose-spline/QuaternionSplineUtility.hpp>
+#include "PoseSpline/VectorSpaceSpline.hpp"
+#include <PoseSpline/QuaternionSplineUtility.hpp>
 #include <okvis_util/timer.h>
 
 

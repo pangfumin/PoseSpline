@@ -1,11 +1,11 @@
 #ifndef QUATERNIONSPLINESAMPLEERROR_H
 #define  QUATERNIONSPLINESAMPLEERROR_H
 
-#include "pose-spline/QuaternionSpline.hpp"
+#include "PoseSpline/QuaternionSpline.hpp"
 #include <ceres/ceres.h>
 #include <iostream>
-#include "pose-spline/QuaternionLocalParameter.hpp"
-#include "pose-spline/ErrorInterface.hpp"
+#include "PoseSpline/QuaternionLocalParameter.hpp"
+#include "PoseSpline/ErrorInterface.hpp"
 
 
 /*

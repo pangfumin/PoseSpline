@@ -2,7 +2,7 @@
 #define  QUATERNION_OMEGA_SAMPLE_ERROR
 
 #include <ceres/ceres.h>
-#include "pose-spline/QuaternionSplineUtility.hpp"
+#include "PoseSpline/QuaternionSplineUtility.hpp"
 struct QuaternionOmegaSampleFunctor{
     QuaternionOmegaSampleFunctor(const double u, const double& deltat,
                                const Eigen::Vector3d& omegaSample,

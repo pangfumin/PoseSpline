@@ -1,23 +1,20 @@
-#ifndef POSESPLINESAMPLEERROR_H
-#define  POSESPLINESAMPLEERROR_H
+#ifndef VECTORSPLINESAMPLEVELOCITYERROR_H
+#define  VECTORSPLINESAMPLEVELOCITYERROR_H
 
-#include "pose-spline/QuaternionSpline.hpp"
+#include "PoseSpline/QuaternionSpline.hpp"
 #include <ceres/ceres.h>
 #include <iostream>
-#include "pose-spline/QuaternionLocalParameter.hpp"
-#include "pose-spline/ErrorInterface.hpp"
-#include "pose-spline/Pose.hpp"
+#include "PoseSpline/QuaternionLocalParameter.hpp"
+#include "PoseSpline/ErrorInterface.hpp"
 
 
-class PoseSplineSampleError
-    : public ceres::SizedCostFunction<6, 7, 7, 7, 7> {
+class VectorSplineSampleVelocityError: public ceres::SizedCostFunction<3,3,3,3,3>{
 public:
-
-    typedef Eigen::Matrix<double, 6, 6> covariance_t;
+    typedef Eigen::Matrix<double, 3, 3> covariance_t;
     typedef covariance_t information_t;
 
-    PoseSplineSampleError(double t_meas, Pose<double> T_meas);
-    virtual ~PoseSplineSampleError();
+    VectorSplineSampleVelocityError(const double& t_meas, const double& time_interval, const Eigen::Vector3d& V_meas);
+    virtual ~VectorSplineSampleVelocityError();
 
     virtual bool Evaluate(double const* const* parameters,
                           double* residuals,
@@ -26,10 +23,13 @@ public:
                                       double* residuals,
                                       double** jacobians,
                                       double** jacobiansMinimal) const;
+
+
 private:
 
     double t_meas_;
-    Pose<double> T_Meas_;
+    double time_interval_;
+    Eigen::Vector3d V_Meas_;
     mutable information_t information_; ///< The information matrix for this error term.
     mutable information_t squareRootInformation_; ///< The square root information matrix for this error term.
 };

@@ -1,7 +1,7 @@
 #include "extern/pinhole_project_error.h"
 #include <iostream>
-#include "pose-spline/NumbDifferentiator.hpp"
-#include "pose-spline/PoseLocalParameter.hpp"
+#include "PoseSpline/NumbDifferentiator.hpp"
+#include "PoseSpline/PoseLocalParameter.hpp"
 void T2double(Eigen::Isometry3d& T,double* ptr){
 
     Eigen::Vector3d trans = T.matrix().topRightCorner(3,1);

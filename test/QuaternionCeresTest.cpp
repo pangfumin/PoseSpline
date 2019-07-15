@@ -1,6 +1,6 @@
 #include <ceres/ceres.h>
 #include <iostream>
-#include "pose-spline/QuaternionError.hpp"
+#include "PoseSpline/QuaternionError.hpp"
 
 #include <ceres/gradient_checker.h>
 

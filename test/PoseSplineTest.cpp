@@ -3,9 +3,9 @@
 
 #include "common/csv_trajectory.hpp"
 
-#include "pose-spline/QuaternionSpline.hpp"
-#include <pose-spline/QuaternionSplineUtility.hpp>
-#include <pose-spline/PoseSpline.hpp>
+#include "PoseSpline/QuaternionSpline.hpp"
+#include <PoseSpline/QuaternionSplineUtility.hpp>
+#include <PoseSpline/PoseSpline.hpp>
 
 
 using namespace ze;

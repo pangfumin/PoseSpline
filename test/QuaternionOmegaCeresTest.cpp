@@ -1,8 +1,8 @@
-#include "pose-spline/QuaternionOmegaSampleError.hpp"
-#include "pose-spline/NumbDifferentiator.hpp"
+#include "PoseSpline/QuaternionOmegaSampleError.hpp"
+#include "PoseSpline/NumbDifferentiator.hpp"
 
-#include "pose-spline/QuaternionSplineUtility.hpp"
-#include "pose-spline/QuaternionLocalParameter.hpp"
+#include "PoseSpline/QuaternionSplineUtility.hpp"
+#include "PoseSpline/QuaternionLocalParameter.hpp"
 
 int main(int argc, char** argv){
     google::InitGoogleLogging(argv[0]);

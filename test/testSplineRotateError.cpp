@@ -1,6 +1,6 @@
 #include "extern/RotateVectorError.hpp"
-#include "pose-spline/QuaternionSplineUtility.hpp"
-#include "pose-spline/NumbDifferentiator.hpp"
+#include "PoseSpline/QuaternionSplineUtility.hpp"
+#include "PoseSpline/NumbDifferentiator.hpp"
 
 int main() {
     Quaternion q0 = randomQuat<double>();

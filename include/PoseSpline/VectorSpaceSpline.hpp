@@ -2,7 +2,7 @@
 #define VECTORSPACESPLINE_H
 
 #include <Eigen/Core>
-#include "pose-spline/BSplineBase.hpp"
+#include "PoseSpline/BSplineBase.hpp"
 //#include "okvis_util/Time.hpp"
 
 

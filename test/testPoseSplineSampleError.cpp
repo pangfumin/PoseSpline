@@ -1,7 +1,7 @@
-#include "pose-spline/PoseLocalParameter.hpp"
-#include "pose-spline/PoseSplineUtility.hpp"
-#include "pose-spline/PoseSplineSampleError.hpp"
-#include "pose-spline/NumbDifferentiator.hpp"
+#include "PoseSpline/PoseLocalParameter.hpp"
+#include "PoseSpline/PoseSplineUtility.hpp"
+#include "PoseSpline/PoseSplineSampleError.hpp"
+#include "PoseSpline/NumbDifferentiator.hpp"
 
 int main() {
 

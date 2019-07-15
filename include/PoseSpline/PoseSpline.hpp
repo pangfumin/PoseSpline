@@ -2,8 +2,8 @@
 #define POSE_SPLINE_H_
 
 
-#include "pose-spline/BSplineBase.hpp"
-#include "pose-spline/Pose.hpp"
+#include "PoseSpline/BSplineBase.hpp"
+#include "PoseSpline/Pose.hpp"
 
 
 class PoseSpline : public BSplineBase<Pose<double>, 4> {

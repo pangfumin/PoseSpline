@@ -1,8 +1,8 @@
 #include <okvis_util/timer.h>
-#include "pose-spline/PoseLocalParameter.hpp"
-#include "pose-spline/PoseSplineUtility.hpp"
-#include "pose-spline/LinearAccelerateSampleError.hpp"
-#include "pose-spline/NumbDifferentiator.hpp"
+#include "PoseSpline/PoseLocalParameter.hpp"
+#include "PoseSpline/PoseSplineUtility.hpp"
+#include "PoseSpline/LinearAccelerateSampleError.hpp"
+#include "PoseSpline/NumbDifferentiator.hpp"
 
 int main() {
 

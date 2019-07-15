@@ -1,12 +1,12 @@
 #ifndef VECTORSPLINESAMPLEERROR_H
 #define  VECTORSPLINESAMPLEERROR_H
 
-#include "pose-spline/QuaternionSpline.hpp"
+#include "PoseSpline/QuaternionSpline.hpp"
 #include <ceres/ceres.h>
 #include <iostream>
-#include "pose-spline/QuaternionLocalParameter.hpp"
-#include "pose-spline/ErrorInterface.hpp"
-#include "pose-spline/QuaternionSplineUtility.hpp"
+#include "PoseSpline/QuaternionLocalParameter.hpp"
+#include "PoseSpline/ErrorInterface.hpp"
+#include "PoseSpline/QuaternionSplineUtility.hpp"
 
 
 class VectorSplineSampleError: public ceres::SizedCostFunction<3,3,3,3,3>{

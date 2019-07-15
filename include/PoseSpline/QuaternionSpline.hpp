@@ -2,7 +2,7 @@
 #define QUATERNIONSPLINE_H
 
 #include "Quaternion.hpp"
-#include "pose-spline/BSplineBase.hpp"
+#include "PoseSpline/BSplineBase.hpp"
 
 
 class QuaternionSpline : public BSplineBase<Quaternion, 4> {

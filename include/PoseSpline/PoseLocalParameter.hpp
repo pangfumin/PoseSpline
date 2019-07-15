@@ -4,7 +4,7 @@
 
 #include <eigen3/Eigen/Dense>
 #include <ceres/ceres.h>
-#include "pose-spline/LocalParamizationAdditionalInterfaces.hpp"
+#include "PoseSpline/LocalParamizationAdditionalInterfaces.hpp"
 
 
 /*

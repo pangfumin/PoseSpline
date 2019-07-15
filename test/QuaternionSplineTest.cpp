@@ -3,8 +3,8 @@
 
 #include "common/csv_trajectory.hpp"
 #include "splines/BSplineBase.hpp"
-#include "pose-spline/QuaternionSpline.hpp"
-#include <pose-spline/QuaternionSplineUtility.hpp>
+#include "PoseSpline/QuaternionSpline.hpp"
+#include <PoseSpline/QuaternionSplineUtility.hpp>
 
 
 using namespace ze;

@@ -1,7 +1,7 @@
 
 #include "utility/catch/catch.hpp"
-#include "pose-spline/Pose.hpp"
-#include "pose-spline/PoseLocalParameter.hpp"
+#include "PoseSpline/Pose.hpp"
+#include "PoseSpline/PoseLocalParameter.hpp"
 
 // todo: test poselocalparameter
 

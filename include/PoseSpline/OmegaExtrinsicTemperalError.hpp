@@ -1,11 +1,11 @@
 #ifndef OMEGAEXTRINSICTEMPERALERROR_H
 #define OMEGAEXTRINSICTEMPERALERROR_H
 
-#include "pose-spline/QuaternionSpline.hpp"
+#include "PoseSpline/QuaternionSpline.hpp"
 #include <ceres/ceres.h>
 #include <iostream>
-#include "pose-spline/QuaternionLocalParameter.hpp"
-#include "pose-spline/ErrorInterface.hpp"
+#include "PoseSpline/QuaternionLocalParameter.hpp"
+#include "PoseSpline/ErrorInterface.hpp"
 
 class OmegaExtrinsicTemperalError: public ceres::SizedCostFunction<3,4,1>{
 

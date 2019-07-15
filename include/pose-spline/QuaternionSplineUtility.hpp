@@ -2,7 +2,7 @@
 #define QUATERNIONSPLINEUTILITY_H
 
 
-#include "geometry/Quaternion.hpp"
+#include "Quaternion.hpp"
 
 typedef  Eigen::Matrix3d Jacobian_Quat;
 

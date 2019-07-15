@@ -2,8 +2,8 @@
 #define VECTORSPACESPLINE_H
 
 #include <Eigen/Core>
-#include "splines/BSplineBase.hpp"
-#include "okvis_util/Time.hpp"
+#include "pose-spline/BSplineBase.hpp"
+//#include "okvis_util/Time.hpp"
 
 
 class VectorSpaceSpline : public BSplineBase<Eigen::Vector3d, 4> {

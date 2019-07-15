@@ -3,7 +3,7 @@
 #include "pose-spline/QuaternionSplineSampleError.hpp"
 #include "pose-spline/VectorSplineSampleError.hpp"
 #include "pose-spline/VectorSplineSampleAutoError.hpp"
-#include "okvis_util/Time.hpp"
+//#include "okvis_util/Time.hpp"
 #include <algorithm>
 
 

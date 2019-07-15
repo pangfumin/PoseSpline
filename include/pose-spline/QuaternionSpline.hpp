@@ -1,9 +1,8 @@
 #ifndef QUATERNIONSPLINE_H
 #define QUATERNIONSPLINE_H
 
-#include "geometry/Quaternion.hpp"
-#include "splines/BSplineBase.hpp"
-#include "okvis_util/Time.hpp"
+#include "Quaternion.hpp"
+#include "pose-spline/BSplineBase.hpp"
 
 
 class QuaternionSpline : public BSplineBase<Quaternion, 4> {

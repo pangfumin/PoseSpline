@@ -2,7 +2,7 @@
 #define _TYPE_TRAITS_H_
 
 #include <Eigen/Core>
-#include "geometry/Pose.hpp"
+#include "Pose.hpp"
 template <typename T>
 class TypeTraits;
 

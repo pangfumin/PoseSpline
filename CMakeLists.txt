@@ -21,42 +21,28 @@ include_directories(include
         )
 
 
-add_library(util
-        src/okvis_util/Duration.cpp
-        src/okvis_util/Time.cpp)
-
-add_library(cv
-        src/okvis_cv/CameraBase.cpp
-        src/okvis_cv/NCameraSystem.cpp)
-
-
-target_link_libraries(cv
-        util
-        ${OPENCV_LIBRARIES}
-        ${GLOG_LIBRARIES})
-
 add_library( PoseSpline
         src/extern/spline_projection_error.cpp
         src/extern/pinhole_project_error.cpp
         src/extern/project_error.cpp
         src/extern/RotateVectorError.cpp
-        src/pose-spline/QuaternionSplineUtility.cpp
-        src/pose-spline/QuaternionSpline.cpp
-        src/pose-spline/QuaternionLocalParameter.cpp
-        src/pose-spline/QuaternionSplineSampleError.cpp
-        src/pose-spline/PoseSplineSampleError.cpp
-        src/pose-spline/PoseSplineUtility.cpp
-        src/pose-spline/OmegaExtrinsicTemperalError.cpp
+        src/QuaternionSplineUtility.cpp
+        src/QuaternionSpline.cpp
+        src/QuaternionLocalParameter.cpp
+        src/QuaternionSplineSampleError.cpp
+        src/PoseSplineSampleError.cpp
+        src/PoseSplineUtility.cpp
+        src/OmegaExtrinsicTemperalError.cpp
         #src/pose-spline/QuaternionOmegaSampleError.cpp
-        src/pose-spline/PoseSpline.cpp
-        src/pose-spline/PoseLocalParameter.cpp
-        src/pose-spline/VectorSpaceSpline.cpp
-        src/pose-spline/VectorSplineSampleError.cpp
-        src/pose-spline/VectorSplineSampleAutoError.cpp
-        src/pose-spline/VectorSplineSampleVelocityError.cpp
+        src/PoseSpline.cpp
+        src/PoseLocalParameter.cpp
+        src/VectorSpaceSpline.cpp
+        src/VectorSplineSampleError.cpp
+        src/VectorSplineSampleAutoError.cpp
+        src/VectorSplineSampleVelocityError.cpp
 #        src/pose-spline/LinearAccelerateSampleError.cpp
 #        src/pose-spline/AngularVelocitySampleError.cpp
-        src/pose-spline/csv_trajectory.cpp)
+        )
 
 
 target_link_libraries(PoseSpline

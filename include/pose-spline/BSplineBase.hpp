@@ -5,7 +5,6 @@
 #include <Eigen/Core>
 #include <glog/logging.h>
 #include "TypeTraits.hpp"
-#include "okvis_util/Time.hpp"
 
 using real_t = double;
 
@@ -170,7 +169,7 @@ public:
 
             if(t < t_min()){
                 std::cerr<<"[Error] Inserted t is smaller than t_min()！"<<std::endl;
-                LOG(FATAL) << "Inserted "<<Time(t)<<" is smaller than t_min() "<<Time(t_min())<<std::endl;
+//                LOG(FATAL) << "Inserted "<<Time(t)<<" is smaller than t_min() "<<Time(t_min())<<std::endl;
             }else if(t >= t_max()){
                 // add new knot and control Points
                 while(t >= t_max()){

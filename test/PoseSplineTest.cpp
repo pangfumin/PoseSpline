@@ -9,8 +9,6 @@
 #include "csv.h"
 #include "PoseSpline/Time.hpp"
 
-
-
 struct StampedPose{
     uint64_t timestamp_;
     Eigen::Vector3d t_;

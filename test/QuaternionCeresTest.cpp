@@ -62,7 +62,7 @@ bool test(Quaternion Q_target, Quaternion Q_param){
 }
 
 
-TEST(Quaternion, ceres){
+TEST(ceres, quaternion){
    std::vector<Quaternion> quaternionVec;
     Quaternion Q(1,0,3,5);
     Q = Q/Q.norm();

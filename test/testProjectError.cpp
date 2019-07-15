@@ -31,7 +31,7 @@ void applyNoise(const Eigen::Isometry3d& Tin,Eigen::Isometry3d& Tout){
     Tout.matrix().topLeftCorner(3,3) = Tin.matrix().topLeftCorner(3,3)*delat_quat.toRotationMatrix();
 }
 
-int main(){
+TEST()
 
     // simulate
 

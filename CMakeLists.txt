@@ -54,6 +54,7 @@ if(CATKIN_ENABLE_TESTING)
     catkin_add_gtest(ceres_tests
             test/test_main.cpp
             test/QuaternionCeresTest.cpp
+            test/testProjectError.cpp
             )
     if(TARGET ceres_tests)
         target_link_libraries(ceres_tests ${PROJECT_NAME})

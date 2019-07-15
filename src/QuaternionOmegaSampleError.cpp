@@ -1,5 +1,5 @@
-#include "pose-spline/QuaternionOmegaSampleError.hpp"
-#include "pose-spline/QuaternionLocalParameter.hpp"
+#include "PoseSpline/QuaternionOmegaSampleError.hpp"
+#include "PoseSpline/QuaternionLocalParameter.hpp"
 
 bool QuaternionOmegaSampleAutoError::Evaluate(double const* const* parameters,
               double* residuals,

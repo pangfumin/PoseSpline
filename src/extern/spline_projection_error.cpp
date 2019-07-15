@@ -1,8 +1,8 @@
 #include "extern/spline_projection_error.h"
-#include "pose-spline/PoseSplineUtility.hpp"
-#include "pose-spline/QuaternionLocalParameter.hpp"
-#include "pose-spline/Pose.hpp"
-#include "pose-spline/PoseLocalParameter.hpp"
+#include "PoseSpline/PoseSplineUtility.hpp"
+#include "PoseSpline/QuaternionLocalParameter.hpp"
+#include "PoseSpline/Pose.hpp"
+#include "PoseSpline/PoseLocalParameter.hpp"
 SplineProjectError::SplineProjectError(const double _t0, const Eigen::Vector3d& uv_C0,
                                         const double _t1, const Eigen::Vector3d& uv_C1,
                                         const Eigen::Isometry3d _T_IC):

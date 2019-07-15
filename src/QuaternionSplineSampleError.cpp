@@ -1,5 +1,5 @@
-#include "pose-spline/QuaternionSplineSampleError.hpp"
-#include "pose-spline/QuaternionSplineUtility.hpp"
+#include "PoseSpline/QuaternionSplineSampleError.hpp"
+#include "PoseSpline/QuaternionSplineUtility.hpp"
 
 
 QuaternionSplineSampleError::QuaternionSplineSampleError(double t_meas,

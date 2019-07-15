@@ -1,5 +1,5 @@
-#include "pose-spline/LinearAccelerateSampleError.hpp"
-#include "pose-spline/PoseLocalParameter.hpp"
+#include "PoseSpline/LinearAccelerateSampleError.hpp"
+#include "PoseSpline/PoseLocalParameter.hpp"
 #include "geometry/Pose.hpp"
 
 

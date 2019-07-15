@@ -1,7 +1,7 @@
-#include "pose-spline/QuaternionSpline.hpp"
-#include "pose-spline/QuaternionSplineUtility.hpp"
-#include "pose-spline/QuaternionSplineSampleError.hpp"
-#include "pose-spline/QuaternionSplineSampleAutoError.hpp"
+#include "PoseSpline/QuaternionSpline.hpp"
+#include "PoseSpline/QuaternionSplineUtility.hpp"
+#include "PoseSpline/QuaternionSplineSampleError.hpp"
+#include "PoseSpline/QuaternionSplineSampleAutoError.hpp"
 #include <algorithm>
 
     QuaternionSpline::QuaternionSpline()

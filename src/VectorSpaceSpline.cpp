@@ -1,8 +1,8 @@
-#include "pose-spline/VectorSpaceSpline.hpp"
-#include "pose-spline/QuaternionSplineUtility.hpp"
-#include "pose-spline/QuaternionSplineSampleError.hpp"
-#include "pose-spline/VectorSplineSampleError.hpp"
-#include "pose-spline/VectorSplineSampleAutoError.hpp"
+#include "PoseSpline/VectorSpaceSpline.hpp"
+#include "PoseSpline/QuaternionSplineUtility.hpp"
+#include "PoseSpline/QuaternionSplineSampleError.hpp"
+#include "PoseSpline/VectorSplineSampleError.hpp"
+#include "PoseSpline/VectorSplineSampleAutoError.hpp"
 //#include "okvis_util/Time.hpp"
 #include <algorithm>
 

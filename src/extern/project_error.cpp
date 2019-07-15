@@ -1,7 +1,7 @@
 #include "extern/project_error.h"
-#include "pose-spline/QuaternionSplineUtility.hpp"
-#include "pose-spline/Quaternion.hpp"
-#include "pose-spline/PoseLocalParameter.hpp"
+#include "PoseSpline/QuaternionSplineUtility.hpp"
+#include "PoseSpline/Quaternion.hpp"
+#include "PoseSpline/PoseLocalParameter.hpp"
 ProjectError::ProjectError(const Eigen::Vector3d& uv_C0):
         C0uv(uv_C0){
 }

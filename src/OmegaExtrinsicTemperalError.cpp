@@ -1,5 +1,5 @@
-#include "pose-spline/OmegaExtrinsicTemperalError.hpp"
-#include "pose-spline/QuaternionSplineUtility.hpp"
+#include "PoseSpline/OmegaExtrinsicTemperalError.hpp"
+#include "PoseSpline/QuaternionSplineUtility.hpp"
 
 
 OmegaExtrinsicTemperalError::OmegaExtrinsicTemperalError():

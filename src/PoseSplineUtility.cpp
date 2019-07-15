@@ -1,4 +1,4 @@
-#include "pose-spline/PoseSplineUtility.hpp"
+#include "PoseSpline/PoseSplineUtility.hpp"
 
 Pose<double> PSUtility::EvaluatePS(double u, const Pose<double>& P0, const Pose<double>& P1,
                 const Pose<double>& P2, const Pose<double>& P3) {

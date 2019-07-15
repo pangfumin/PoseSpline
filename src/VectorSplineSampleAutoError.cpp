@@ -1,4 +1,4 @@
-#include "pose-spline/VectorSplineSampleAutoError.hpp"
+#include "PoseSpline/VectorSplineSampleAutoError.hpp"
 
 
 

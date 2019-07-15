@@ -1,6 +1,6 @@
-#include "pose-spline/VectorSplineSampleVelocityError.hpp"
-#include "pose-spline/QuaternionSplineUtility.hpp"
-#include "pose-spline/VectorSpaceSpline.hpp"
+#include "PoseSpline/VectorSplineSampleVelocityError.hpp"
+#include "PoseSpline/QuaternionSplineUtility.hpp"
+#include "PoseSpline/VectorSpaceSpline.hpp"
 
 
 VectorSplineSampleVelocityError::VectorSplineSampleVelocityError(const double& t_meas,

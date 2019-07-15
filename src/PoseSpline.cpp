@@ -1,8 +1,8 @@
-#include "pose-spline/PoseSpline.hpp"
+#include "PoseSpline/PoseSpline.hpp"
 //#include "okvis_util/Time.hpp"
-#include "pose-spline/PoseLocalParameter.hpp"
-#include "pose-spline/PoseSplineSampleError.hpp"
-#include "pose-spline/PoseSplineUtility.hpp"
+#include "PoseSpline/PoseLocalParameter.hpp"
+#include "PoseSpline/PoseSplineSampleError.hpp"
+#include "PoseSpline/PoseSplineUtility.hpp"
     PoseSpline::PoseSpline()
             : BSplineBase(1.0) {
 

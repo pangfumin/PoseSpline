@@ -1,6 +1,6 @@
-#include "pose-spline/AngularVelocitySampleError.hpp"
-#include "pose-spline/QuaternionLocalParameter.hpp"
-#include "pose-spline/PoseSplineUtility.hpp"
+#include "PoseSpline/AngularVelocitySampleError.hpp"
+#include "PoseSpline/QuaternionLocalParameter.hpp"
+#include "PoseSpline/PoseSplineUtility.hpp"
 
 bool AngularVelocitySampleAutoError::Evaluate(double const* const* parameters,
               double* residuals,

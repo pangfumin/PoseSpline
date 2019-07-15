@@ -1,4 +1,4 @@
-#include "pose-spline/QuaternionSplineUtility.hpp"
+#include "PoseSpline/QuaternionSplineUtility.hpp"
 
 
 

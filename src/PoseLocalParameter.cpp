@@ -1,5 +1,5 @@
-#include "pose-spline/PoseLocalParameter.hpp"
-#include "pose-spline/Pose.hpp"
+#include "PoseSpline/PoseLocalParameter.hpp"
+#include "PoseSpline/Pose.hpp"
 
 //Instances of LocalParameterization implement the ⊞ operation.
 /*

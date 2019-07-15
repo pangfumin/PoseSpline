@@ -1,5 +1,5 @@
 #include "extern/RotateVectorError.hpp"
-#include "pose-spline/QuaternionSplineUtility.hpp"
+#include "PoseSpline/QuaternionSplineUtility.hpp"
 
 
 RoatateVectorError::RoatateVectorError(double t_meas,

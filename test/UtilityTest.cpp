@@ -1,30 +1,27 @@
 
 #include <iostream>
 #include <ceres/ceres.h>
-
+#include <gtest/gtest.h>
 #include "PoseSpline/QuaternionSpline.hpp"
 #include "PoseSpline/QuaternionSplineUtility.hpp"
 #include "PoseSpline/PoseLocalParameter.hpp"
 
 
-int main(){
-
-
-
+TEST(Geometry, quaternion){
 // test exp and log
     Eigen::Vector3d delta_phi(1.1,1.43,-0.9);
 
     Quaternion Q_exp = quatExp(delta_phi);
     Eigen::Vector3d phi_log = quatLog(Q_exp);
-    CHECK_EQ((delta_phi - phi_log).squaredNorm() < 0.0001,true);
+    GTEST_ASSERT_EQ((delta_phi - phi_log).squaredNorm() < 0.0001,true);
 
-    std::cout<<"S(phi)*L(q): "<<std::endl<<quatS(delta_phi)*quatL(Q_exp)<<std::endl;
+//    std::cout<<"S(phi)*L(q): "<<std::endl<<quatS(delta_phi)*quatL(Q_exp)<<std::endl;
 
     RotMat rot  = axisAngleToRotMat(delta_phi);
     Quaternion quatFromRot = rotMatToQuat(rot);
 
 
-    CHECK_EQ((quatFromRot - Q_exp).squaredNorm() < 0.0001,true);
+    GTEST_ASSERT_EQ((quatFromRot - Q_exp).squaredNorm() < 0.0001,true);
 
     RotMat rot_X = rotX(3.1415/2);
     RotMat rotAA = axisAngleToRotMat(Eigen::Vector3d(3.1415/2,0,0));
@@ -76,10 +73,8 @@ int main(){
     Quaternion numdiff_r = (r_p - r_m)/(2.0*eps);
     numdiff_r = quatNorm(numdiff_r);
 
+    GTEST_ASSERT_LT((dot_r - numdiff_r).norm(), 1e-5);
 
-    std::cout<<"Num diff dr_dt and analytics dr_dt: "<<std::endl;
-    std::cout<< dot_r.transpose()<<std::endl;
-    std::cout<< numdiff_r.transpose()<<std::endl;
 
     /*
      * test d2r_dt2
@@ -93,10 +88,6 @@ int main(){
 
     Quaternion numDiff_drdt = (dot_r_p - dot_r_m)/(2.0*eps);
 
-    std::cout<<"Num diff d2r_dt2 and analytics d2r_dt2: "<<std::endl;
-    std::cout<< dot_dot_r.transpose()<<std::endl;
-    std::cout<< numDiff_drdt.transpose()<<std::endl;
+    GTEST_ASSERT_LT((dot_dot_r - numDiff_drdt).norm(), 1e-5);
 
-
-    return 0;
 }

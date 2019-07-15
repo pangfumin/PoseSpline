@@ -1,33 +1,21 @@
 #include <ceres/ceres.h>
 #include <iostream>
 #include "PoseSpline/QuaternionError.hpp"
-
+#include <gtest/gtest.h>
 #include <ceres/gradient_checker.h>
 
 
 bool test(Quaternion Q_target, Quaternion Q_param){
-
-
     double* parametrs[1] = {Q_param.data()};
-    //quatError->VerifyJacobianNumDiff(parametrs);
-
-
-
     ceres::LocalParameterization *local_parameterization = new QuaternionLocalParameter();
     QuaternionErrorCostFunction* quaternionError  = new QuaternionErrorCostFunction(Q_target);
-
 
     // check jacobians
     Eigen::Matrix<double,3,3,Eigen::RowMajor> numMinimalJacobian0;
     numMinimalJacobian0.setIdentity();
     NumbDifferentiator<QuaternionErrorCostFunction,1> numDiffer(quaternionError);
     numDiffer.df_r_xi<3,4,3,QuaternionLocalParameter>(parametrs,0,numMinimalJacobian0.data());
-
-    std::cout<<"Numdiffer: "<<std::endl<<numMinimalJacobian0<<std::endl;
-
     quaternionError->VerifyJacobianNumDiff(parametrs);
-
-
 
     // solve
     ceres::Problem problem;
@@ -48,13 +36,12 @@ bool test(Quaternion Q_target, Quaternion Q_param){
     ceres::Solver::Summary summary;
     ceres::Solve(options, &problem, &summary);
 
-    std::cout<<"--------------"<<std::endl;
     std::cout << summary.BriefReport() << std::endl;
 
     double const mse = quatMult(Q_target,quatInv(Q_param)).squaredNorm();
 
-    std::cout<<"Q_target: "<<Q_target.transpose()<<std::endl;
-    std::cout<<"Q_param : "<<Q_param.transpose()<<std::endl;
+//    std::cout<<"Q_target: "<<Q_target.transpose()<<std::endl;
+//    std::cout<<"Q_param : "<<Q_param.transpose()<<std::endl;
 
 /*
     // use ceres gradient checker
@@ -75,10 +62,7 @@ bool test(Quaternion Q_target, Quaternion Q_param){
 }
 
 
-int main(int argc, char** argv){
-    google::InitGoogleLogging(argv[0]);
-
-
+TEST(Quaternion, ceres){
    std::vector<Quaternion> quaternionVec;
     Quaternion Q(1,0,3,5);
     Q = Q/Q.norm();
@@ -120,14 +104,8 @@ int main(int argc, char** argv){
     quaternionVec.push_back(Q);
 
     for(unsigned int i = 0 ; i < quaternionVec.size(); i++){
-
         bool pass  = test(quaternionVec.at(i), quaternionVec.at(0));
-
-        CHECK_EQ(pass,true);
+        GTEST_ASSERT_EQ(pass,true);
 
     }
-
-
-
-    return 0;
 }

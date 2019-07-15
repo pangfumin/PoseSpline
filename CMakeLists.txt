@@ -45,9 +45,18 @@ if(CATKIN_ENABLE_TESTING)
     catkin_add_gtest(geometry_tests
             test/test_main.cpp
             test/PoseTest.cpp
+            test/UtilityTest.cpp
             )
     if(TARGET geometry_tests)
         target_link_libraries(geometry_tests ${PROJECT_NAME})
+    endif()
+
+    catkin_add_gtest(ceres_tests
+            test/test_main.cpp
+            test/QuaternionCeresTest.cpp
+            )
+    if(TARGET ceres_tests)
+        target_link_libraries(ceres_tests ${PROJECT_NAME})
     endif()
 
     catkin_add_gtest(spline_tests
@@ -60,9 +69,6 @@ if(CATKIN_ENABLE_TESTING)
 
 
 endif()
-
-cs_add_executable(QuaternionCeresTest test/QuaternionCeresTest.cpp)
-cs_add_executable(UtilityTest test/UtilityTest.cpp)
 
 
 cs_install()

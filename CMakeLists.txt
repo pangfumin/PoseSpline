@@ -30,6 +30,8 @@ cs_add_library(${PROJECT_NAME}
         src/VectorSplineSampleError.cpp
         src/VectorSplineSampleAutoError.cpp
         src/VectorSplineSampleVelocityError.cpp
+        src/Time.cpp
+        src/Duration.cpp
 #        src/PoseSpline/LinearAccelerateSampleError.cpp
 #        src/PoseSpline/AngularVelocitySampleError.cpp
         )
@@ -47,6 +49,16 @@ if(CATKIN_ENABLE_TESTING)
     if(TARGET geometry_tests)
         target_link_libraries(geometry_tests ${PROJECT_NAME})
     endif()
+
+    catkin_add_gtest(spline_tests
+            test/test_main.cpp
+            test/PoseSplineTest.cpp
+            )
+    if(TARGET spline_tests)
+        target_link_libraries(spline_tests ${PROJECT_NAME})
+    endif()
+
+
 endif()
 
 cs_add_executable(QuaternionCeresTest test/QuaternionCeresTest.cpp)

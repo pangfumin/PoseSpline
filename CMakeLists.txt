@@ -26,7 +26,6 @@ cs_add_library(${PROJECT_NAME}
         src/OmegaExtrinsicTemperalError.cpp
         #src/PoseSpline/QuaternionOmegaSampleError.cpp
         src/PoseSpline.cpp
-        src/PoseLocalParameter.cpp
         src/VectorSpaceSpline.cpp
         src/VectorSplineSampleError.cpp
         src/VectorSplineSampleAutoError.cpp
@@ -39,19 +38,16 @@ cs_add_library(${PROJECT_NAME}
 
 
 ## Test
-#add_subdirectory(test)
 
-#if(CATKIN_ENABLE_TESTING)
-#    catkin_add_gtest(${PROJECT_NAME}_tests
-#            test/test_main.cpp
-#            test/TestBSplineExpressions.cpp
-#            test/TestOPTBSpline.cpp
-#            test/TestErrors.cpp
-#            )
-#    if(TARGET ${PROJECT_NAME}_tests)
-#        target_link_libraries(${PROJECT_NAME}_tests ${PROJECT_NAME})
-#    endif()
-#endif()
+if(CATKIN_ENABLE_TESTING)
+    catkin_add_gtest(geometry_tests
+            test/test_main.cpp
+            test/PoseTest.cpp
+            )
+    if(TARGET geometry_tests)
+        target_link_libraries(geometry_tests ${PROJECT_NAME})
+    endif()
+endif()
 
 cs_add_executable(QuaternionCeresTest test/QuaternionCeresTest.cpp)
 cs_add_executable(UtilityTest test/UtilityTest.cpp)

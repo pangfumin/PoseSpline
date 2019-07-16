@@ -212,3 +212,168 @@ TEST( Spline , poseSplineInitialization){
 //    ofs_debug.close();
 
 }
+
+
+
+TEST( Spline , quaternionSplineInitialization) {
+////
+////    /*
+////     *  Test getOmegaFromTwoQuaternion
+////     *  Passed!
+////     */
+////
+////
+////    for(uint i = 1; i < data.size(); i++){
+////        std::pair<double, Quaternion> q1 = getSample(data,i);
+////        std::pair<double, Quaternion> q0 = getSample(data,i-1);
+////        double dt = q1.first - q0.first;
+////
+////        Eigen::Vector3d omega = getOmegaFromTwoQuaternion(q0.second,q1.second,dt);
+////        //ofs_debug << omega.transpose()<<std::endl;
+////
+////    }
+////
+////    /*
+////     *  Test QSUtility::w_a
+////     *  Passed!
+////     */
+////
+////    for(uint i = 1; i < data.size()-1; i++){
+////        std::pair<double, Quaternion> q1 = getSample(data,i);
+////        std::pair<double, Quaternion> q0 = getSample(data,i-1);
+////        std::pair<double, Quaternion> q2 = getSample(data,i+1);
+////        double dt = q2.first - q0.first;
+////
+////        Quaternion dotQ0 = (q2.second - q0.second)/dt;
+////
+////        Eigen::Vector3d omega = QSUtility::w(q0.second,dotQ0);
+////
+////        //ofs_debug << omega.transpose()<<std::endl;
+////
+////    }
+////
+////
+////    /*
+////     * Test QuaternionSpline evalQuatSplineDerivate
+////     * Passed!
+////     */
+////
+////
+////    for(uint i = 1; i < data.size()-1; i++){
+////
+////        std::pair<double, Quaternion> q1 = getSample(data,i);
+////        if(qspline.isTsEvaluable(q1.first)){
+////            std::pair<double, Quaternion> q0 = getSample(data,i-1);
+////            std::pair<double, Quaternion> q2 = getSample(data,i+1);
+////            double dt20 = q2.first - q0.first;
+////            double dt10 = q1.first - q0.first;
+////            double dt21 = q2.first - q1.first;
+////
+////            // num-diff 1-order
+////            Quaternion num_dotQ1 = (q2.second - q0.second)/dt20;
+////
+////            Quaternion num_dotQ10 = (q1.second - q0.second)/dt10;
+////            Quaternion num_dotQ21 = (q2.second - q1.second)/dt21;
+////
+////            // num-diff 2-order
+////            Quaternion num_dot_dot_Q1 = (num_dotQ21 - num_dotQ10)/(dt20/2.0);
+////
+////
+////            Quaternion Q1, dotQ1, dot_dotQ1;
+////            qspline.evalQuatSplineDerivate(q1.first,Q1.data(),dotQ1.data(),dot_dotQ1.data());
+////
+////
+////            if(qspline.isTsEvaluable(q2.first)){
+////
+////                Quaternion dotQ2 = qspline.evalDotQuatSpline(q2.first);
+////                Quaternion another_num_dot_dot_Q1 = (dotQ2 - dotQ1)/(dt21); // a little delay
+////
+////
+////
+////                ofs_debug << q0.second.transpose()<<" "<<Q1.transpose()<<" ";
+////                ofs_debug << num_dotQ1.transpose()<<" "<<dotQ1.transpose()<<" ";
+////                ofs_debug << num_dot_dot_Q1.transpose()<<" "<<another_num_dot_dot_Q1.transpose()<<" "<<dot_dotQ1.transpose()<<std::endl;
+////
+////
+//////                std::cout << q0.second.transpose()<<" "<<Q1.transpose()<<" ";
+//////                std::cout << num_dotQ1.transpose()<<" "<<dotQ1.transpose()<<" ";
+//////                std::cout << num_dot_dot_Q1.transpose()<<" "<<dot_dotQ1.transpose()<<std::endl;
+////
+////            }
+////
+////
+////
+////
+////            //std::cout << num_dotQ0.transpose()<<" "<<dotQ0.transpose()<<std::endl;
+////
+////        }
+////    }
+////
+////
+////
+////
+////
+////
+//    ofs_debug.close();
+////
+
+    std::string pose_file =
+            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
+    std::string imu_meas_file =
+            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
+
+    TestSample testSample;
+    testSample.readStates(pose_file);
+    testSample.readImu(imu_meas_file);
+
+    int start  = 0;
+    int end = testSample.states_vec_.size()/5;
+
+    QuaternionSpline qspline(0.1);
+    std::vector<std::pair<double,Quaternion>> samples, queryMeas;
+
+    for(uint i = start; i < end; i++){
+        StampedPose stampedPose = testSample.states_vec_.at(i);
+
+        Eigen::Quaterniond QuatHamilton(stampedPose.q_);
+        Eigen::Matrix3d R = QuatHamilton.toRotationMatrix();
+        Quaternion QuatJPL = rotMatToQuat(R);
+
+        queryMeas.push_back(std::pair<double,Quaternion>(Time(stampedPose.timestamp_).toSec(), QuatJPL ) );
+
+        if(i % 5  == 0){
+            samples.push_back(std::pair<double,Quaternion>(Time(stampedPose.timestamp_).toSec(), QuatJPL ) );
+        }
+    }
+
+    qspline.initialQuaternionSpline(samples);
+
+    for(auto pair : queryMeas) {
+        if (qspline.isTsEvaluable(pair.first)) {
+            auto query = qspline.evalQuatSpline(pair.first);
+
+            GTEST_ASSERT_LT((pair.second - query).norm(), 5e-2);
+        }
+    }
+
+//    std::ofstream ofs_debug("/home/pang/debug.txt");
+
+    for(uint i = start; i < end; i++){
+        StampedImu stampedImu = testSample.imu_vec_.at(i);
+        auto ts = Time(stampedImu.timestamp_).toSec();
+        if(qspline.isTsEvaluable(ts)){
+            Eigen::Vector3d query = qspline.evalOmega(ts);
+
+//            std::cout <<"Gt:    "<< stampedImu.gyro_.transpose()<<std::endl;
+//            std::cout <<"Query: "<< query.transpose()<< std::endl << std::endl;
+
+//            ofs_debug << stampedImu.gyro_.transpose() << " " << query.transpose() << std::endl;
+
+//            std::cout << i << "/" << end << std::endl;
+        }
+    }
+
+//        ofs_debug.close();
+
+}
+

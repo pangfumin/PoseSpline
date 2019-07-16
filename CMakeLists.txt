@@ -14,10 +14,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 
 cs_add_library(${PROJECT_NAME}
-#        src/extern/spline_projection_error.cpp
-#        src/extern/pinhole_project_error.cpp
-#        src/extern/project_error.cpp
-#        src/extern/RotateVectorError.cpp
+        src/extern/spline_projection_error.cpp
+        src/extern/pinhole_project_error.cpp
+        src/extern/project_error.cpp
+        src/extern/RotateVectorError.cpp
         src/QuaternionSplineUtility.cpp
         src/QuaternionSpline.cpp
         src/QuaternionSplineSampleError.cpp
@@ -55,6 +55,7 @@ if(CATKIN_ENABLE_TESTING)
             test/test_main.cpp
             test/QuaternionCeresTest.cpp
             test/testProjectError.cpp
+            test/testSplineRotateError.cpp
             )
     if(TARGET ceres_tests)
         target_link_libraries(ceres_tests ${PROJECT_NAME})
@@ -62,8 +63,7 @@ if(CATKIN_ENABLE_TESTING)
 
     catkin_add_gtest(spline_tests
             test/test_main.cpp
-            test/PoseSplineTest.cpp
-            test/QuaternionSplineTest.cpp
+            test/SplineTest.cpp
             )
     if(TARGET spline_tests)
         target_link_libraries(spline_tests ${PROJECT_NAME})

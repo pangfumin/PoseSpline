@@ -1,8 +1,8 @@
 #include "extern/RotateVectorError.hpp"
 #include "PoseSpline/QuaternionSplineUtility.hpp"
 #include "PoseSpline/NumbDifferentiator.hpp"
-
-int main() {
+#include <gtest/gtest.h>
+TEST(ceres, SplineRotationError) {
     Quaternion q0 = randomQuat<double>();
     std::cout<<"q0: "<< q0.transpose()<<std::endl;
 
@@ -84,16 +84,20 @@ int main() {
     std::cout<<"numJacobian_min0: "<<std::endl<<numJacobian_min0<<std::endl;
     std::cout<<"AnaliJacobian_minimal0: "<<
              std::endl<<AnaliJacobian_minimal0<<std::endl;
+    GTEST_ASSERT_LT((numJacobian_min0 - AnaliJacobian_minimal0).norm(), 1e6);
 
-    // check jacobian_minimal1
+
+// check jacobian_minimal1
     Eigen::Matrix<double,3,3,Eigen::RowMajor> numJacobian_min1;
     numbDifferentiator.df_r_xi<3,4,3,QuaternionLocalParameter>(paramters_noised,1,numJacobian_min1.data());
 
     std::cout<<"numJacobian_min1: "<<std::endl<<numJacobian_min1<<std::endl;
     std::cout<<"AnaliJacobian_minimal1: "<<
              std::endl<<AnaliJacobian_minimal1<<std::endl;
+    GTEST_ASSERT_LT((numJacobian_min1 - AnaliJacobian_minimal1).norm(), 1e6);
 
-    // check jacobian_minimal2
+
+// check jacobian_minimal2
     Eigen::Matrix<double,3,3,Eigen::RowMajor> numJacobian_min2;
     numbDifferentiator.df_r_xi<3,4,3,QuaternionLocalParameter>(paramters_noised,2,numJacobian_min2.data());
 
@@ -101,7 +105,10 @@ int main() {
     std::cout<<"AnaliJacobian_minimal2: "<<
              std::endl<<AnaliJacobian_minimal2<<std::endl;
 
-    // check jacobian_minimal3
+    GTEST_ASSERT_LT((numJacobian_min2 - AnaliJacobian_minimal2).norm(), 1e6);
+
+
+// check jacobian_minimal3
     Eigen::Matrix<double,3,3,Eigen::RowMajor> numJacobian_min3;
     numbDifferentiator.df_r_xi<3,4,3,QuaternionLocalParameter>(paramters_noised,3,numJacobian_min3.data());
 
@@ -109,5 +116,5 @@ int main() {
     std::cout<<"AnaliJacobian_minimal3: "<<
              std::endl<<AnaliJacobian_minimal3<<std::endl;
 
-    return 0;
+    GTEST_ASSERT_LT((numJacobian_min3 - AnaliJacobian_minimal3).norm(), 1e6);
 }

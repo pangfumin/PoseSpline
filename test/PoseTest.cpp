@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "PoseSpline/Pose.hpp"
 #include "PoseSpline/PoseLocalParameter.hpp"
+#include "PoseSpline/QuaternionLocalParameter.hpp"
 
 // todo: test poselocalparameter
 
@@ -101,4 +102,21 @@ TEST( Pose , operations){
                         .norm() , 1e-8);
     }
 
+}
+
+TEST (Pose, quaternion) {
+    Quaternion q2(4,654,2,98);
+    q2 = quatNorm(q2);
+
+    Eigen::Matrix<double,4,3,Eigen::RowMajor> plusJacobian;
+    Eigen::Matrix<double,3,4,Eigen::RowMajor> liftJacobian;
+
+    QuaternionLocalParameter* quaternionLocalParam = new QuaternionLocalParameter;
+
+    quaternionLocalParam->ComputeJacobian(q2.data(),plusJacobian.data());
+    quaternionLocalParam->liftJacobian(q2.data(),liftJacobian.data());
+
+    std::cout<<"Liftjac* pluJac: "<<std::endl<<
+             liftJacobian*plusJacobian<<std::endl;
+    
 }

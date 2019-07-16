@@ -91,8 +91,6 @@ public:
 
     }
 
-
-
     virtual ~QuaternionOmegaSampleAutoError() {}
 
     // Implementation details follow; clients of the autodiff cost function should

@@ -24,7 +24,7 @@ cs_add_library(${PROJECT_NAME}
         src/PoseSplineSampleError.cpp
         src/PoseSplineUtility.cpp
         src/OmegaExtrinsicTemperalError.cpp
-        #src/PoseSpline/QuaternionOmegaSampleError.cpp
+        src/QuaternionOmegaSampleError.cpp
         src/PoseSpline.cpp
         src/VectorSpaceSpline.cpp
         src/VectorSplineSampleError.cpp

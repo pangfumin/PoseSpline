@@ -48,7 +48,7 @@ if(CATKIN_ENABLE_TESTING)
             test/UtilityTest.cpp
             )
     if(TARGET geometry_tests)
-        target_link_libraries(geometry_tests ${PROJECT_NAME})
+        target_link_libraries(geometry_tests ${PROJECT_NAME} -lpthread -lm)
     endif()
 
     catkin_add_gtest(ceres_tests
@@ -58,7 +58,7 @@ if(CATKIN_ENABLE_TESTING)
             test/testSplineRotateError.cpp
             )
     if(TARGET ceres_tests)
-        target_link_libraries(ceres_tests ${PROJECT_NAME})
+        target_link_libraries(ceres_tests ${PROJECT_NAME} -lpthread -lm)
     endif()
 
     catkin_add_gtest(spline_tests
@@ -66,7 +66,7 @@ if(CATKIN_ENABLE_TESTING)
             test/SplineTest.cpp
             )
     if(TARGET spline_tests)
-        target_link_libraries(spline_tests ${PROJECT_NAME})
+        target_link_libraries(spline_tests ${PROJECT_NAME} -lpthread -lm)
     endif()
 
 

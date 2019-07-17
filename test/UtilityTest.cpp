@@ -91,3 +91,16 @@ TEST(Geometry, quaternion){
     GTEST_ASSERT_LT((dot_dot_r - numDiff_drdt).norm(), 1e-5);
 
 }
+
+TEST(Geometry, hamilton_VS_JPL) {
+    Eigen::Vector3d tmp = Eigen::Vector3d::Random();
+    Eigen::AngleAxisd aa(tmp.norm(), tmp /tmp.norm());
+    Eigen::Matrix3d rot = aa.toRotationMatrix();
+    Eigen::Quaterniond hamiltonQuat(rot);
+    Quaternion JPLQuat = rotMatToQuat(rot);
+//    std::cout << hamiltonQuat.coeffs().transpose() << std::endl;
+//    std::cout << JPLQuat.transpose() << std::endl;
+
+
+    GTEST_ASSERT_LT((hamiltonQuat.inverse().coeffs() - JPLQuat).norm(), 1e6);
+}

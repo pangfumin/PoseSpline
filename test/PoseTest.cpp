@@ -5,7 +5,7 @@
 
 // todo: test poselocalparameter
 
-TEST( Pose , operations){
+TEST(Pose , operations){
     PoseLocalParameter* poseLocalParameter = new PoseLocalParameter();
     for (size_t i = 0; i < 100; ++i) {
         Pose<double> T_AB;
@@ -91,7 +91,7 @@ TEST( Pose , operations){
 
         GTEST_ASSERT_LT((local_plus_jacobian - jacobian).squaredNorm() , 1e-8);
         GTEST_ASSERT_LT((local_lift_jacobian*local_plus_jacobian -
-        Eigen::Matrix<double,6,6>::Identity()).squaredNorm() , 1e-8);
+              Eigen::Matrix<double,6,6>::Identity()).squaredNorm() , 1e-8);
 
         //std::cout << jacobian_numDiff << std::endl;
         GTEST_ASSERT_LT((jacobian - jacobian_numDiff).norm() , 1e-8);
@@ -105,18 +105,26 @@ TEST( Pose , operations){
 }
 
 TEST (Pose, quaternion) {
-    Quaternion q2(4,654,2,98);
-    q2 = quatNorm(q2);
+    for (int i =0; i < 1000; i++) {
+        Quaternion q2(Eigen::Vector4d::Random());
+        q2 = quatNorm(q2);
 
-    Eigen::Matrix<double,4,3,Eigen::RowMajor> plusJacobian;
-    Eigen::Matrix<double,3,4,Eigen::RowMajor> liftJacobian;
+        Eigen::Matrix<double, 4, 3, Eigen::RowMajor> plusJacobian;
+        Eigen::Matrix<double, 3, 4, Eigen::RowMajor> liftJacobian;
 
-    QuaternionLocalParameter* quaternionLocalParam = new QuaternionLocalParameter;
+        QuaternionLocalParameter *quaternionLocalParam = new QuaternionLocalParameter;
 
-    quaternionLocalParam->ComputeJacobian(q2.data(),plusJacobian.data());
-    quaternionLocalParam->liftJacobian(q2.data(),liftJacobian.data());
+        quaternionLocalParam->ComputeJacobian(q2.data(), plusJacobian.data());
+        quaternionLocalParam->liftJacobian(q2.data(), liftJacobian.data());
 
-    std::cout<<"Liftjac* pluJac: "<<std::endl<<
-             liftJacobian*plusJacobian<<std::endl;
+
+//       git a
+
+
+        GTEST_ASSERT_LT((liftJacobian * plusJacobian  -
+                         Eigen::Matrix<double,3,3>::Identity()).squaredNorm() , 1e-8);
+
+
+    }
     
 }

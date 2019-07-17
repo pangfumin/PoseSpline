@@ -10,8 +10,8 @@ class QuaternionLocalParameter: public  ceres::LocalParameterization{
 
 public:
     virtual ~QuaternionLocalParameter() {
-
     }
+
     virtual bool Plus(const double *x, const double *delta, double *x_plus_delta) const {
         Eigen::Map<const Quaternion> Q_(x); // Q bar
         Eigen::Map<const Eigen::Vector3d> delta_phi(delta);

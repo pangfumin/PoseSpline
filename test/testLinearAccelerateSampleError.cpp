@@ -47,13 +47,9 @@ int main() {
     Eigen::Vector3d a_meas = a_body + bias_a;
 
 
-
-
-
     /**
      *  Zero Test
      */
-
 
     double* paramters[8] = {pose0.parameterPtr(), pose1.parameterPtr(),
                             pose2.parameterPtr(), pose3.parameterPtr(),

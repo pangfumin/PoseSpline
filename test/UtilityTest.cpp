@@ -26,12 +26,12 @@ TEST(Geometry, quaternion){
     RotMat rot_X = rotX(3.1415/2);
     RotMat rotAA = axisAngleToRotMat(Eigen::Vector3d(3.1415/2,0,0));
 
-
-
     Eigen::Matrix4d Q_R= quatRightComp(Q_exp);
     Eigen::Matrix4d  invQ_R= quatRightComp(quatInv(Q_exp));
 
-    std::cout<<Q_R*invQ_R<<std::endl;
+//    std::cout<<Q_R*invQ_R<<std::endl;
+    GTEST_ASSERT_LT((Q_R*invQ_R  -
+                     Eigen::Matrix<double,4,4>::Identity()).squaredNorm() , 1e-8);
 
 
     Quaternion Cp0,Cp1,Cp2,Cp3;
@@ -41,17 +41,14 @@ TEST(Geometry, quaternion){
     Cp2 = Quaternion(-0.112329,  0.379688,   0.34445,  0.851219);  Cp2 = quatNorm(Cp2);
     Cp3 = Quaternion(-0.164781, -0.303314,  0.876392, -0.335836);  Cp3 = quatNorm(Cp3);
 
-
     /*
      * test dr_dt
      */
-
     double dt = 0.1;
     double u = 0.19;
 
     double b1 = QSUtility::beta1(u);
     Eigen::Vector3d phi1 = QSUtility::Phi(Cp1,Cp2);
-    std::cout<<phi1.transpose()<<std::endl;
     double db1 = QSUtility::dot_beta1(dt,u);
     Quaternion  r = QSUtility::r(b1,phi1);
     Quaternion  dot_r = QSUtility::dr_dt(db1,b1,Cp1,Cp2);
@@ -92,15 +89,16 @@ TEST(Geometry, quaternion){
 
 }
 
-TEST(Geometry, hamilton_VS_JPL) {
-    Eigen::Vector3d tmp = Eigen::Vector3d::Random();
-    Eigen::AngleAxisd aa(tmp.norm(), tmp /tmp.norm());
-    Eigen::Matrix3d rot = aa.toRotationMatrix();
-    Eigen::Quaterniond hamiltonQuat(rot);
-    Quaternion JPLQuat = rotMatToQuat(rot);
+TEST(Geometry, Hamilton_VS_JPL) {
+    for (int i  = 0; i < 1000; i++){
+        Eigen::Vector3d tmp = Eigen::Vector3d::Random();
+        Eigen::AngleAxisd aa(tmp.norm(), tmp /tmp.norm());
+        Eigen::Matrix3d rot = aa.toRotationMatrix();
+        Eigen::Quaterniond hamiltonQuat(rot);
+        Quaternion JPLQuat = rotMatToQuat(rot);
 //    std::cout << hamiltonQuat.coeffs().transpose() << std::endl;
 //    std::cout << JPLQuat.transpose() << std::endl;
+        GTEST_ASSERT_LT((hamiltonQuat.inverse().coeffs() - JPLQuat).norm(), 1e6);
+    }
 
-
-    GTEST_ASSERT_LT((hamiltonQuat.inverse().coeffs() - JPLQuat).norm(), 1e6);
 }

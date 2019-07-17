@@ -118,7 +118,6 @@ TEST (Pose, quaternion) {
         quaternionLocalParam->liftJacobian(q2.data(), liftJacobian.data());
 
 
-//       git a
 
 
         GTEST_ASSERT_LT((liftJacobian * plusJacobian  -

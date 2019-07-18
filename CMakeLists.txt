@@ -18,6 +18,7 @@ cs_add_library(${PROJECT_NAME}
         src/extern/pinhole_project_error.cpp
         src/extern/project_error.cpp
         src/extern/RotateVectorError.cpp
+        src/extern/TransformVectorError.cpp
         src/QuaternionSplineUtility.cpp
         src/QuaternionSpline.cpp
         src/QuaternionSplineSampleError.cpp
@@ -53,8 +54,8 @@ if(CATKIN_ENABLE_TESTING)
 
     catkin_add_gtest(ceres_tests
             test/test_main.cpp
-            test/QuaternionCeresTest.cpp
-            test/testProjectError.cpp
+#            test/QuaternionCeresTest.cpp
+#            test/testProjectError.cpp
             test/testSplineRotateError.cpp
             )
     if(TARGET ceres_tests)

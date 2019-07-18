@@ -2,8 +2,6 @@
 
 Pose<double> PSUtility::EvaluatePS(double u, const Pose<double>& P0, const Pose<double>& P1,
                 const Pose<double>& P2, const Pose<double>& P3) {
-
-
     double b1 = QSUtility::beta1(u);
     double b2 = QSUtility::beta2(u);
     double b3 = QSUtility::beta3(u);

@@ -104,19 +104,77 @@ TEST( Pose , operations){
 
 }
 
-TEST (Pose, quaternion) {
-    Quaternion q2(4,654,2,98);
-    q2 = quatNorm(q2);
+TEST (Pose, QuaternionPlusList) {
+    for (int i =0; i < 1000; i++) {
+        Quaternion q2 = randomQuat<double>();
+        q2 = quatNorm(q2);
 
-    Eigen::Matrix<double,4,3,Eigen::RowMajor> plusJacobian;
-    Eigen::Matrix<double,3,4,Eigen::RowMajor> liftJacobian;
+        Eigen::Matrix<double,4,3,Eigen::RowMajor> plusJacobian;
+        Eigen::Matrix<double,3,4,Eigen::RowMajor> liftJacobian;
 
-    QuaternionLocalParameter* quaternionLocalParam = new QuaternionLocalParameter;
+        QuaternionLocalParameter* quaternionLocalParam = new QuaternionLocalParameter;
 
-    quaternionLocalParam->ComputeJacobian(q2.data(),plusJacobian.data());
-    quaternionLocalParam->liftJacobian(q2.data(),liftJacobian.data());
+        quaternionLocalParam->ComputeJacobian(q2.data(),plusJacobian.data());
+        quaternionLocalParam->liftJacobian(q2.data(),liftJacobian.data());
 
-    std::cout<<"Liftjac* pluJac: "<<std::endl<<
-             liftJacobian*plusJacobian<<std::endl;
+//        std::cout<<"Liftjac* pluJac: "<<std::endl<<
+//                 liftJacobian*plusJacobian<<std::endl;
+//
+//        std::cout << "liftJacobian: \n" << liftJacobian << std::endl;
+//        std::cout << "plusJacobian: \n" << plusJacobian << std::endl;
+
+        GTEST_ASSERT_LT((liftJacobian*plusJacobian - Eigen::Matrix3d::Identity()).norm(), 1e-8);
+    }
+
     
+}
+
+TEST (Pose, PosePlusLift) {
+    for (int i =0; i < 1000; i++) {
+        Pose<double> T;
+        T.setRandom();
+        Quaternion q = T.q();
+
+        Eigen::Matrix<double,7,6,Eigen::RowMajor> plusJacobian;
+        Eigen::Matrix<double,6,7,Eigen::RowMajor> liftJacobian;
+
+        PoseLocalParameter* poseLocalParameter = new PoseLocalParameter;
+
+        poseLocalParameter->ComputeJacobian(T.data(),plusJacobian.data());
+        poseLocalParameter->liftJacobian(T.data(),liftJacobian.data());
+
+//        std::cout<<"Liftjac* pluJac: "<<std::endl<<
+//                 liftJacobian*plusJacobian<<std::endl;
+//
+//        std::cout << "liftJacobian: \n" << liftJacobian << std::endl;
+//        std::cout << "plusJacobian: \n" << plusJacobian << std::endl;
+
+        GTEST_ASSERT_LT((liftJacobian*plusJacobian -
+        Eigen::Matrix<double,6,6>::Identity()).norm(), 1e-8);
+
+        Eigen::Matrix<double,4,3,Eigen::RowMajor> quatPlusJacobian;
+        Eigen::Matrix<double,3,4,Eigen::RowMajor> quatLiftJacobian;
+
+        QuaternionLocalParameter* quaternionLocalParam = new QuaternionLocalParameter;
+
+        quaternionLocalParam->ComputeJacobian(q.data(),quatPlusJacobian.data());
+        quaternionLocalParam->liftJacobian(q.data(),quatLiftJacobian.data());
+
+        GTEST_ASSERT_LT((liftJacobian.bottomRightCorner(3,4) -
+                quatLiftJacobian).norm(), 1e-8);
+
+        GTEST_ASSERT_LT((plusJacobian.bottomRightCorner(4,3) -
+                quatPlusJacobian).norm(), 1e-8);
+    }
+
+
+}
+
+TEST (Pose, PoseRotation) {
+    Pose<double> T;
+    T.setRandom();
+    Eigen::Matrix3d R = quatToRotMat<double>(T.q());
+
+    GTEST_ASSERT_LT((R*T.C().inverse() - Eigen::Matrix3d::Identity()).norm(), 1e-8);
+
 }

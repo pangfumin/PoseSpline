@@ -10,8 +10,8 @@ class QuaternionLocalParameter: public  ceres::LocalParameterization{
 
 public:
     virtual ~QuaternionLocalParameter() {
-
     }
+
     virtual bool Plus(const double *x, const double *delta, double *x_plus_delta) const {
         Eigen::Map<const Quaternion> Q_(x); // Q bar
         Eigen::Map<const Eigen::Vector3d> delta_phi(delta);
@@ -37,10 +37,29 @@ public:
     static bool plusJacobian(const double* x,double* jacobian) {
         Eigen::Map<const Quaternion> Q_(x);
         Eigen::Map<Eigen::Matrix<double, 4, 3, Eigen::RowMajor>> J(jacobian);
+
+        /*
         Eigen::Matrix<double, 4, 3> m;
         m.setZero();
         m.topLeftCorner(3,3).setIdentity();
         J = quatRightComp<double>(Q_)*0.5*m;
+         */
+
+        /// more effient
+        J.setZero();
+        J(0, 0) = Q_(3);
+        J(0, 1) = -Q_(2);
+        J(0, 2) = Q_(1);
+        J(1, 0) = Q_(2);
+        J(1, 1) = Q_(3);
+        J(1, 2) = -Q_(0);
+        J(2, 0) = -Q_(1);
+        J(2, 1) = Q_(0);
+        J(2, 2) = Q_(3);
+        J(3, 0) = -Q_(0);
+        J(3, 1) = -Q_(1);
+        J(3, 2) = -Q_(2);
+        J *= 0.5;
         return true;
 
     }

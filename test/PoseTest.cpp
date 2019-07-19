@@ -5,7 +5,7 @@
 
 // todo: test poselocalparameter
 
-TEST( Pose , operations){
+TEST(Pose , operations){
     PoseLocalParameter* poseLocalParameter = new PoseLocalParameter();
     for (size_t i = 0; i < 100; ++i) {
         Pose<double> T_AB;
@@ -91,7 +91,7 @@ TEST( Pose , operations){
 
         GTEST_ASSERT_LT((local_plus_jacobian - jacobian).squaredNorm() , 1e-8);
         GTEST_ASSERT_LT((local_lift_jacobian*local_plus_jacobian -
-        Eigen::Matrix<double,6,6>::Identity()).squaredNorm() , 1e-8);
+              Eigen::Matrix<double,6,6>::Identity()).squaredNorm() , 1e-8);
 
         //std::cout << jacobian_numDiff << std::endl;
         GTEST_ASSERT_LT((jacobian - jacobian_numDiff).norm() , 1e-8);

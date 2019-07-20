@@ -8,8 +8,9 @@
 #include "PoseSpline/PoseSplineUtility.hpp"
 #include <gtest/gtest.h>
 #include <Eigen/Geometry>
+#include <gtest/gtest.h>
 
-int main () {
+TEST(Ceres, SplineProjectCeres) {
     Pose<double> T0, T1, T2, T3;
     T0.setRandom();
     T1.setRandom();
@@ -126,7 +127,7 @@ int main () {
     std::cout<<"numJacobian_min0: "<<std::endl<<numJacobian_min0<<std::endl;
     std::cout<<"AnaliJacobian_minimal0: "<<
              std::endl<<jacobian0_min<<std::endl;
-//    GTEST_ASSERT_EQ((numJacobian_min0 - jacobian0_min).norm()< 1e6, true);
+    GTEST_ASSERT_EQ((numJacobian_min0 - jacobian0_min).norm()< 1e6, true);
 
     // check jacobian_minimal1
     Eigen::Matrix<double,2,6,Eigen::RowMajor> numJacobian_min1;
@@ -135,7 +136,7 @@ int main () {
     std::cout<<"numJacobian_min1: "<<std::endl<<numJacobian_min1<<std::endl;
     std::cout<<"AnaliJacobian_minimal1: "<<
              std::endl<<jacobian1_min<<std::endl;
-//    GTEST_ASSERT_EQ((numJacobian_min0 - jacobian0_min).norm()< 1e6, true);
+    GTEST_ASSERT_EQ((numJacobian_min1 - jacobian1_min).norm()< 1e6, true);
 
 // check jacobian_minimal2
     Eigen::Matrix<double,2,6,Eigen::RowMajor> numJacobian_min2;
@@ -144,24 +145,29 @@ int main () {
     std::cout<<"numJacobian_min2: "<<std::endl<<numJacobian_min2<<std::endl;
     std::cout<<"AnaliJacobian_minimal2: "<<
              std::endl<<jacobian2_min<<std::endl;
+GTEST_ASSERT_EQ((numJacobian_min2 - jacobian2_min).norm()< 1e6, true);
 
-    // check jacobian_minimal3
+
+// check jacobian_minimal3
     Eigen::Matrix<double,2,6,Eigen::RowMajor> numJacobian_min3;
     numbDifferentiator.df_r_xi<2,7,6,PoseLocalParameter>(paramters_noised,3,numJacobian_min3.data());
 
     std::cout<<"numJacobian_min3: "<<std::endl<<numJacobian_min3<<std::endl;
     std::cout<<"AnaliJacobian_minimal3: "<<
              std::endl<<jacobian3_min<<std::endl;
+GTEST_ASSERT_EQ((numJacobian_min3 - jacobian3_min).norm()< 1e6, true);
 
-    // check jacobian_minimal4
+
+// check jacobian_minimal4
     Eigen::Matrix<double,2,1> numJacobian_min4;
     numbDifferentiator.df_r_xi<2,1>(paramters_noised,4,numJacobian_min4.data());
 
     std::cout<<"numJacobian_min4: "<<std::endl<<numJacobian_min4<<std::endl;
     std::cout<<"AnaliJacobian_minimal4: "<<
              std::endl<<jacobian4_min<<std::endl;
+GTEST_ASSERT_EQ((numJacobian_min4 - jacobian4_min).norm()< 1e6, true);
 
 
 
-    return 0;
+
 }

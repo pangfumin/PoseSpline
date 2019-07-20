@@ -274,7 +274,7 @@ TEST (ceres, PinholePRojectError) {
 //    std::cout<<"Check jacobian1: "<<std::endl;
 //    localizer_num_differ.isJacobianEqual<2,6>(jacobian1_min.data(),num_jacobian1_min.data(),1e-2);
 //
-    localizer_num_differ.df_r_1D_x<2>(parameters_noised,2,num_jacobian2_min.data());
+    localizer_num_differ.df_r_xi<2,1>(parameters_noised,2,num_jacobian2_min.data());
 
     std::cout<<"jacobian2_min: "<<std::endl<<jacobian2_min<<std::endl;
     std::cout<<"num_jacobian2_min: "<<std::endl<<num_jacobian2_min<<std::endl;

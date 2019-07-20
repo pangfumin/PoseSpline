@@ -4,6 +4,19 @@
 #include "PoseSpline/QuaternionLocalParameter.hpp"
 
 // todo: test poselocalparameter
+TEST (Pose, PoseInit) {
+    for (int i =0; i < 1000; i++) {
+
+        Pose<double> T_A;
+        T_A.setRandom();
+        Eigen::Matrix<double,7,1> parameter = T_A.parameters();
+        Pose<double> T_B(parameter);
+        Pose<double> T_C(parameter.data());
+
+        GTEST_ASSERT_LT(((T_A*T_B.inverse()).Transformation() - Eigen::Matrix4d::Identity()).norm(), 1e-8);
+        GTEST_ASSERT_LT(((T_A*T_C.inverse()).Transformation() - Eigen::Matrix4d::Identity()).norm(), 1e-8);
+    }
+}
 
 TEST(Pose , operations){
     PoseLocalParameter* poseLocalParameter = new PoseLocalParameter();

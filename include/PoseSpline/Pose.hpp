@@ -100,6 +100,7 @@ public:
     /// \brief Construct from a 7x1 vector.
     /// @param[in] vec The 7x1 vector
     Pose(const Eigen::Matrix<T,7,1>& vec);
+    Pose(const T* array_ptr);
 
 
     /// \brief Construct from a homogeneous transformation matrix.

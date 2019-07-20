@@ -137,6 +137,15 @@ inline Pose<T>::Pose(const Eigen::Matrix<T,7,1>& vec): r_(&parameters_[0]),
 
 }
 template <typename T>
+inline Pose<T>::Pose(const T* array_ptr): r_(&parameters_[0]),
+                                                       q_(&parameters_[3]) {
+    r_ << array_ptr[0], array_ptr[1], array_ptr[2];
+    q_ << array_ptr[3], array_ptr[4], array_ptr[5], array_ptr[6];
+    q_ = quatNorm<T>(q_);
+    updateC();
+
+}
+template <typename T>
 inline Pose<T>::Pose(const Eigen::Matrix<T,4,4> & T_AB)
         : r_(&parameters_[0]),
           q_(&parameters_[3]),

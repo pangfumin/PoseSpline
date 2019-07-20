@@ -15,6 +15,8 @@
  */
 
 typedef  Eigen::Matrix<double,4,1> Quaternion;
+template <typename T>
+using QuaternionTemplate = Eigen::Matrix<T,4,1>;
 typedef  Quaternion* QuatPtr;
 typedef  Eigen::Map<Quaternion> QuaternionMap;
 typedef  Eigen::Matrix<double,3,3> RotMat;

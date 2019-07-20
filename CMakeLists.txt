@@ -16,6 +16,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 cs_add_library(${PROJECT_NAME}
         src/extern/spline_projection_error.cpp
         src/extern/spline_projection_error1.cpp
+        src/extern/spline_projection_error2.cpp
+        src/extern/spline_projection_error3.cpp
         src/extern/pinhole_project_error.cpp
         src/extern/project_error.cpp
         src/extern/RotateVectorError.cpp
@@ -75,8 +77,8 @@ if(CATKIN_ENABLE_TESTING)
 
 endif()
 
-add_executable(testSplineProjectError1 test/testSplineProjectError1.cpp)
-target_link_libraries(testSplineProjectError1 ${PROJECT_NAME} -lpthread -lm)
+add_executable(testSplineProjectError3 test/testSplineProjectError3.cpp)
+target_link_libraries(testSplineProjectError3 ${PROJECT_NAME} -lpthread -lm)
 
 
 

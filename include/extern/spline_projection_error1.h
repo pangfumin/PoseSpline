@@ -9,6 +9,8 @@
 #include "PoseSpline/Pose.hpp"
 #include "PoseSpline/PoseSplineUtility.hpp"
 
+
+
 struct SplineProjectFunctor1{
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     SplineProjectFunctor1(const double _t0, const Eigen::Vector3d& uv_C0,
@@ -49,7 +51,6 @@ struct SplineProjectFunctor1{
         T  Beta11 = QSUtility::beta1(T(t1_));
         T  Beta12 = QSUtility::beta2(T(t1_));
         T  Beta13 = QSUtility::beta3(T(t1_));
-
         Eigen::Matrix<T,3,1> phi1 = QSUtility::Phi<T>(Q0,Q1);
         Eigen::Matrix<T,3,1> phi2 = QSUtility::Phi<T>(Q1,Q2);
         Eigen::Matrix<T,3,1> phi3 = QSUtility::Phi<T>(Q2,Q3);
@@ -72,24 +73,65 @@ struct SplineProjectFunctor1{
         QuaternionTemplate<T> Q_WI1_hat = quatLeftComp(Q1)*quatLeftComp(r_11)*quatLeftComp(r_12)*r_13;
         Eigen::Matrix<T,3,1> t_WI1_hat = t1 + Beta11*(t2 - t1) +  Beta12*(t3 - t2) + Beta13*(t4 - t3);
 
+//        std::cout << "t_WI0_hat(0): " <<t_WI0_hat(0) << std::endl;
+//        std::cout << "t_WI0_hat(1): " <<t_WI0_hat(1) << std::endl;
+//        std::cout << "t_WI0_hat(2): " <<t_WI0_hat(2) << std::endl;
+//
+//        std::cout << "Q_WI0_hat(0): " <<Q_WI0_hat(0) << std::endl;
+//        std::cout << "Q_WI0_hat(1): " <<Q_WI0_hat(1) << std::endl;
+//        std::cout << "Q_WI0_hat(2): " <<Q_WI0_hat(2) << std::endl;
+//        std::cout << "Q_WI0_hat(3): " <<Q_WI0_hat(3) << std::endl;
+//
+//
+//        std::cout << "t_WI1_hat(0): " <<t_WI1_hat(0) << std::endl;
+//        std::cout << "t_WI1_hat(1): " <<t_WI1_hat(1) << std::endl;
+//        std::cout << "t_WI1_hat(2): " <<t_WI1_hat(2) << std::endl;
+//
+//        std::cout << "Q_WI1_hat(0): " <<Q_WI1_hat(0) << std::endl;
+//        std::cout << "Q_WI1_hat(1): " <<Q_WI1_hat(1) << std::endl;
+//        std::cout << "Q_WI1_hat(2): " <<Q_WI1_hat(2) << std::endl;
+//        std::cout << "Q_WI1_hat(3): " <<Q_WI1_hat(3) << std::endl;
+
+
         Eigen::Matrix<T,3,3> R_WI0 = quatToRotMat(Q_WI0_hat);
         Eigen::Matrix<T,3,3> R_WI1 = quatToRotMat(Q_WI1_hat);
 
         Eigen::Matrix<T,3,3> R_IC = T_IC_.matrix().topLeftCorner(3,3).cast<T>();
         Eigen::Matrix<T,3,1> t_IC = T_IC_.matrix().topRightCorner(3,1).cast<T>();
+        QuaternionTemplate<T> Q_IC = rotMatToQuat(R_IC);
+
+//        std::cout << "t_IC(0): " <<t_IC(0) << std::endl;
+//        std::cout << "t_IC(1): " <<t_IC(1) << std::endl;
+//        std::cout << "t_IC(2): " <<t_IC(2) << std::endl;
+//
+//        std::cout << "Q_IC(0): " <<Q_IC(0) << std::endl;
+//        std::cout << "Q_IC(1): " <<Q_IC(1) << std::endl;
+//        std::cout << "Q_IC(2): " <<Q_IC(2) << std::endl;
+//        std::cout << "Q_IC(3): " <<Q_IC(3) << std::endl;
+
 //
         Eigen::Matrix<T,3,1> C0p = C0uv_.cast<T>() / inv_dep;
+//        std::cout << "C0p(0): " <<C0p(0) << std::endl;
+//        std::cout << "C0p(1): " <<C0p(1) << std::endl;
+//        std::cout << "C0p(2): " <<C0p(2) << std::endl;
         Eigen::Matrix<T,3,1> I0p = R_IC * C0p + t_IC;
         Eigen::Matrix<T,3,1> Wp = R_WI0 * I0p + t_WI0_hat;
-        Eigen::Matrix<T,3,1> I1p = R_WI1.inverse() * (Wp - t_WI1_hat);
-        Eigen::Matrix<T,3,1> C1p = R_IC.inverse() * (I1p - t_IC);
+//        std::cout << "Wp(0): " <<Wp(0) << std::endl;
+//        std::cout << "Wp(1): " <<Wp(1) << std::endl;
+//        std::cout << "Wp(2): " <<Wp(2) << std::endl;
+        Eigen::Matrix<T,3,1> I1p = R_WI1.transpose() * (Wp - t_WI1_hat);
+//        std::cout << "I1p(0): " <<I1p(0) << std::endl;
+//        std::cout << "I1p(1): " <<I1p(1) << std::endl;
+//        std::cout << "I1p(2): " <<I1p(2) << std::endl;
+        Eigen::Matrix<T,3,1> C1p = R_IC.transpose() * (I1p - t_IC);
+//        std::cout << "C1p(0): " <<C1p(0) << std::endl;
+//        std::cout << "C1p(1): " <<C1p(1) << std::endl;
+//        std::cout << "C1p(2): " <<C1p(2) << std::endl;
 
 
         Eigen::Matrix<T, 2, 1> error;
-
         T inv_z = T(1.0)/C1p(2);
         Eigen::Matrix<T,2,1> hat_C1uv(C1p(0)*inv_z, C1p(1)*inv_z);
-
         error = hat_C1uv - C1uv_.head<2>().cast<T>();
 
         // weight it

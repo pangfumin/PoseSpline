@@ -94,79 +94,90 @@ int main () {
     std::cout<<"residual: "<<residual.transpose()<<std::endl;
     CHECK_EQ(residual.norm()< 0.001,true)<<"Residual is Not zero, zero check not passed!";
 
-//    /*
-//    * Jacobian Check: compare the analytical jacobian to num-diff jacobian
-//    */
-//
-//    std::cout<<"------------  Jacobian Check -----------------"<<std::endl;
-//    Pose<double> T0_noised, T1_noised, T2_noised, T3_noised;
-//    Pose<double> noise;
-//    noise.setRandom(0.3, 0.03);
-//    T0_noised = T0*noise;
-//    noise.setRandom(0.3, 0.03);
-//    T1_noised = T1*noise;
-//    noise.setRandom(0.3, 0.03);
-//    T2_noised = T2*noise;
-//    noise.setRandom(0.3, 0.03);
-//    T3_noised = T3*noise;
-//
-//    double rho_noised = rho + 0.1;
-//
-//
-//    double* paramters_noised[5] = {T0_noised.parameterPtr(), T1_noised.parameterPtr(),
-//                                   T2_noised.parameterPtr(), T3_noised.parameterPtr(),
-//                                   &rho_noised};
-//
-//
-//    splineProjectError->EvaluateWithMinimalJacobians(paramters_noised, residual.data(),
-//                                                       jacobians, jacobians_min);
-//    std::cout<<"residual: "<< residual.transpose()<<std::endl;
-//
-//
-//    // check jacobian_minimal0
-//    Eigen::Matrix<double,2,6,Eigen::RowMajor> numJacobian_min0;
-//    NumbDifferentiator<SplineProjectError,5> numbDifferentiator(splineProjectError);
-//    numbDifferentiator.df_r_xi<2,7,6,PoseLocalParameter>(paramters_noised,0,numJacobian_min0.data());
-//
-//    std::cout<<"numJacobian_min0: "<<std::endl<<numJacobian_min0<<std::endl;
-//    std::cout<<"AnaliJacobian_minimal0: "<<
-//             std::endl<<jacobian0_min<<std::endl;
-////    GTEST_ASSERT_EQ((numJacobian_min0 - jacobian0_min).norm()< 1e6, true);
-//
-//    // check jacobian_minimal1
-//    Eigen::Matrix<double,2,6,Eigen::RowMajor> numJacobian_min1;
-//    numbDifferentiator.df_r_xi<2,7,6,PoseLocalParameter>(paramters_noised,1,numJacobian_min1.data());
-//
-//    std::cout<<"numJacobian_min1: "<<std::endl<<numJacobian_min1<<std::endl;
-//    std::cout<<"AnaliJacobian_minimal1: "<<
-//             std::endl<<jacobian1_min<<std::endl;
-////    GTEST_ASSERT_EQ((numJacobian_min0 - jacobian0_min).norm()< 1e6, true);
-//
-//// check jacobian_minimal2
-//    Eigen::Matrix<double,2,6,Eigen::RowMajor> numJacobian_min2;
-//    numbDifferentiator.df_r_xi<2,7,6,PoseLocalParameter>(paramters_noised,2,numJacobian_min2.data());
-//
-//    std::cout<<"numJacobian_min2: "<<std::endl<<numJacobian_min2<<std::endl;
-//    std::cout<<"AnaliJacobian_minimal2: "<<
-//             std::endl<<jacobian2_min<<std::endl;
-//
-//    // check jacobian_minimal3
-//    Eigen::Matrix<double,2,6,Eigen::RowMajor> numJacobian_min3;
-//    numbDifferentiator.df_r_xi<2,7,6,PoseLocalParameter>(paramters_noised,3,numJacobian_min3.data());
-//
-//    std::cout<<"numJacobian_min3: "<<std::endl<<numJacobian_min3<<std::endl;
-//    std::cout<<"AnaliJacobian_minimal3: "<<
-//             std::endl<<jacobian3_min<<std::endl;
-//
-//    // check jacobian_minimal4
-//    Eigen::Matrix<double,2,1> numJacobian_min4;
-//    numbDifferentiator.df_r_xi<2,1>(paramters_noised,4,numJacobian_min4.data());
-//
-//    std::cout<<"numJacobian_min4: "<<std::endl<<numJacobian_min4<<std::endl;
-//    std::cout<<"AnaliJacobian_minimal4: "<<
-//             std::endl<<jacobian4_min<<std::endl;
-//
-//
+    /*
+    * Jacobian Check: compare the analytical jacobian to num-diff jacobian
+    */
+
+    std::cout<<"------------  Jacobian Check -----------------"<<std::endl;
+    Pose<double> T0_noised, T1_noised, T2_noised, T3_noised, T4_noised;
+    Pose<double> noise;
+    noise.setRandom(0.3, 0.03);
+    T0_noised = T0*noise;
+    noise.setRandom(0.3, 0.03);
+    T1_noised = T1*noise;
+    noise.setRandom(0.3, 0.03);
+    T2_noised = T2*noise;
+    noise.setRandom(0.3, 0.03);
+    T3_noised = T3*noise;
+    noise.setRandom(0.3, 0.03);
+    T4_noised = T4*noise;
+
+    double rho_noised = rho + 0.1;
+
+
+    double* paramters_noised[6] = {T0_noised.parameterPtr(), T1_noised.parameterPtr(),
+                                   T2_noised.parameterPtr(), T3_noised.parameterPtr(),
+                                   T4_noised.parameterPtr(),
+                                   &rho_noised};
+
+
+    splineProjectError1->EvaluateWithMinimalJacobians(paramters_noised, residual.data(),
+                                                       jacobians, jacobians_min);
+    std::cout<<"residual: "<< residual.transpose()<<std::endl;
+
+
+    // check jacobian_minimal0
+    Eigen::Matrix<double,2,6,Eigen::RowMajor> numJacobian_min0;
+    NumbDifferentiator<SplineProjectError1,6> numbDifferentiator(splineProjectError1);
+    numbDifferentiator.df_r_xi<2,7,6,PoseLocalParameter>(paramters_noised,0,numJacobian_min0.data());
+
+    std::cout<<"numJacobian_min0: "<<std::endl<<numJacobian_min0<<std::endl;
+    std::cout<<"AnaliJacobian_minimal0: "<<
+             std::endl<<jacobian0_min<<std::endl;
+//    GTEST_ASSERT_EQ((numJacobian_min0 - jacobian0_min).norm()< 1e6, true);
+
+    // check jacobian_minimal1
+    Eigen::Matrix<double,2,6,Eigen::RowMajor> numJacobian_min1;
+    numbDifferentiator.df_r_xi<2,7,6,PoseLocalParameter>(paramters_noised,1,numJacobian_min1.data());
+
+    std::cout<<"numJacobian_min1: "<<std::endl<<numJacobian_min1<<std::endl;
+    std::cout<<"AnaliJacobian_minimal1: "<<
+             std::endl<<jacobian1_min<<std::endl;
+//    GTEST_ASSERT_EQ((numJacobian_min0 - jacobian0_min).norm()< 1e6, true);
+
+// check jacobian_minimal2
+    Eigen::Matrix<double,2,6,Eigen::RowMajor> numJacobian_min2;
+    numbDifferentiator.df_r_xi<2,7,6,PoseLocalParameter>(paramters_noised,2,numJacobian_min2.data());
+
+    std::cout<<"numJacobian_min2: "<<std::endl<<numJacobian_min2<<std::endl;
+    std::cout<<"AnaliJacobian_minimal2: "<<
+             std::endl<<jacobian2_min<<std::endl;
+
+    // check jacobian_minimal3
+    Eigen::Matrix<double,2,6,Eigen::RowMajor> numJacobian_min3;
+    numbDifferentiator.df_r_xi<2,7,6,PoseLocalParameter>(paramters_noised,3,numJacobian_min3.data());
+
+    std::cout<<"numJacobian_min3: "<<std::endl<<numJacobian_min3<<std::endl;
+    std::cout<<"AnaliJacobian_minimal3: "<<
+             std::endl<<jacobian3_min<<std::endl;
+
+    // check jacobian_minimal4
+    Eigen::Matrix<double,2,6,Eigen::RowMajor> numJacobian_min4;
+    numbDifferentiator.df_r_xi<2,7,6,PoseLocalParameter>(paramters_noised,4,numJacobian_min4.data());
+
+    std::cout<<"numJacobian_min4: "<<std::endl<<numJacobian_min4<<std::endl;
+    std::cout<<"AnaliJacobian_minimal4: "<<
+             std::endl<<jacobian4_min<<std::endl;
+
+    // check jacobian_minimal5
+    Eigen::Matrix<double,2,1> numJacobian_min5;
+    numbDifferentiator.df_r_xi<2,1>(paramters_noised,5,numJacobian_min5.data());
+
+    std::cout<<"numJacobian_min5: "<<std::endl<<numJacobian_min5<<std::endl;
+    std::cout<<"AnaliJacobian_minimal5: "<<
+             std::endl<<jacobian5_min<<std::endl;
+
+
 
     return 0;
 }

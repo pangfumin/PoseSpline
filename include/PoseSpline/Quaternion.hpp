@@ -314,13 +314,26 @@ Eigen::Matrix<T,3,3> renormalizeRotMat( Eigen::Matrix<T,3,3> &m )
 template<typename T>
 Eigen::Matrix<T,3,3> quatToRotMat( Eigen::Matrix<T,4,1> q )
 {
+    // https://github.com/ethz-asl/maplab/blob/master/common/maplab-common/include/maplab-common/quaternion-math-inl.h
     q = q / q.norm();
 
-    Eigen::Matrix<T,4,4> R = quatRightComp(q).transpose() * quatLeftComp(q);
-    Eigen::Matrix<T,3,3> tmp = R.topLeftCorner(3,3);
-    tmp = renormalizeRotMat( tmp );
+    T one = static_cast<T>(1.0);
+    T two = static_cast<T>(2.0);
+    Eigen::Matrix<T,3,3> rot_matrix;
 
-    return tmp;
+    (rot_matrix)(0, 0) = one - two * (q(1) * q(1) + q(2) * q(2));
+    (rot_matrix)(0, 1) = two * (q(0) * q(1) + q(2) * q(3));
+    (rot_matrix)(0, 2) = two * (q(0) * q(2) - q(1) * q(3));
+
+    (rot_matrix)(1, 0) = two * (q(0) * q(1) - q(2) * q(3));
+    (rot_matrix)(1, 1) = one - two * (q(0) * q(0) + q(2) * q(2));
+    (rot_matrix)(1, 2) = two * (q(1) * q(2) + q(0) * q(3));
+
+    (rot_matrix)(2, 0) = two * (q(0) * q(2) + q(1) * q(3));
+    (rot_matrix)(2, 1) = two * (q(1) * q(2) - q(0) * q(3));
+    (rot_matrix)(2, 2) = one - two * (q(0) * q(0) + q(1) * q(1));
+
+    return rot_matrix;
 }
 
 

@@ -10,15 +10,16 @@ void T2double(Eigen::Isometry3d& T,double* ptr){
 
     Eigen::Vector3d trans = T.matrix().topRightCorner(3,1);
     Eigen::Matrix3d R = T.matrix().topLeftCorner(3,3);
-    Eigen::Quaterniond q(R);
+    Quaternion q = rotMatToQuat<double>(R);
+
 
     ptr[0] = trans(0);
     ptr[1] = trans(1);
     ptr[2] = trans(2);
-    ptr[3] = q.x();
-    ptr[4] = q.y();
-    ptr[5] = q.z();
-    ptr[6] = q.w();
+    ptr[3] = q(0);
+    ptr[4] = q(1);
+    ptr[5] = q(2);
+    ptr[6] = q(3);
 }
 
 void applyNoise(const Eigen::Isometry3d& Tin,Eigen::Isometry3d& Tout){

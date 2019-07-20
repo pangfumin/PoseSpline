@@ -178,3 +178,26 @@ TEST (Pose, PoseRotation) {
     GTEST_ASSERT_LT((R*T.C().inverse() - Eigen::Matrix3d::Identity()).norm(), 1e-8);
 
 }
+
+TEST (Pose, PoseTransformVector) {
+    for (int i =0; i < 1000; i++) {
+        Pose<double> T_AB;
+        T_AB.setRandom();
+        Eigen::Vector3d Bp = Eigen::Vector3d::Random();
+
+        Eigen::Matrix3d R_AB = T_AB.C();
+        Eigen::Vector3d t_AB = T_AB.r();
+
+        Eigen::Vector3d Ap = R_AB * Bp + t_AB;
+        Eigen::Vector3d Ap_ = T_AB * Bp;
+
+        Eigen::Vector3d Bp_ = T_AB.inverse() * Ap_;
+        Eigen::Vector3d Bp__ = R_AB.inverse() * (Ap_ - T_AB.r());
+
+
+        GTEST_ASSERT_LT((Ap - Ap_).norm(), 1e-8);
+        GTEST_ASSERT_LT((Bp - Bp_).norm(), 1e-8);
+        GTEST_ASSERT_LT((Bp - Bp__).norm(), 1e-8);
+    }
+
+}

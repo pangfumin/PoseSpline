@@ -258,7 +258,7 @@ inline Pose<T> Pose<T>::operator*(
 template <typename T>
 inline Eigen::Matrix<T,3,1> Pose<T>::operator*(
         const Eigen::Matrix<T,3,1> & rhs) const {
-    return C_ * rhs;
+    return C_ * rhs + r_;
 }
 template <typename T>
 inline Eigen::Matrix<T,4,1> Pose<T>::operator*(

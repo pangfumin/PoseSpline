@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(PoseSpline)
 
-set(cmake_build_type Release)
+set(cmake_build_type Debug)
 
 find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
@@ -72,6 +72,10 @@ if(CATKIN_ENABLE_TESTING)
 
 
 endif()
+
+add_executable(testSplineProjectError test/testSplineProjectError.cpp)
+target_link_libraries(testSplineProjectError ${PROJECT_NAME} -lpthread -lm)
+
 
 
 cs_install()

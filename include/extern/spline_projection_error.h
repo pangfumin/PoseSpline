@@ -54,11 +54,10 @@ public:
                                       double **jacobiansMinimal) const;
 
 private:
-    double t0,t1;
-    Eigen::Vector3d C0uv;
-    Eigen::Vector3d C1uv;
-    Eigen::Vector3d t_IC;
-    Eigen::Matrix3d R_IC;
+    double t0_,t1_;
+    Eigen::Vector3d C0uv_;
+    Eigen::Vector3d C1uv_;
+    Eigen::Isometry3d T_IC_;
     // information matrix and its square root
     mutable information_t information_; ///< The information matrix for this error term.
     mutable information_t squareRootInformation_; ///< The square root information matrix for this error term.

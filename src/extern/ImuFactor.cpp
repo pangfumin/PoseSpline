@@ -60,8 +60,6 @@ namespace okvis {
             setImuParameters(imuParameters);
             setT0(t_0);
             setT1(t_1);
-
-
         }
 
 // Propagates pose, speeds and biases with given IMU measurements.

@@ -23,6 +23,10 @@ cs_add_library(${PROJECT_NAME}
         src/extern/project_error.cpp
         src/extern/RotateVectorError.cpp
         src/extern/TransformVectorError.cpp
+        src/extern/ImuFactor.cpp
+        src/extern/PoseParameterBlock.cpp
+        src/extern/SpeedAndBiasParameterBlock.cpp
+        src/extern/PoseLocalParameterization.cpp
         src/QuaternionSplineUtility.cpp
         src/QuaternionSpline.cpp
         src/QuaternionSplineSampleError.cpp
@@ -78,6 +82,8 @@ if(CATKIN_ENABLE_TESTING)
 
 endif()
 
+add_executable(test_imu_factor test/test_imu_factor.cpp)
+target_link_libraries(test_imu_factor ${PROJECT_NAME} -lpthread -lm)
 
 cs_install()
 cs_export()

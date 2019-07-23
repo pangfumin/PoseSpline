@@ -85,5 +85,9 @@ endif()
 add_executable(test_imu_factor test/test_imu_factor.cpp)
 target_link_libraries(test_imu_factor ${PROJECT_NAME} -lpthread -lm)
 
+add_executable(test_imu_factor1 test/test_imu_factor1.cpp)
+target_link_libraries(test_imu_factor1 ${PROJECT_NAME} -lpthread -lm)
+
+
 cs_install()
 cs_export()

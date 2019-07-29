@@ -101,6 +101,78 @@ double uniform_rand(double lowerBndr, double upperBndr)
 }
 
 
+typedef std::map<int, Eigen::Vector2d> PerObs;
+
+class TrackBuilder {
+public:
+    struct Track {
+        int camId_;
+        int lmId_;
+        Eigen::Vector2d obs_;
+    };
+
+    void buildTrack (const  std::map<int, PerObs>  obs_per_camera) {
+        for (auto obs_camera: obs_per_camera) {
+            int camId = obs_camera.first;
+            auto landmarks_obs_by_this_camera = obs_camera.second;
+
+            std::cout << "pool before: " << lmId_pool_.size() << " ";
+
+            // add and update track
+            std::set<int> landmarks_id_obs_by_this_camera;
+            int added = 0;
+            int updated = 0;
+            int deleted = 0;
+            for (auto landmarks: landmarks_obs_by_this_camera) {
+                auto lmId = landmarks.first;
+                auto uv = landmarks.second;
+
+                landmarks_id_obs_by_this_camera.insert(lmId);
+
+                if (lmId_pool_.count(lmId) == 0) {
+                    // 1. add new track 2.put id to pool 3.lmId2TrackId_
+                    lmId_pool_.insert(lmId);
+                    std::vector<Track> new_track;
+                    new_track.push_back({camId, lmId, uv});
+                    tracks_.push_back(new_track);
+                    lmId2TrackId_[lmId] = tracks_.size()-1;
+                    added ++;
+                } else {
+                    // add update
+
+                    tracks_[lmId2TrackId_[lmId]].push_back({camId, lmId, uv});
+                    updated ++;
+                }
+            }
+
+            // untrack out-data lm
+            for (auto it = lmId_pool_.cbegin(); it != lmId_pool_.cend() /* not hoisted */; /* no increment */)
+            {
+                int lmId = *it;
+                bool need_delete = landmarks_id_obs_by_this_camera.count(lmId) == 0;
+                if (need_delete)
+                {
+                    lmId_pool_.erase(it++);    // or "it = m.erase(it)" since C++11
+                    lmId2TrackId_.erase(lmId);
+                    deleted  ++;
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+
+            std::cout << added << " " << updated << " " << deleted << " " << lmId_pool_.size() << std::endl;
+        }
+
+    }
+
+
+    std::vector<std::vector<Track>> tracks_;
+
+    std::set<int> lmId_pool_;
+    std::map<int, int> lmId2TrackId_;
+};
 
 int main() {
     std::string pose_file =
@@ -121,7 +193,7 @@ int main() {
 
 
     int num_pose = 100 ;
-    int num_landmark = 100;
+    int num_landmark = 1000;
 
     std::vector<Eigen::Vector3d> landmarks;
     for (auto i = 0; i < num_landmark; i++) {
@@ -175,7 +247,7 @@ int main() {
     }
 
     std::cout <<"average obs for " << observation_per_landmark.size()
-                <<" is " << (double)average_cnt / observation_per_landmark.size()
+                <<" landmark is " << (double)average_cnt / observation_per_landmark.size()
                 << " with min nad max : " << min << " " <<  max  << std::endl;
 
 
@@ -192,9 +264,8 @@ int main() {
         poses_param.push_back(i * noise);
     }
 
+    /*
     ceres::Problem problem;
-
-
     for (int i  = 0; i < num_pose; i++) {
         PoseLocalParameter *poseLocalParameter = new PoseLocalParameter;
         problem.AddParameterBlock(poses_param.at(i).parameterPtr(),7,poseLocalParameter);
@@ -231,7 +302,35 @@ int main() {
     ceres::Solver::Summary summary;
     ceres::Solve(options, &problem, &summary);
     std::cout << summary.FullReport() << std::endl;
+     */
 
+    std::map<int, PerObs> obs_per_camera;
+
+    for (int i = 0; i < num_landmark; i ++) {
+        Observations obs = observation_per_landmark.at(i);
+        for(auto camera_obs : obs) {
+            obs_per_camera[camera_obs.first][i] = camera_obs.second;
+        }
+    }
+
+    int average_obs_per_camera = 0;
+
+    for (auto camera : obs_per_camera) {
+        average_obs_per_camera += camera.second.size();
+    }
+
+    std::cout <<"average obs for " << obs_per_camera.size()
+              <<" camera is " << (double)average_obs_per_camera / obs_per_camera.size()
+              << std::endl;
+
+
+    // build tracks
+    TrackBuilder trackBuilder;
+    trackBuilder.buildTrack(obs_per_camera);
+    std::vector<std::vector<TrackBuilder::Track>> tracks  = trackBuilder.tracks_;
+
+
+    std::cout << "track: " << tracks.size() << std::endl;
 
 
 

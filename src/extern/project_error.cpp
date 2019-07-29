@@ -22,9 +22,6 @@ bool ProjectError::EvaluateWithMinimalJacobians(double const *const *parameters,
                                                         double **jacobiansMinimal) const {
 
     // T_WC
-    Eigen::Map<const Eigen::Matrix<double,7,1>> map(parameters[0]);
-//            std::cout << map.transpose() << std::endl;
-    std::cout << std::hex << parameters[0] << " " << map.transpose() << std::endl;
     Eigen::Vector3d t_WC(parameters[0][0], parameters[0][1], parameters[0][2]);
     Quaternion Q_WC( parameters[0][3], parameters[0][4], parameters[0][5],parameters[0][6]);
 

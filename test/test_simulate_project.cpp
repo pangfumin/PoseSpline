@@ -108,10 +108,10 @@ int main() {
     std::string imu_meas_file =
             "/home/pang/data/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
 
-    TestSample testSample;
-    testSample.readStates(pose_file);
-    testSample.readImu(imu_meas_file);
-
+//    TestSample testSample;
+//    testSample.readStates(pose_file);
+//    testSample.readImu(imu_meas_file);
+//
     int image_width = 640;
     int image_height = 480;
     double focal = 500;
@@ -120,132 +120,217 @@ int main() {
     double cx = image_width/2;
     double cy = image_height/2;
 
-
-    PoseSpline poseSpline(1.0);
-
-    // simulate
-    int num_landmarks = 10000;
-    std::vector<Eigen::Vector3d> landmarks(num_landmarks);
-    for (auto i : landmarks) {
-        i(0) = uniform_rand(-50, 50);
-        i(1) = uniform_rand(-50, 50);
-        i(2) = uniform_rand(-50, 50);
-    }
-
-    std::vector<StampedPose> T_WC_vec;
-
-    int sample_start = 1000;
-
-    for (int i = sample_start;i < testSample.states_vec_.size(); i+= 400) {
-        StampedPose stampedPose = testSample.states_vec_.at(i);
-        poseSpline.addControlPointsUntil(Time(stampedPose.timestamp_).toSec());
-        T_WC_vec.push_back(stampedPose);
-    }
-
-    std::cout<< poseSpline.getControlPointNum() << std::endl;
-//    std::cout << i << std::endl
-    int num_pose = T_WC_vec.size();
-    std::cout<< num_pose << std::endl;
-
-    std::cout << testSample.states_vec_.size() << std::endl;
-
-
-    std::cout << "simulating ..." << std::endl;
-    typedef std::vector<std::pair<int, Eigen::Vector2d>> Observations;
-    std::vector<Observations> observation_per_landmark;
-    for (auto pt : landmarks) {
-        Observations obs;
-        for (int i = 0 ; i < T_WC_vec.size(); i++) {
-            auto stampedPose = T_WC_vec.at(i);
-            Pose<double> T_WC(stampedPose.t_, stampedPose.q_);
-            Eigen::Vector3d Cp = T_WC.inverse()*pt;
-            if(Cp(2) < 0) continue;
-            Eigen::Vector2d bearing(Cp(0)/Cp(2), Cp(1)/Cp(2));
-            Eigen::Vector2d uv(fx*bearing(0) + cx, fy*bearing(1) + cy);
-            if (uv(0) > 0 && uv(0) < image_width && uv(1) > 0 && uv(1) < image_height) {
-                obs.push_back(std::make_pair(i, bearing));
-
 //
-//                Eigen::Vector2d residual;
+//    PoseSpline poseSpline(1.0);
 //
-//                ProjectError projectError(Eigen::Vector3d(bearing(0), bearing(1), 1.0));
-//                double* parameters[2] = {T_WC.parameterPtr(), pt.data()};
+//    // simulate
+//    int num_landmarks = 10000;
+//    std::vector<Eigen::Vector3d> landmarks(num_landmarks);
+//    for (auto i : landmarks) {
+//        i(0) = uniform_rand(-10, 10);
+//        i(1) = uniform_rand(-10, 10);
+//        i(2) = uniform_rand(-10, 10);
+//    }
 //
-//                projectError.Evaluate(parameters, residual.data(), NULL);
+//    std::vector<StampedPose> T_WC_vec;
 //
-//                if (residual.norm() > 1e-6) {
-//                    std::cout << "too large project error" << std::endl;
-//                }
-            }
-        }
-        observation_per_landmark.push_back(obs);
-    }
-
-    int average_cnt = 0;
-    for(auto i : observation_per_landmark) {
-        average_cnt += i.size();
-    }
-    std::cout <<"average obs for " << observation_per_landmark.size()
-                <<" is " << (double)average_cnt / observation_per_landmark.size()  << std::endl;
-
-    // test project error
-    {
-        ceres::Problem problem;
-
-        std::vector<Pose<double>> pose_vector_param;
-        std::vector<Eigen::Vector3d> landmark_vector_param;
-
-        for (auto pose: T_WC_vec) {
-            Pose<double> T_WC(pose.t_, pose.q_);
-            pose_vector_param.push_back(T_WC);
-            PoseLocalParameter *poseLocalParameter = new PoseLocalParameter;
-
-            problem.AddParameterBlock(pose_vector_param.back().parameterPtr(),7,poseLocalParameter);
-            Eigen::Map<Eigen::Matrix<double,7,1>> map(T_WC.parameterPtr());
-//            std::cout << map.transpose() << std::endl;
-            std::cout << std::hex << pose_vector_param.back().parameterPtr() << " " << map.transpose() << std::endl;
-        }
-
-        for (int i = 0; i < landmarks.size(); i++) {
-            landmark_vector_param.push_back(landmarks.at(i));
-            problem.AddParameterBlock(landmark_vector_param.back().data(),3);
-
-            // add constraints
-            Observations obs = observation_per_landmark.at(i);
-            for (auto ob : obs) {
-
-                auto bearing = ob.second;
-                ProjectError* projectError = new ProjectError(Eigen::Vector3d(bearing(0), bearing(1), 1.0));
-                double* parameters[2] = {pose_vector_param.at(ob.first).parameterPtr(),
-                                         landmark_vector_param.at(i).data()};
-
-//                Eigen::Vector2d residual;
-//                projectError->Evaluate(parameters, residual.data(), NULL);
+//    int sample_start = 1000;
 //
-//                if (residual.norm() > 1e-6) {
-//                    std::cout << "too large project error" << std::endl;
-//                }
-
-                problem.AddResidualBlock(projectError, NULL,
-                                         parameters[0],
-                                         parameters[1]);
-
+//    for (int i = sample_start;i < testSample.states_vec_.size(); i+= 400) {
+//        StampedPose stampedPose = testSample.states_vec_.at(i);
+//        poseSpline.addControlPointsUntil(Time(stampedPose.timestamp_).toSec());
+//        T_WC_vec.push_back(stampedPose);
+//    }
+//
+//    std::cout<< poseSpline.getControlPointNum() << std::endl;
+////    std::cout << i << std::endl
+//    int num_pose = T_WC_vec.size();
+//    std::cout<< num_pose << std::endl;
+//
+//    std::cout << testSample.states_vec_.size() << std::endl;
+//
+//
+//    std::cout << "simulating ..." << std::endl;
+//    typedef std::vector<std::pair<int, Eigen::Vector2d>> Observations;
+//    std::vector<Observations> observation_per_landmark;
+//    for (auto pt : landmarks) {
+//        Observations obs;
+//        for (int i = 0 ; i < T_WC_vec.size(); i++) {
+//            auto stampedPose = T_WC_vec.at(i);
+//            Pose<double> T_WC(stampedPose.t_, stampedPose.q_);
+//            Eigen::Vector3d Cp = T_WC.inverse()*pt;
+//            if(Cp(2) < 0) continue;
+//            Eigen::Vector2d bearing(Cp(0)/Cp(2), Cp(1)/Cp(2));
+//            Eigen::Vector2d uv(fx*bearing(0) + cx, fy*bearing(1) + cy);
+//            if (uv(0) > 0 && uv(0) < image_width && uv(1) > 0 && uv(1) < image_height) {
+//                obs.push_back(std::make_pair(i, bearing));
+//
+////
+////                Eigen::Vector2d residual;
+////
+////                ProjectError projectError(Eigen::Vector3d(bearing(0), bearing(1), 1.0));
+////                double* parameters[2] = {T_WC.parameterPtr(), pt.data()};
+////
+////                projectError.Evaluate(parameters, residual.data(), NULL);
+////
+////                if (residual.norm() > 1e-6) {
+////                    std::cout << "too large project error" << std::endl;
+////                }
+//            }
+//        }
+//        observation_per_landmark.push_back(obs);
+//    }
+//
+//    int average_cnt = 0;
+//    for(auto i : observation_per_landmark) {
+//        average_cnt += i.size();
+//    }
+//    std::cout <<"average obs for " << observation_per_landmark.size()
+//                <<" is " << (double)average_cnt / observation_per_landmark.size()  << std::endl;
+//
+//    // test project error
+//    {
+//        ceres::Problem problem;
+//
+//        std::vector<Pose<double>> pose_vector_param;
+//        std::vector<Eigen::Vector3d> landmark_vector_param;
+//
+//        for (auto pose: T_WC_vec) {
+//            Pose<double> T_WC(pose.t_, pose.q_);
+//            pose_vector_param.push_back(T_WC);
+//            PoseLocalParameter *poseLocalParameter = new PoseLocalParameter;
+//
+//            problem.AddParameterBlock(pose_vector_param.back().parameterPtr(),7,poseLocalParameter);
+//            Eigen::Map<Eigen::Matrix<double,7,1>> map(T_WC.parameterPtr());
+////            std::cout << map.transpose() << std::endl;
+//            std::cout << std::hex << pose_vector_param.back().parameterPtr() << " " << map.transpose() << std::endl;
+//        }
+//
+//        for (int i = 0; i < landmarks.size(); i++) {
+//            landmark_vector_param.push_back(landmarks.at(i));
+//            problem.AddParameterBlock(landmark_vector_param.back().data(),3);
+//
+//            // add constraints
+//            Observations obs = observation_per_landmark.at(i);
+//            for (auto ob : obs) {
+//
+//                auto bearing = ob.second;
+//                ProjectError* projectError = new ProjectError(Eigen::Vector3d(bearing(0), bearing(1), 1.0));
+//                double* parameters[2] = {pose_vector_param.at(ob.first).parameterPtr(),
+//                                         landmark_vector_param.at(i).data()};
+//
+////                Eigen::Vector2d residual;
+////                projectError->Evaluate(parameters, residual.data(), NULL);
+////
+////                if (residual.norm() > 1e-6) {
+////                    std::cout << "too large project error" << std::endl;
+////                }
+//
+//                problem.AddResidualBlock(projectError, NULL,
+//                                         parameters[0],
+//                                         parameters[1]);
+//
 //                Eigen::Map<Eigen::Matrix<double,7,1>> map(parameters[0]);
-//                std::cout << map.transpose() << std::endl;
-            }
+//                std::cout << std::hex << parameters[0] << " " <<map.transpose() << std::endl;
+//            }
+//        }
+//
+//        ceres::Solver::Options options;
+//        options.minimizer_progress_to_stdout = true;
+//        options.max_solver_time_in_seconds = 30;
+//        options.linear_solver_type = ceres::SPARSE_SCHUR;
+//        options.minimizer_progress_to_stdout = true;
+//        options.parameter_tolerance = 1e-4;
+//        ceres::Solver::Summary summary;
+//        ceres::Solve(options, &problem, &summary);
+//        std::cout << summary.FullReport() << std::endl;
+//
+//    }
+
+
+
+    Pose<double> T_WC0, T_WC1;
+
+    T_WC1.set(Eigen::Vector3d(1,0,0), unitQuat<double>());
+
+    int num_landmarks = 100;
+    std::vector<Eigen::Vector4d> co_visual_obs;
+    std::vector<Eigen::Vector3d> Wp_vec;
+    // generate observations
+    for(int i = 0; i < num_landmarks; i++) {
+        double u = uniform_rand(0, image_width);
+        double v = uniform_rand(0, image_height);
+//        std::cout << u << " " << v << std::endl;
+        Eigen::Vector2d bearing((u - cx)/fx, (v - cy)/ fy);
+
+        double z = uniform_rand(0, 10);
+        Eigen::Vector3d C0p(bearing(0)*z, bearing(1)*z, z);
+
+        Eigen::Vector3d Wp = T_WC0*C0p;
+
+        Eigen::Vector3d C1p = T_WC1.inverse() * Wp;
+
+        Eigen::Vector2d C1_bearing(C1p(0)/C1p(2), C1p(1)/C1p(2));
+        Eigen::Vector2d C1uv(C1_bearing(0)*fx + cx, C1_bearing(1)*fy + cy);
+
+        if (C1uv(0) > 0 && C1uv(0) < image_width && C1uv(1) > 0 && C1uv(1) < image_height) {
+            Wp_vec.push_back(Wp);
+            Eigen::Vector4d co_obs;
+            co_obs << bearing, C1_bearing;
+            co_visual_obs.push_back(co_obs);
         }
 
-        ceres::Solver::Options options;
-        options.minimizer_progress_to_stdout = true;
-        options.max_solver_time_in_seconds = 30;
-        options.linear_solver_type = ceres::SPARSE_SCHUR;
-        options.minimizer_progress_to_stdout = true;
-        options.parameter_tolerance = 1e-4;
-        ceres::Solver::Summary summary;
-        ceres::Solve(options, &problem, &summary);
-        std::cout << summary.FullReport() << std::endl;
+    }
+
+    std::cout << Wp_vec.size() << " " << co_visual_obs.size() << std::endl;
+
+    Pose<double> T_WC0_param, T_WC1_param, noise;
+    noise.setRandom(0.3, 0.5);
+    T_WC0_param = T_WC0*noise;
+    T_WC1_param = T_WC1*noise;
+
+    std::vector<Pose<double>> T_WC_vec;
+    T_WC_vec.push_back(T_WC0_param);
+    T_WC_vec.push_back(T_WC1_param);
+
+    std::vector<Eigen::Vector3d> landmark_params;
+    for (auto i : Wp_vec) {
+        landmark_params.push_back(i);
+    }
+
+    ceres::Problem problem;
+    PoseLocalParameter *poseLocalParameter = new PoseLocalParameter;
+//
+    problem.AddParameterBlock(T_WC_vec.at(0).parameterPtr(),7,poseLocalParameter);
+    problem.AddParameterBlock(T_WC_vec.at(1).parameterPtr(),7,poseLocalParameter);
+
+    for (int i  = 0; i < Wp_vec.size(); i ++) {
+        problem.AddParameterBlock(Wp_vec.at(i).data(),3);
+        auto bearing = co_visual_obs.at(i);
+        ProjectError* projectError0 = new ProjectError(Eigen::Vector3d(bearing(0), bearing(1), 1.0));
+        ProjectError* projectError1 = new ProjectError(Eigen::Vector3d(bearing(2), bearing(3), 1.0));
+
+        problem.AddResidualBlock(projectError0, NULL,
+                                 T_WC_vec.at(0).parameterPtr(),
+                                 Wp_vec.at(i).data());
+
+        problem.AddResidualBlock(projectError1, NULL,
+                                 T_WC_vec.at(1).parameterPtr(),
+                                 Wp_vec.at(i).data());
+
 
     }
+
+    ceres::Solver::Options options;
+    options.minimizer_progress_to_stdout = true;
+    options.max_solver_time_in_seconds = 30;
+    options.linear_solver_type = ceres::SPARSE_SCHUR;
+    options.minimizer_progress_to_stdout = true;
+    options.parameter_tolerance = 1e-4;
+    ceres::Solver::Summary summary;
+    ceres::Solve(options, &problem, &summary);
+    std::cout << summary.FullReport() << std::endl;
+//
 
 
     return 0;

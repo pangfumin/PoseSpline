@@ -23,8 +23,6 @@ struct StampedImu{
 };
 class TestSample {
 public:
-
-
     void readStates(const std::string& states_file) {
         io::CSVReader<11> in(states_file);
         in.read_header(io::ignore_extra_column, "#timestamp",
@@ -96,9 +94,9 @@ public:
 
 TEST( Spline , poseSplineInitialization){
     std::string pose_file =
-            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
+            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
     std::string imu_meas_file =
-            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
+            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
 
     TestSample testSample;
     testSample.readStates(pose_file);
@@ -318,9 +316,9 @@ TEST( Spline , quaternionSplineInitialization) {
 ////
 
     std::string pose_file =
-            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
+            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
     std::string imu_meas_file =
-            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
+            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
 
     TestSample testSample;
     testSample.readStates(pose_file);

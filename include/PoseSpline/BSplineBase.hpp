@@ -132,7 +132,7 @@ public:
 
     }
 
-    void initialQuaternionSplineKnot(double t){
+    void initialSplineKnot(double t){
         // Initialize the spline so that it interpolates the two points
         // and moves between them with a constant velocity.
 
@@ -154,27 +154,18 @@ public:
         for(int i = 0; i < C; i++){
             initialNewControlPoint();
         }
-
-
     }
 
     void addElemenTypeSample(double t, ElementType sample){
-
         if(getControlPointNum() == 0){
-
-            initialQuaternionSplineKnot(t);
-            //std::cout<<"t: "<<Time(t)<<" t_max: "<<Time(t_max())<<std::endl;
+            initialSplineKnot(t);
         }else if(getControlPointNum() >= numCoefficientsRequired(1) ){
-            //std::cout<<"add "<<Time(t - t_max())<<std::endl;
-
             if(t < t_min()){
                 std::cerr<<"[Error] Inserted t is smaller than t_min()！"<<std::endl;
 //                LOG(FATAL) << "Inserted "<<Time(t)<<" is smaller than t_min() "<<Time(t_min())<<std::endl;
             }else if(t >= t_max()){
                 // add new knot and control Points
                 while(t >= t_max()){
-
-                    //std::cout<<"t: "<<Time(t)<<" t_max: "<<Time(t_max())<<std::endl;
                     knots_.push_back(knots_.back() + mTimeInterval); // append one;
                     initialNewControlPoint();
                 }
@@ -184,6 +175,26 @@ public:
         if( t_max() - t > 0.0001){
             mSampleValues.insert(std::pair<double ,ElementType>(t,sample));
         }
+        CHECK_EQ(knots_.size() - SplineOrder, getControlPointNum());
+
+    }
+
+    void addControlPointsUntil(double t){
+        if(getControlPointNum() == 0){
+            initialSplineKnot(t);
+        }else if(getControlPointNum() >= numCoefficientsRequired(1) ){
+            if(t < t_min()){
+                std::cerr<<"[Error] Inserted t is smaller than t_min()！"<<std::endl;
+//                LOG(FATAL) << "Inserted "<<Time(t)<<" is smaller than t_min() "<<Time(t_min())<<std::endl;
+            }else if(t >= t_max()){
+                // add new knot and control Points
+                while(t >= t_max()){
+                    knots_.push_back(knots_.back() + mTimeInterval); // append one;
+                    initialNewControlPoint();
+                }
+            }
+        }
+
         CHECK_EQ(knots_.size() - SplineOrder, getControlPointNum());
 
     }
@@ -212,6 +223,5 @@ private:
     std::map<double, ElementType> mSampleValues;
     int mSplineOrder;
     double mTimeInterval;
-
 };
 #endif

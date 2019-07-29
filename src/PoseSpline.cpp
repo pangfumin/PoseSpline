@@ -34,14 +34,8 @@
             double *cp2 = getControlPoint(bidx + 2);
             double *cp3 = getControlPoint(bidx + 3);
 
-
             PoseSplineSampleError* poseSampleFunctor = new PoseSplineSampleError(u,i.second);
-/*
-            std::cout<<"Q0: "<<CpMap0.transpose()<<std::endl;
-            std::cout<<"Q1: "<<CpMap1.transpose()<<std::endl;
-            std::cout<<"Q2: "<<CpMap2.transpose()<<std::endl;
-            std::cout<<"Q3: "<<CpMap3.transpose()<<std::endl;
-*/
+
             problem.AddParameterBlock(cp0,7,poseLocalParameter);
             problem.AddParameterBlock(cp1,7,poseLocalParameter);
             problem.AddParameterBlock(cp2,7,poseLocalParameter);

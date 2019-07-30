@@ -14,6 +14,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 
 cs_add_library(${PROJECT_NAME}
+        src/extern/spline_projection_error_simple.cpp
         src/extern/spline_projection_error.cpp
         src/extern/spline_projection_error1.cpp
         src/extern/spline_projection_error2.cpp

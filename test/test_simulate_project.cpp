@@ -10,6 +10,7 @@
 #include "csv.h"
 #include "PoseSpline/Time.hpp"
 #include "extern/project_error.h"
+#include "extern/pinhole_project_error.h"
 #include "PoseSpline/PoseLocalParameter.hpp"
 struct StampedPose{
     uint64_t timestamp_;
@@ -116,7 +117,7 @@ public:
             int camId = obs_camera.first;
             auto landmarks_obs_by_this_camera = obs_camera.second;
 
-            std::cout << "pool before: " << lmId_pool_.size() << " ";
+//            std::cout << "pool before: " << lmId_pool_.size() << " ";
 
             // add and update track
             std::set<int> landmarks_id_obs_by_this_camera;
@@ -162,7 +163,7 @@ public:
                 }
             }
 
-            std::cout << added << " " << updated << " " << deleted << " " << lmId_pool_.size() << std::endl;
+//            std::cout << added << " " << updated << " " << deleted << " " << lmId_pool_.size() << std::endl;
         }
 
     }
@@ -193,7 +194,7 @@ int main() {
 
 
     int num_pose = 100 ;
-    int num_landmark = 1000;
+    int num_landmark = 500;
 
     std::vector<Eigen::Vector3d> landmarks;
     for (auto i = 0; i < num_landmark; i++) {
@@ -261,48 +262,49 @@ int main() {
         // set noise
         Pose<double> noise;
         noise.setRandom(0.2, 0.2);
-        poses_param.push_back(i * noise);
+        Pose<double> noised_pose = i * noise;
+        poses_param.push_back(noised_pose);
     }
 
-    /*
-    ceres::Problem problem;
-    for (int i  = 0; i < num_pose; i++) {
-        PoseLocalParameter *poseLocalParameter = new PoseLocalParameter;
-        problem.AddParameterBlock(poses_param.at(i).parameterPtr(),7,poseLocalParameter);
-    }
+    {
+        ceres::Problem problem;
+        for (int i = 0; i < num_pose; i++) {
+            PoseLocalParameter *poseLocalParameter = new PoseLocalParameter;
+            problem.AddParameterBlock(poses_param.at(i).parameterPtr(), 7, poseLocalParameter);
+        }
 
-    for (int i = 0; i < landmarks.size(); i++) {
-        // add constraints
-        Observations obs = observation_per_landmark.at(i);
-        if (obs.size() <  2) continue;
-        problem.AddParameterBlock(landmarks_param.back().data(),3);
+        for (int i = 0; i < landmarks.size(); i++) {
+            // add constraints
+            Observations obs = observation_per_landmark.at(i);
+            if (obs.size() < 2) continue;
+            problem.AddParameterBlock(landmarks_param.back().data(), 3);
 
-        std::cout << "add residuals realted to "<< i << "th landmark: " << obs.size() << std::endl;
-        for (auto ob : obs) {
-            auto bearing = ob.second;
-            ProjectError* projectError = new ProjectError(Eigen::Vector3d(bearing(0), bearing(1), 1.0));
+            std::cout << "add residuals realted to " << i << "th landmark: " << obs.size() << std::endl;
+            for (auto ob : obs) {
+                auto bearing = ob.second;
+                ProjectError *projectError = new ProjectError(Eigen::Vector3d(bearing(0), bearing(1), 1.0));
 
 
-            problem.AddResidualBlock(projectError, NULL,
-                                     poses_param.at(ob.first).parameterPtr(),
-                                     landmarks_param.at(i).data());
+                problem.AddResidualBlock(projectError, NULL,
+                                         poses_param.at(ob.first).parameterPtr(),
+                                         landmarks_param.at(i).data());
 
 //            Eigen::Map<Eigen::Matrix<double,7,1>> map(parameters[0]);
 //            std::cout << std::hex << parameters[0] << " " <<map.transpose() << std::endl;
+            }
         }
-    }
 
-    std::cout << "start to solve ... " << std::endl;
-    ceres::Solver::Options options;
-    options.minimizer_progress_to_stdout = true;
-    options.max_solver_time_in_seconds = 30000;
-    options.linear_solver_type = ceres::SPARSE_SCHUR;
-    options.minimizer_progress_to_stdout = true;
-    options.parameter_tolerance = 1e-4;
-    ceres::Solver::Summary summary;
-    ceres::Solve(options, &problem, &summary);
-    std::cout << summary.FullReport() << std::endl;
-     */
+        std::cout << "start to solve ... " << std::endl;
+        ceres::Solver::Options options;
+        options.minimizer_progress_to_stdout = true;
+        options.max_solver_time_in_seconds = 30000;
+        options.linear_solver_type = ceres::SPARSE_SCHUR;
+        options.minimizer_progress_to_stdout = true;
+        options.parameter_tolerance = 1e-4;
+        ceres::Solver::Summary summary;
+        ceres::Solve(options, &problem, &summary);
+        std::cout << summary.FullReport() << std::endl;
+    }
 
     std::map<int, PerObs> obs_per_camera;
 
@@ -331,6 +333,88 @@ int main() {
 
 
     std::cout << "track: " << tracks.size() << std::endl;
+
+//    for (auto i : tracks[0] ) {
+////        std::cout << i.camId_ << " " << i.lmId_ << std::endl;
+//    }
+
+//    {
+//        ceres::Problem problem;
+//        for (int i = 0; i < num_pose; i++) {
+//            PoseLocalParameter *poseLocalParameter = new PoseLocalParameter;
+//            problem.AddParameterBlock(poses_param.at(i).parameterPtr(), 7, poseLocalParameter);
+//        }
+//
+//        std::vector<double> rho_params;
+//        for (int i = 0; i < tracks.size(); i++) {
+//            auto per_track = tracks.at(i);
+//
+//            auto i_obs = per_track[0];
+//            auto i_camId = i_obs.camId_;
+//
+//            Eigen::Vector3d Wp = landmarks_param.at(i_obs.lmId_);
+//            Pose<double> T_WC = poses_param.at(i_obs.camId_);
+//            Eigen::Vector3d Cp = T_WC.inverse() * Wp;
+//            double rho = 1 / Cp(2);
+//            rho_params.push_back(rho);
+//        }
+//
+//        Eigen::Isometry3d T_IC;
+//        T_IC.setIdentity();
+//
+//        std::cout << "adding constraints" << std::endl;
+//        for (int i = 0; i < tracks.size(); i++) {
+//            auto per_track = tracks.at(i);
+//
+//            auto i_obs = per_track[0];
+//            auto i_camId = i_obs.camId_;
+//
+//            auto i_uv = i_obs.obs_;
+//            problem.AddParameterBlock(&rho_params.at(i), 1);
+//
+//            for (int j = 1; j < per_track.size(); j++) {
+//                auto j_obs = per_track[j];
+//                auto j_uv = j_obs.obs_;
+//                auto j_camId = j_obs.camId_;
+//
+//                PinholeProjectError *pinholeProjectError =
+//                        new PinholeProjectError(Eigen::Vector3d(i_uv(0), i_uv(1), 1.0),
+//                                                Eigen::Vector3d(j_uv(0), j_uv(1), 1.0),
+//                                                T_IC);
+//
+////
+////            double* parameters[3]  =  {poses_param.at(i_camId).parameterPtr(),
+////                                       poses_param.at(j_camId).parameterPtr(),
+////                                       &rho_params.at(i)};
+////
+////            Eigen::Vector2d residual;
+////            pinholeProjectError->Evaluate(parameters, residual.data(), NULL);
+////            if (residual.norm() > 1e-6) {
+////                std::cout << "error" << std::endl;
+////            }
+//
+//                problem.AddResidualBlock(pinholeProjectError, NULL, poses_param.at(i_camId).parameterPtr(),
+//                                         poses_param.at(j_camId).parameterPtr(),
+//                                         &rho_params.at(i));
+//
+//
+//            }
+//
+//
+//        }
+//
+//        std::cout << "start to solve ... " << std::endl;
+//        ceres::Solver::Options options;
+//        options.minimizer_progress_to_stdout = true;
+//        options.max_solver_time_in_seconds = 30000;
+//        options.linear_solver_type = ceres::SPARSE_SCHUR;
+//        options.minimizer_progress_to_stdout = true;
+//        options.parameter_tolerance = 1e-4;
+//        ceres::Solver::Summary summary;
+//        ceres::Solve(options, &problem, &summary);
+//        std::cout << summary.FullReport() << std::endl;
+//
+//    }
 
 
 

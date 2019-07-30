@@ -193,8 +193,8 @@ int main() {
     double cy = image_height/2;
 
 
-    int num_pose = 100 ;
-    int num_landmark = 500;
+    int num_pose = 10 ;
+    int num_landmark = 100;
 
     std::vector<Eigen::Vector3d> landmarks;
     for (auto i = 0; i < num_landmark; i++) {
@@ -266,6 +266,12 @@ int main() {
         poses_param.push_back(noised_pose);
     }
 
+    for (int j = 0; j < poses.size(); j ++) {
+        auto error = (poses_param.at(j).coeffs() - poses.at(j).coeffs()).norm();
+        std::cout <<"before: " <<  error << std::endl;
+    }
+
+
     {
         ceres::Problem problem;
         for (int i = 0; i < num_pose; i++) {
@@ -278,6 +284,7 @@ int main() {
             Observations obs = observation_per_landmark.at(i);
             if (obs.size() < 2) continue;
             problem.AddParameterBlock(landmarks_param.back().data(), 3);
+            problem.SetParameterBlockConstant(landmarks_param.back().data());
 
             std::cout << "add residuals realted to " << i << "th landmark: " << obs.size() << std::endl;
             for (auto ob : obs) {
@@ -304,6 +311,11 @@ int main() {
         ceres::Solver::Summary summary;
         ceres::Solve(options, &problem, &summary);
         std::cout << summary.FullReport() << std::endl;
+
+        for (int j = 0; j < poses.size(); j ++) {
+            auto error = (poses_param.at(j).coeffs() - poses.at(j).coeffs()).norm();
+            std::cout <<"after: " <<  error << std::endl;
+        }
     }
 
     std::map<int, PerObs> obs_per_camera;
@@ -315,24 +327,24 @@ int main() {
         }
     }
 
-    int average_obs_per_camera = 0;
-
-    for (auto camera : obs_per_camera) {
-        average_obs_per_camera += camera.second.size();
-    }
-
-    std::cout <<"average obs for " << obs_per_camera.size()
-              <<" camera is " << (double)average_obs_per_camera / obs_per_camera.size()
-              << std::endl;
-
-
-    // build tracks
-    TrackBuilder trackBuilder;
-    trackBuilder.buildTrack(obs_per_camera);
-    std::vector<std::vector<TrackBuilder::Track>> tracks  = trackBuilder.tracks_;
-
-
-    std::cout << "track: " << tracks.size() << std::endl;
+//    int average_obs_per_camera = 0;
+//
+//    for (auto camera : obs_per_camera) {
+//        average_obs_per_camera += camera.second.size();
+//    }
+//
+//    std::cout <<"average obs for " << obs_per_camera.size()
+//              <<" camera is " << (double)average_obs_per_camera / obs_per_camera.size()
+//              << std::endl;
+//
+//
+//    // build tracks
+//    TrackBuilder trackBuilder;
+//    trackBuilder.buildTrack(obs_per_camera);
+//    std::vector<std::vector<TrackBuilder::Track>> tracks  = trackBuilder.tracks_;
+//
+//
+//    std::cout << "track: " << tracks.size() << std::endl;
 
 //    for (auto i : tracks[0] ) {
 ////        std::cout << i.camId_ << " " << i.lmId_ << std::endl;

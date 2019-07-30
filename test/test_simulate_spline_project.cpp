@@ -103,79 +103,6 @@ double uniform_rand(double lowerBndr, double upperBndr)
 }
 
 
-typedef std::map<int, Eigen::Vector2d> PerObs;
-
-class TrackBuilder {
-public:
-    struct Track {
-        int camId_;
-        int lmId_;
-        Eigen::Vector2d obs_;
-    };
-
-    void buildTrack (const  std::map<int, PerObs>  obs_per_camera) {
-        for (auto obs_camera: obs_per_camera) {
-            int camId = obs_camera.first;
-            auto landmarks_obs_by_this_camera = obs_camera.second;
-
-//            std::cout << "pool before: " << lmId_pool_.size() << " ";
-
-            // add and update track
-            std::set<int> landmarks_id_obs_by_this_camera;
-            int added = 0;
-            int updated = 0;
-            int deleted = 0;
-            for (auto landmarks: landmarks_obs_by_this_camera) {
-                auto lmId = landmarks.first;
-                auto uv = landmarks.second;
-
-                landmarks_id_obs_by_this_camera.insert(lmId);
-
-                if (lmId_pool_.count(lmId) == 0) {
-                    // 1. add new track 2.put id to pool 3.lmId2TrackId_
-                    lmId_pool_.insert(lmId);
-                    std::vector<Track> new_track;
-                    new_track.push_back({camId, lmId, uv});
-                    tracks_.push_back(new_track);
-                    lmId2TrackId_[lmId] = tracks_.size()-1;
-                    added ++;
-                } else {
-                    // add update
-
-                    tracks_[lmId2TrackId_[lmId]].push_back({camId, lmId, uv});
-                    updated ++;
-                }
-            }
-
-            // untrack out-data lm
-            for (auto it = lmId_pool_.cbegin(); it != lmId_pool_.cend() /* not hoisted */; /* no increment */)
-            {
-                int lmId = *it;
-                bool need_delete = landmarks_id_obs_by_this_camera.count(lmId) == 0;
-                if (need_delete)
-                {
-                    lmId_pool_.erase(it++);    // or "it = m.erase(it)" since C++11
-                    lmId2TrackId_.erase(lmId);
-                    deleted  ++;
-                }
-                else
-                {
-                    ++it;
-                }
-            }
-
-//            std::cout << added << " " << updated << " " << deleted << " " << lmId_pool_.size() << std::endl;
-        }
-
-    }
-
-
-    std::vector<std::vector<Track>> tracks_;
-
-    std::set<int> lmId_pool_;
-    std::map<int, int> lmId2TrackId_;
-};
-
 int main() {
     std::string pose_file =
             "/home/pang/data/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
@@ -194,8 +121,8 @@ int main() {
     double cy = image_height/2;
 
 
-    int num_pose = 100 ;
-    int num_landmark = 500;
+    int num_pose = 10 ;
+    int num_landmark = 100;
 
     std::vector<Eigen::Vector3d> landmarks;
     for (auto i = 0; i < num_landmark; i++) {
@@ -279,9 +206,18 @@ int main() {
 
     std::vector<Pose<double>> controls_param;
     for (int j = 0; j < poseSpline.getControlPointNum(); j ++) {
-        controls_param.push_back(poseSpline.getControlPoint(j));
+        Pose<double> noise;
+        noise.setRandom(0.2, 0.2);
+        Pose<double> noised_pose = Pose<double>(poseSpline.getControlPoint(j)) * noise;
+
+        controls_param.push_back(noised_pose);
     }
 
+    // check
+    for (int j = 0; j < poseSpline.getControlPointNum(); j ++) {
+        auto error = (controls_param.at(j).coeffs() - Pose<double>(poseSpline.getControlPoint(j)).coeffs()).norm();
+        std::cout <<"before: " << error << std::endl;
+    }
 
 
     {
@@ -299,8 +235,9 @@ int main() {
             Observations obs = observation_per_landmark.at(i);
             if (obs.size() < 2) continue;
             problem.AddParameterBlock(landmarks_param.back().data(), 3);
+            problem.SetParameterBlockConstant(landmarks_param.back().data());
 
-            std::cout << "add residuals realted to " << i << "th landmark: " << obs.size() << std::endl;
+//            std::cout << "add residuals realted to " << i << "th landmark: " << obs.size() << std::endl;
             for (auto ob : obs) {
                 auto bearing = ob.second;
                 double t = (double)ob.first;
@@ -311,39 +248,35 @@ int main() {
                 double u = ui.first;
                 int bidx = ui.second -  poseSpline.spline_order() + 1;
 
-                auto cp0 =  controls_param.at(bidx);
-                auto cp1 =  controls_param.at(bidx + 1);
-                auto cp2 =  controls_param.at(bidx + 2);
-                auto cp3 =  controls_param.at(bidx + 3);
+
+                SplineProjectSimpleError* costFunction = new SplineProjectSimpleError(u, Eigen::Vector3d(bearing(0), bearing(1), 1), T_IC);
 
 
-                SplineProjectSimpleFunctor* splineProjectSimpleFunctor
-                    = new SplineProjectSimpleFunctor(t, Eigen::Vector3d(bearing(0), bearing(0), 1), T_IC);
-                SplineProjectSimpleError* splineProjectSimpleError = new SplineProjectSimpleError(*splineProjectSimpleFunctor);
+                problem.AddResidualBlock(costFunction, NULL,
+                                         controls_param.at(bidx).parameterPtr(),
+                                         controls_param.at(bidx + 1).parameterPtr(),
+                                         controls_param.at(bidx + 2).parameterPtr(),
+                                         controls_param.at(bidx + 3).parameterPtr(),
+                                         landmarks_param.at(i).data());
 
-                double* paramters[5] = {cp0.parameterPtr(), cp1.parameterPtr(),
-                                        cp2.parameterPtr(), cp3.parameterPtr(), landmarks_param.at(i).data()};
-
-
-//
-                Eigen::Vector2d residuals;
-                splineProjectSimpleError->Evaluate(paramters, residuals.data(), NULL);
-                std::cout << residuals.transpose() << std::endl;
-//
-//
             }
         }
-//
-//        std::cout << "start to solve ... " << std::endl;
-//        ceres::Solver::Options options;
-//        options.minimizer_progress_to_stdout = true;
-//        options.max_solver_time_in_seconds = 30000;
-//        options.linear_solver_type = ceres::SPARSE_SCHUR;
-//        options.minimizer_progress_to_stdout = true;
-//        options.parameter_tolerance = 1e-4;
-//        ceres::Solver::Summary summary;
-//        ceres::Solve(options, &problem, &summary);
-//        std::cout << summary.FullReport() << std::endl;
+        std::cout << "start to solve ... " << std::endl;
+        ceres::Solver::Options options;
+        options.minimizer_progress_to_stdout = true;
+        options.max_solver_time_in_seconds = 30000;
+        options.linear_solver_type = ceres::SPARSE_SCHUR;
+        options.minimizer_progress_to_stdout = true;
+        options.parameter_tolerance = 1e-4;
+        ceres::Solver::Summary summary;
+        ceres::Solve(options, &problem, &summary);
+        std::cout << summary.FullReport() << std::endl;
+
+        // check
+        for (int j = 0; j < poseSpline.getControlPointNum(); j ++) {
+            auto error = (controls_param.at(j).coeffs() - Pose<double>(poseSpline.getControlPoint(j)).coeffs()).norm();
+            std::cout << error << std::endl;
+        }
     }
 
 

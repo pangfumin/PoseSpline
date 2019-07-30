@@ -835,7 +835,6 @@ TEST(Ceres, SplineProjectErrorSimple) {
     double u0 = 0.5;
     double u1 = 0.75;
     Pose<double> T_WI0 = PSUtility::EvaluatePS(u0, T0, T1, T2, T3);
-    Pose<double> T_WI1 = PSUtility::EvaluatePS(u1, T0, T1, T2, T3);
 
     Pose<double> T_IC;
     T_IC.setRandom();
@@ -845,9 +844,8 @@ TEST(Ceres, SplineProjectErrorSimple) {
 
     Pose<double> T_WC0 = T_WI0 * T_IC;
 
-
-
     Eigen::Vector3d Wp = T_WC0 * C0p;
+
 
     Eigen::Vector3d uv0(C0p(0)/ C0p(2), C0p(1)/C0p(2), 1);
 
@@ -861,8 +859,7 @@ TEST(Ceres, SplineProjectErrorSimple) {
 
     Eigen::Isometry3d ext_T_IC;
     ext_T_IC.matrix() = T_IC.Transformation();
-    SplineProjectSimpleFunctor splineProjectFunctor(u0, uv0, ext_T_IC);
-    SplineProjectSimpleError* splineProjectError = new SplineProjectSimpleError(splineProjectFunctor);
+    SplineProjectSimpleError* splineProjectError = new SplineProjectSimpleError(u0, uv0, ext_T_IC);
 
     Eigen::Vector3d param_Wp;
     param_Wp = Wp;

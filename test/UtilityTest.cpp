@@ -102,3 +102,10 @@ TEST(Geometry, Hamilton_VS_JPL) {
     }
 
 }
+
+TEST(Geometry, QuaternionUtility) {
+    double beta = 0.0;
+    Eigen::Vector3d phi(0.00164243,-0.0239352 ,-0.00516655);
+    QuaternionTemplate<double> r_03 = QSUtility::r(beta,phi);
+    std::cout << r_03.transpose() << std::endl;
+}

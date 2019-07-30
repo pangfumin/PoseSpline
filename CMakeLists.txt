@@ -93,6 +93,9 @@ target_link_libraries(test_imu_factor1 ${PROJECT_NAME} -lpthread -lm)
 add_executable(test_simulate_project test/test_simulate_project.cpp)
 target_link_libraries(test_simulate_project ${PROJECT_NAME} -lpthread -lm)
 
+add_executable(test_simulate_spline_project test/test_simulate_spline_project.cpp)
+target_link_libraries(test_simulate_spline_project ${PROJECT_NAME} -lpthread -lm)
+
 
 
 cs_install()

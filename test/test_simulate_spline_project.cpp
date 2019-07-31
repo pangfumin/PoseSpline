@@ -122,7 +122,7 @@ int main() {
 
 
     int num_pose = 10 ;
-    int num_landmark = 100;
+    int num_landmark = 400;
 
     std::vector<Eigen::Vector3d> landmarks;
     for (auto i = 0; i < num_landmark; i++) {
@@ -204,7 +204,7 @@ int main() {
         landmarks_param.push_back(i);
     }
 
-    std::vector<Pose<double>> controls_param;
+    std::vector<Pose<double>> controls_param, controls_param_before_opt;
     for (int j = 0; j < poseSpline.getControlPointNum(); j ++) {
         Pose<double> noise;
         noise.setRandom(0.2, 0.2);
@@ -213,6 +213,7 @@ int main() {
         controls_param.push_back(noised_pose);
     }
 
+    controls_param_before_opt = controls_param;
     // check
     for (int j = 0; j < poseSpline.getControlPointNum(); j ++) {
         auto error = (controls_param.at(j).coeffs() - Pose<double>(poseSpline.getControlPoint(j)).coeffs()).norm();
@@ -234,8 +235,8 @@ int main() {
             // add constraints
             Observations obs = observation_per_landmark.at(i);
             if (obs.size() < 2) continue;
-            problem.AddParameterBlock(landmarks_param.back().data(), 3);
-            problem.SetParameterBlockConstant(landmarks_param.back().data());
+            problem.AddParameterBlock(landmarks_param.at(i).data(), 3);
+            problem.SetParameterBlockConstant(landmarks_param.at(i).data());
 
 //            std::cout << "add residuals realted to " << i << "th landmark: " << obs.size() << std::endl;
             for (auto ob : obs) {
@@ -249,8 +250,14 @@ int main() {
                 int bidx = ui.second -  poseSpline.spline_order() + 1;
 
 
-                SplineProjectSimpleError* costFunction = new SplineProjectSimpleError(u, Eigen::Vector3d(bearing(0), bearing(1), 1), T_IC);
+                SplineProjectSimpleError* costFunction =
+                  new SplineProjectSimpleError(u, Eigen::Vector3d(bearing(0), bearing(1), 1), T_IC);
 
+                /*
+                ceres::CostFunction* costFunction = new ceres::NumericDiffCostFunction<SplineProjectSimpleFunctor,
+                        ceres::NumericDiffMethodType::CENTRAL, 2,7,7,7,7,3>(new
+                            SplineProjectSimpleFunctor(u, Eigen::Vector3d(bearing(0), bearing(1), 1), T_IC));
+                            */
 
                 problem.AddResidualBlock(costFunction, NULL,
                                          controls_param.at(bidx).parameterPtr(),
@@ -277,6 +284,46 @@ int main() {
             auto error = (controls_param.at(j).coeffs() - Pose<double>(poseSpline.getControlPoint(j)).coeffs()).norm();
             std::cout << error << std::endl;
         }
+
+        for (int j = 0;j < num_pose; j++) {
+            Pose<double> T_WC = poses.at(j);
+
+            double t = (double)j;
+
+            // Returns the normalized u value and the lower-bound time index.
+            std::pair<double, unsigned int> ui = poseSpline.computeUAndTIndex(t);
+            //VectorX u = computeU(ui.first, ui.second, 0);
+            double u = ui.first;
+            int bidx = ui.second -  poseSpline.spline_order() + 1;
+
+            Pose<double> T0(controls_param.at(bidx));
+            Pose<double> T1(controls_param.at(bidx+1));
+            Pose<double> T2(controls_param.at(bidx+2));
+            Pose<double> T3(controls_param.at(bidx+3));
+
+            Pose<double> T0_before(controls_param_before_opt.at(bidx));
+            Pose<double> T1_before(controls_param_before_opt.at(bidx+1));
+            Pose<double> T2_before(controls_param_before_opt.at(bidx+2));
+            Pose<double> T3_before(controls_param_before_opt.at(bidx+3));
+
+
+            Pose<double> est = PSUtility::EvaluatePS(u, T0,T1,T2,T3);
+            Pose<double> bef = PSUtility::EvaluatePS(u, T0_before,T1_before,T2_before,T3_before);
+            Pose<double> init = poseSpline.evalPoseSpline(t);
+
+            auto error = (T_WC.coeffs() - est.coeffs()).norm();
+
+            std::cout << "gt : " << T_WC.translation().transpose() << std::endl;
+            std::cout << "bef: " << bef.translation().transpose() << std::endl;
+            std::cout << "est: " <<  est.translation().transpose() << std::endl;
+            std::cout << "ini: " <<  init.translation().transpose() << std::endl;
+
+            std::cout <<"pose error: " << error << std::endl;
+
+
+
+        }
+
     }
 
 

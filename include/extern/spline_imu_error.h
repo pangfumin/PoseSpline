@@ -187,9 +187,9 @@ namespace  JPL {
         }
 
         Eigen::Matrix<double, 15, 1>
-        evaluate(const Eigen::Vector3d &Pi, const Eigen::Quaterniond &Qi, const Eigen::Vector3d &Vi,
+        evaluate(const Eigen::Vector3d &Pi, const QuaternionTemplate<double> &Qi, const Eigen::Vector3d &Vi,
                  const Eigen::Vector3d &Bai, const Eigen::Vector3d &Bgi,
-                 const Eigen::Vector3d &Pj, const Eigen::Quaterniond &Qj, const Eigen::Vector3d &Vj,
+                 const Eigen::Vector3d &Pj, const QuaternionTemplate<double> &Qj, const Eigen::Vector3d &Vj,
                  const Eigen::Vector3d &Baj, const Eigen::Vector3d &Bgj) {
             Eigen::Vector3d G{0.0, 0.0, 9.8};
             Eigen::Matrix<double, 15, 1> residuals;
@@ -208,12 +208,17 @@ namespace  JPL {
 //        Eigen::Quaterniond corrected_delta_q = delta_q * Utility::deltaQ(dq_dbg * dbg);
 //        Eigen::Vector3d corrected_delta_v = delta_v + dv_dba * dba + dv_dbg * dbg;
 //        Eigen::Vector3d corrected_delta_p = delta_p + dp_dba * dba + dp_dbg * dbg;
+
+            QuaternionTemplate<double> corrected_delta_q = delta_q ;
+            Eigen::Vector3d corrected_delta_v = delta_v ;
+            Eigen::Vector3d corrected_delta_p = delta_p ;
 //
-//        residuals.block<3, 1>(O_P, 0) = Qi.inverse() * (0.5 * G * sum_dt * sum_dt + Pj - Pi - Vi * sum_dt) - corrected_delta_p;
-//        residuals.block<3, 1>(O_R, 0) = 2 * (corrected_delta_q.inverse() * (Qi.inverse() * Qj)).vec();
-//        residuals.block<3, 1>(O_V, 0) = Qi.inverse() * (G * sum_dt + Vj - Vi) - corrected_delta_v;
-//        residuals.block<3, 1>(O_BA, 0) = Baj - Bai;
-//        residuals.block<3, 1>(O_BG, 0) = Bgj - Bgi;
+        Eigen::Matrix3d R_WI = quatToRotMat(Qi);
+        residuals.block<3, 1>(O_P, 0) = R_WI.transpose() * (0.5 * G * sum_dt * sum_dt + Pj - Pi - Vi * sum_dt) - corrected_delta_p;
+        residuals.block<3, 1>(O_R, 0) = 2 * quatMult(quatInv(corrected_delta_q), quatMult(quatInv(Qj), Qi)).head<3>();
+        residuals.block<3, 1>(O_V, 0) = R_WI.transpose() * (G * sum_dt + Vj - Vi) - corrected_delta_v;
+        residuals.block<3, 1>(O_BA, 0) = Baj - Bai;
+        residuals.block<3, 1>(O_BG, 0) = Bgj - Bgi;
             return residuals;
         }
 
@@ -261,14 +266,14 @@ namespace  JPL {
                                           double **jacobiansMinimal) const {
 
             Eigen::Vector3d Pi(parameters[0][0], parameters[0][1], parameters[0][2]);
-            Eigen::Quaterniond Qi(parameters[0][6], parameters[0][3], parameters[0][4], parameters[0][5]);
+            QuaternionTemplate<double> Qi(parameters[0][3], parameters[0][4], parameters[0][5], parameters[0][6]);
 
             Eigen::Vector3d Vi(parameters[1][0], parameters[1][1], parameters[1][2]);
             Eigen::Vector3d Bai(parameters[1][3], parameters[1][4], parameters[1][5]);
             Eigen::Vector3d Bgi(parameters[1][6], parameters[1][7], parameters[1][8]);
 
             Eigen::Vector3d Pj(parameters[2][0], parameters[2][1], parameters[2][2]);
-            Eigen::Quaterniond Qj(parameters[2][6], parameters[2][3], parameters[2][4], parameters[2][5]);
+            QuaternionTemplate<double> Qj(parameters[2][3], parameters[2][4], parameters[2][5], parameters[2][6]);
 
             Eigen::Vector3d Vj(parameters[3][0], parameters[3][1], parameters[3][2]);
             Eigen::Vector3d Baj(parameters[3][3], parameters[3][4], parameters[3][5]);

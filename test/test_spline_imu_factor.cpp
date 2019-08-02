@@ -159,7 +159,7 @@ int main(){
     }
 
     std::cout << "test on : " << simulated_imus.size() << std::endl;
-    int imu_integrated_cnt = 100;
+    int imu_integrated_cnt = 500;
     for (int i = imu_integrated_cnt ; i < simulated_imus.size(); i+=imu_integrated_cnt) {
         QuaternionTemplate<double> JPL_q_WI0, JPL_q_WI1;
         Eigen::Quaterniond hamilton_q_WI0, hamilton_q_WI1;
@@ -233,6 +233,31 @@ int main(){
 
         CHECK_EQ((JPL_jacobian - hamilton_jacobian).squaredNorm() < 1e-6, true) << "jacobian error is large";
         CHECK_EQ((JPL_covariance - hamilton_covariance).squaredNorm() < 1e-6, true) << "covariance error is large";
+
+
+        Eigen::Matrix<double,15,1> JPL_residuals, hamilton_residuals;
+        JPL_residuals = JPL_intergrateImu->evaluate(t_WI0, JPL_q_WI0, v0,ba0,bg0, t_WI1, JPL_q_WI1, v1,ba1,bg1);
+        hamilton_residuals = hamilton_intergrateImu->evaluate(t_WI0, hamilton_q_WI0, v0,ba0,bg0, t_WI1, hamilton_q_WI1, v1,ba1,bg1);
+
+        std::cout << "JPL_residuals     :" << JPL_residuals.transpose() << std::endl;
+        std::cout << "hamilton_residuals:" << hamilton_residuals.transpose() << std::endl;
+
+        CHECK_EQ((JPL_residuals - hamilton_residuals).squaredNorm() < 1e-3, true) << "residual error is large";
+
+        Eigen::Matrix<double,7,1> JPL_T0, JPL_T1;
+        JPL_T0 << t_WI0, JPL_q_WI0;
+        JPL_T1 << t_WI1, JPL_q_WI1;
+        Eigen::Matrix<double,7,1> hamilton_T0, hamilton_T1;
+        hamilton_T0 << t_WI0, hamilton_q_WI0.coeffs();
+        hamilton_T1 << t_WI1, hamilton_q_WI1.coeffs();
+        Eigen::Matrix<double,9,1> sb0, sb1;
+        sb0 << v0, ba0, bg0;
+        sb1 << v1, ba1, bg1;
+
+        double* JPL_parameters[4] = {JPL_T0.data(), sb0.data(), JPL_T1.data(), sb1.data()};
+        double* hamilton_parameters[4] = {hamilton_T0.data(), sb0.data(), hamilton_T1.data(), sb1.data()};
+
+
 
 
 

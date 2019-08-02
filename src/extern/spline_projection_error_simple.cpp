@@ -185,10 +185,8 @@ bool SplineProjectSimpleError::EvaluateWithMinimalJacobians(double const *const 
             //std::cout<<"J1: "<<std::endl<<J1<<std::endl;
 
             if (jacobiansMinimal != NULL && jacobiansMinimal[1] != NULL) {
-
                 Eigen::Map<Eigen::Matrix<double, 2, 6, Eigen::RowMajor>> J1_minimal_map(jacobiansMinimal[1]);
                 J1_minimal_map << H * trans_J1_minimal, H * quat_J1_minimal;
-
             }
 
         }
@@ -237,8 +235,6 @@ bool SplineProjectSimpleError::EvaluateWithMinimalJacobians(double const *const 
             J3 << H * trans_J3_minimal, H * quat_J3_minimal * J_lift;
 
             //std::cout<<"J3: "<<std::endl<<J3<<std::endl;
-
-
             if (jacobiansMinimal != NULL && jacobiansMinimal[3] != NULL) {
 
                 Eigen::Map<Eigen::Matrix<double, 2, 6, Eigen::RowMajor>> J3_minimal_map(jacobiansMinimal[3]);

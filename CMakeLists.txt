@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(PoseSpline)
 
-set(cmake_build_type Debug)
+set(cmake_build_type Release)
 
 find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
@@ -9,7 +9,7 @@ catkin_simple(ALL_DEPS_REQUIRED)
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
 
 
 

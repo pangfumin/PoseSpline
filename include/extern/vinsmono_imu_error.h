@@ -204,6 +204,7 @@ namespace hamilton {
             Eigen::Vector3d dbg = Bgi - linearized_bg;
 
             Eigen::Quaterniond corrected_delta_q = delta_q * Utility::deltaQ(dq_dbg * dbg);
+
             Eigen::Vector3d corrected_delta_v = delta_v + dv_dba * dba + dv_dbg * dbg;
             Eigen::Vector3d corrected_delta_p = delta_p + dp_dba * dba + dp_dbg * dbg;
 

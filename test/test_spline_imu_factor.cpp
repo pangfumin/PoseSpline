@@ -96,9 +96,9 @@ int main(){
     JPL::ImuParam imuParam;
     hamilton::ImuParam imuParam1;
     std::string pose_file =
-            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
+            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
     std::string imu_meas_file =
-            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
+            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
 
     TestSample testSample;
     testSample.readStates(pose_file);
@@ -251,6 +251,8 @@ int main(){
         hamilton_T0 << t_WI0, hamilton_q_WI0.coeffs();
         hamilton_T1 << t_WI1, hamilton_q_WI1.coeffs();
         Eigen::Matrix<double,9,1> sb0, sb1;
+        ba1 << 0.1,0.1,0.2;
+        bg1 << 0.1,0.1,0.2;
         sb0 << v0, ba0, bg0;
         sb1 << v1, ba1, bg1;
 

@@ -81,14 +81,20 @@ if(CATKIN_ENABLE_TESTING)
 
 endif()
 
-add_executable(test_imu_factor test/test_imu_factor.cpp)
-target_link_libraries(test_imu_factor ${PROJECT_NAME}  -lpthread -lm)
 
 add_executable(test_simulate_spline_project test/test_simulate_spline_project.cpp)
 target_link_libraries(test_simulate_spline_project ${PROJECT_NAME} -lpthread -lm)
 
 add_executable(test_simulate_project test/test_simulate_project.cpp)
 target_link_libraries(test_simulate_project ${PROJECT_NAME} -lpthread -lm)
+
+add_executable(test_vinsmono_imu_factor test/test_vinsmono_imu_factor.cpp)
+target_link_libraries(test_vinsmono_imu_factor ${PROJECT_NAME}  -lpthread -lm)
+
+add_executable(test_spline_imu_factor test/test_spline_imu_factor.cpp)
+target_link_libraries(test_spline_imu_factor ${PROJECT_NAME}  -lpthread -lm)
+
+
 
 cs_install()
 cs_export()

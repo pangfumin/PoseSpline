@@ -1,6 +1,4 @@
-
-//#include "vins_estimator/utility/NumbDifferentiator.hpp"
-#include "extern/spline_imu_error.h"
+#include "extern/vinsmono_imu_error.h"
 #include "internal/pose_local_parameterization.h"
 #include "PoseSpline/NumbDifferentiator.hpp"
 
@@ -9,37 +7,7 @@
 #include "PoseSpline/Time.hpp"
 #include "csv.h"
 
-void T2double(Eigen::Isometry3d& T,double* ptr){
-
-    Eigen::Vector3d trans = T.matrix().topRightCorner(3,1);
-    Eigen::Matrix3d R = T.matrix().topLeftCorner(3,3);
-    Eigen::Quaterniond q(R);
-
-    ptr[0] = trans(0);
-    ptr[1] = trans(1);
-    ptr[2] = trans(2);
-    ptr[3] = q.x();
-    ptr[4] = q.y();
-    ptr[5] = q.z();
-    ptr[6] = q.w();
-}
-
-void applyNoise(const Eigen::Isometry3d& Tin,Eigen::Isometry3d& Tout){
-
-
-    Tout.setIdentity();
-
-    Eigen::Vector3d delat_trans = 0.9*Eigen::Matrix<double,3,1>::Random();
-    Eigen::Vector3d delat_rot = 0.26*Eigen::Matrix<double,3,1>::Random();
-
-    Eigen::Quaterniond delat_quat(1.0,delat_rot(0),delat_rot(1),delat_rot(2)) ;
-
-    Tout.matrix().topRightCorner(3,1) = Tin.matrix().topRightCorner(3,1) + delat_trans;
-    Tout.matrix().topLeftCorner(3,3) =   Tin.matrix().topLeftCorner(3,3)*delat_quat.toRotationMatrix();
-}
-
-
-
+using namespace hamilton;
 
 class PosegraphErrorTermsEigen {
 public:
@@ -445,7 +413,7 @@ int main(){
     }
 
     std::cout << "test on : " << simulated_imus.size() << std::endl;
-    int imu_integrated_cnt = 5;
+    int imu_integrated_cnt = 100;
     for (int i = imu_integrated_cnt ; i < simulated_imus.size(); i+=imu_integrated_cnt) {
         Eigen::Quaterniond q_WI0, q_WI1;
         Eigen::Vector3d t_WI0, t_WI1;
@@ -479,6 +447,11 @@ int main(){
             t0 = tk;
             intergrateImu->push_back(dt, accel,gyro);
         }
+
+        Eigen::Quaterniond delta_q = intergrateImu->delta_q;
+        Eigen::Quaterniond q_I0I1 = q_WI0.inverse()*q_WI1;
+        std::cout << "delta_q: " << delta_q.coeffs().transpose() << std::endl;
+        std::cout << "q_I0I1 : " << q_I0I1.coeffs().transpose() << std::endl;
 
         IMUFactor imuFactor(intergrateImu.get());
 

@@ -275,9 +275,11 @@ public:
         Eigen::Map<Eigen::Matrix<double, 15, 1>> residual(residuals);
         residual = pre_integration->evaluate(Pi, Qi, Vi, Bai, Bgi,
                                              Pj, Qj, Vj, Baj, Bgj);
+//        std::cout << "residual: " << residual.transpose() << std::endl;
 
         Eigen::Matrix<double, 15, 15> sqrt_info = Eigen::LLT<Eigen::Matrix<double, 15, 15>>(pre_integration->covariance.inverse()).matrixL().transpose();
-        //sqrt_info.setIdentity();
+        sqrt_info.setIdentity();
+
         residual = sqrt_info * residual;
 
         Eigen::Vector3d G{0.0, 0.0, 9.8};

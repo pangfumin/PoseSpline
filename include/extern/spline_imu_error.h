@@ -205,6 +205,8 @@ namespace  JPL {
             Eigen::Vector3d dba = Bai - linearized_ba;
             Eigen::Vector3d dbg = Bgi - linearized_bg;
 //
+
+//          todo: recover
 //        Eigen::Quaterniond corrected_delta_q = delta_q * Utility::deltaQ(dq_dbg * dbg);
 //        Eigen::Vector3d corrected_delta_v = delta_v + dv_dba * dba + dv_dbg * dbg;
 //        Eigen::Vector3d corrected_delta_p = delta_p + dp_dba * dba + dp_dbg * dbg;
@@ -215,7 +217,7 @@ namespace  JPL {
 //
         Eigen::Matrix3d R_WI = quatToRotMat(Qi);
         residuals.block<3, 1>(O_P, 0) = R_WI.transpose() * (0.5 * G * sum_dt * sum_dt + Pj - Pi - Vi * sum_dt) - corrected_delta_p;
-        residuals.block<3, 1>(O_R, 0) = 2 * quatMult(quatInv(corrected_delta_q), quatMult(quatInv(Qj), Qi)).head<3>();
+        residuals.block<3, 1>(O_R, 0) = 2 * quatMult(corrected_delta_q, quatMult(quatInv(Qi), Qj)).head<3>();
         residuals.block<3, 1>(O_V, 0) = R_WI.transpose() * (G * sum_dt + Vj - Vi) - corrected_delta_v;
         residuals.block<3, 1>(O_BA, 0) = Baj - Bai;
         residuals.block<3, 1>(O_BG, 0) = Bgj - Bgi;

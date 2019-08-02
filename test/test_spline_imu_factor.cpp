@@ -258,6 +258,16 @@ int main(){
         double* hamilton_parameters[4] = {hamilton_T0.data(), sb0.data(), hamilton_T1.data(), sb1.data()};
 
 
+        JPL::IMUFactor JPL_Imufactor(JPL_intergrateImu.get());
+        hamilton::IMUFactor hamilton_Imufactor(hamilton_intergrateImu.get());
+
+        JPL_Imufactor.Evaluate(JPL_parameters, JPL_residuals.data(), NULL);
+        hamilton_Imufactor.Evaluate(hamilton_parameters, hamilton_residuals.data(), NULL);
+
+        std::cout << "factor JPL_residuals     :" << JPL_residuals.transpose() << std::endl;
+        std::cout << "factor hamilton_residuals:" << hamilton_residuals.transpose() << std::endl;
+
+        CHECK_EQ((JPL_residuals - hamilton_residuals).squaredNorm() < 1e-3, true) << "residual error is large";
 
 
 

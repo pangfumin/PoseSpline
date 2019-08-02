@@ -60,8 +60,11 @@ Eigen::Vector3d PSUtility::EvaluatePosition(double u,
 }
 
 Eigen::Vector3d PSUtility::EvaluateLinearAccelerate(double u, double dt,
-                                                    const Pose<double>& P0, const Pose<double>& P1,
-                                                  const Pose<double>& P2, const Pose<double>& P3) {
+                                                    const Pose<double>& P0,
+                                                    const Pose<double>& P1,
+                                                  const Pose<double>& P2,
+                                                  const Pose<double>& P3,
+                                                  const Eigen::Vector3d& gravity) {
 
     Eigen::Vector3d V0 = P0.translation();
     Eigen::Vector3d V1 = P1.translation();
@@ -79,10 +82,9 @@ Eigen::Vector3d PSUtility::EvaluateLinearAccelerate(double u, double dt,
     Quaternion Q_WI = QSUtility::EvaluateQS(u,Q0,Q1,Q2,Q3);
     Eigen::Matrix3d R_WI = quatToRotMat(Q_WI);
 
-    const Eigen::Vector3d G(0.0, 0.0, -9.81);
     Eigen::Vector3d accel_in_world_frame = ddBeta1*(V1 - V0) +  ddBeta2*(V2 - V1) + ddBeta3*(V3 - V2);
     Eigen::Vector3d accel_in_body_frame
-            = R_WI.transpose() * ( accel_in_world_frame - G);
+            = R_WI.transpose() * ( accel_in_world_frame + gravity);
     return accel_in_body_frame;
 }
 

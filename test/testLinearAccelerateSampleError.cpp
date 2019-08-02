@@ -40,8 +40,8 @@ int main() {
 
     Eigen::Vector3d bias_a = PSUtility::EvaluatePosition(u_meas, bw0,bw1,bw2,bw3);
     std::cout<<"bias_a: "<<bias_a.transpose() << std::endl;
-
-    Eigen::Vector3d a_body = PSUtility::EvaluateLinearAccelerate(u_meas, 1.0, pose0,pose1,pose2,pose3);
+    const Eigen::Vector3d G(0.0, 0.0, 9.81);
+    Eigen::Vector3d a_body = PSUtility::EvaluateLinearAccelerate(u_meas, 1.0, pose0,pose1,pose2,pose3, G);
     std::cout<<"a_body: "<<a_body.transpose() << std::endl;
 
     Eigen::Vector3d a_meas = a_body + bias_a;

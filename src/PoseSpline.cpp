@@ -102,8 +102,7 @@
                                                  t0, t1, t2, t3);
     }
 
-    Eigen::Vector3d PoseSpline::evalLinearAccelerator(real_t t) {
-
+    Eigen::Vector3d PoseSpline::evalLinearAccelerator(real_t t, const Eigen::Vector3d& gravity) {
         std::pair<double,unsigned  int> ui = computeUAndTIndex(t);
         double u = ui.first;
         unsigned int bidx = ui.second - spline_order() + 1;
@@ -119,7 +118,8 @@
 
 
         return PSUtility::EvaluateLinearAccelerate(u, getTimeInterval(),
-                                                  Pose0, Pose1, Pose2,Pose3);
+                                                  Pose0, Pose1,
+                                                  Pose2, Pose3, gravity);
 
     }
 

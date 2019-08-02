@@ -94,9 +94,9 @@ public:
 
 TEST( Spline , poseSplineInitialization){
     std::string pose_file =
-            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
+            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
     std::string imu_meas_file =
-            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
+            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
 
     TestSample testSample;
     testSample.readStates(pose_file);
@@ -177,12 +177,13 @@ TEST( Spline , poseSplineInitialization){
 
 
 //    std::ofstream ofs_debug("/home/pang/debug.txt");
+    const Eigen::Vector3d G(0.0, 0.0, 9.81);
 
     for(uint i = start; i <end; i++){
         StampedImu stampedImu = testSample.imu_vec_.at(i);
         auto ts = Time(stampedImu.timestamp_).toSec();
         if(poseSpline.isTsEvaluable(ts)){
-            Eigen::Vector3d evalAccel = poseSpline.evalLinearAccelerator(ts);
+            Eigen::Vector3d evalAccel = poseSpline.evalLinearAccelerator(ts,G);
 
             // Note: the accelerator is noisy,
 //            std::cout <<"Gt:    "<< stampedImu.accel_.transpose()<<std::endl;
@@ -316,9 +317,9 @@ TEST( Spline , quaternionSplineInitialization) {
 ////
 
     std::string pose_file =
-            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
+            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
     std::string imu_meas_file =
-            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
+            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
 
     TestSample testSample;
     testSample.readStates(pose_file);

@@ -18,13 +18,9 @@
 
 template<typename Functor,int ParamBlockSize /* num of parameter blocks */>
 class NumbDifferentiator{
-
 public:
-
-
     NumbDifferentiator(Functor* ptrErrorFunctor):
             ptrErrorFunctor_(ptrErrorFunctor){
-
         if(ptrErrorFunctor_ == NULL){
             LOG(FATAL)<<"Error functor pointor is NULL!";
         }
@@ -64,13 +60,16 @@ public:
         Eigen::Matrix<double,ResidualDim,1> residual_minus;
 
         Eigen::Matrix<double,ParamDim,1>  xi_plus_delta, xi_minus_delta;
+
         Eigen::Matrix<double,MinimalParamDim,1> delta;
 
         for(unsigned int i = 0; i < MinimalParamDim; i++){
-
             // plus
+            xi_plus_delta.setZero();
+            xi_minus_delta.setZero();
             delta.setZero();
             delta(i) = Eps;
+
             ptrlocalParemeter->Plus(xi.data(),delta.data(),xi_plus_delta.data());
             double* parameter_plus[ParamBlockSize];
             applyDistribance(parameters,xi_plus_delta.data(),parameter_plus,paramId);
@@ -116,6 +115,8 @@ public:
 
         for (unsigned int i = 0; i < ParamDim; i++) {
 
+            xi_plus_delta.setZero();
+            xi_minus_delta.setZero();
             delta.setZero();
             delta(i) = Eps;
             xi_plus_delta = xi + delta;

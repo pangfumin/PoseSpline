@@ -24,10 +24,8 @@ cs_add_library(${PROJECT_NAME}
         src/extern/project_error.cpp
         src/extern/RotateVectorError.cpp
         src/extern/TransformVectorError.cpp
-        src/extern/ImuFactor.cpp
-        src/extern/PoseParameterBlock.cpp
-        src/extern/SpeedAndBiasParameterBlock.cpp
-        src/extern/PoseLocalParameterization.cpp
+        src/internal/pose_local_parameterization.cpp
+        src/internal/utility.cpp
         src/QuaternionSplineUtility.cpp
         src/QuaternionSpline.cpp
         src/QuaternionSplineSampleError.cpp
@@ -84,19 +82,13 @@ if(CATKIN_ENABLE_TESTING)
 endif()
 
 add_executable(test_imu_factor test/test_imu_factor.cpp)
-target_link_libraries(test_imu_factor ${PROJECT_NAME} -lpthread -lm)
+target_link_libraries(test_imu_factor ${PROJECT_NAME}  -lpthread -lm)
 
-add_executable(test_imu_factor1 test/test_imu_factor1.cpp)
-target_link_libraries(test_imu_factor1 ${PROJECT_NAME} -lpthread -lm)
-
-
-add_executable(test_simulate_project test/test_simulate_project.cpp)
-target_link_libraries(test_simulate_project ${PROJECT_NAME} -lpthread -lm)
-#
 add_executable(test_simulate_spline_project test/test_simulate_spline_project.cpp)
 target_link_libraries(test_simulate_spline_project ${PROJECT_NAME} -lpthread -lm)
 
-
+add_executable(test_simulate_project test/test_simulate_project.cpp)
+target_link_libraries(test_simulate_project ${PROJECT_NAME} -lpthread -lm)
 
 cs_install()
 cs_export()

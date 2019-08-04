@@ -94,6 +94,10 @@ target_link_libraries(test_vinsmono_imu_factor ${PROJECT_NAME}  -lpthread -lm)
 add_executable(test_spline_imu_factor test/test_spline_imu_factor.cpp)
 target_link_libraries(test_spline_imu_factor ${PROJECT_NAME}  -lpthread -lm)
 
+add_executable(test_JPL_imu_factor test/test_JPL_imu_factor.cpp)
+target_link_libraries(test_JPL_imu_factor ${PROJECT_NAME}  -lpthread -lm)
+
+
 
 
 cs_install()

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <ceres/ceres.h>
 #include <gtest/gtest.h>
+#include <PoseSpline/QuaternionLocalParameter.hpp>
 #include "PoseSpline/QuaternionSpline.hpp"
 #include "PoseSpline/QuaternionSplineUtility.hpp"
 #include "PoseSpline/PoseLocalParameter.hpp"
@@ -108,4 +109,23 @@ TEST(Geometry, QuaternionUtility) {
     Eigen::Vector3d phi(0.00164243,-0.0239352 ,-0.00516655);
     QuaternionTemplate<double> r_03 = QSUtility::r(beta,phi);
     std::cout << r_03.transpose() << std::endl;
+}
+
+
+TEST(Geometry, QuaternionJacobian) {
+    for (int i = 0; i < 100; i++) {
+        QuaternionTemplate<double> q;
+        q.setRandom();
+        Eigen::Matrix<double,4,3,Eigen::RowMajor> plusJacobian;
+        Eigen::Matrix<double,3,4,Eigen::RowMajor> liftJacobian;
+
+        QuaternionLocalParameter::plusJacobian(q.data(), plusJacobian.data());
+        QuaternionLocalParameter::liftJacobian(q.data(), liftJacobian.data());
+
+        GTEST_ASSERT_LT((liftJacobian*plusJacobian - Eigen::Matrix3d::Identity()).norm(), 1e6);
+    }
+
+
+
+
 }

@@ -4,7 +4,7 @@
 
 #include <eigen3/Eigen/Dense>
 #include <ceres/ceres.h>
-
+#include "Quaternion.hpp"
 class QuaternionLocalParameter: public  ceres::LocalParameterization{
 
 
@@ -17,7 +17,7 @@ public:
         Eigen::Map<const Eigen::Vector3d> delta_phi(delta);
 
         Quaternion dq;
-        dq<< 0.5*delta_phi, 1.0;
+        dq << 0.5*delta_phi, 1.0;
 
         Eigen::Map<Quaternion> Q_plus(x_plus_delta);
         Q_plus = quatLeftComp(dq)*Q_;

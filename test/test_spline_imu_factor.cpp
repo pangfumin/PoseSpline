@@ -254,8 +254,8 @@ int main(){
         hamilton_T0 << t_WI0, hamilton_q_WI0.coeffs();
         hamilton_T1 << t_WI1, hamilton_q_WI1.coeffs();
         Eigen::Matrix<double,9,1> sb0, sb1;
-        ba0 << 0.1,-0.1,-0.2;
-        bg0 << 0.1,-0.1,-0.2;
+//        ba0 << 0.1,-0.1,-0.2;
+        bg0 << 0.005,-0.0051,-0.00512;
 
         ba1 << 0.1,0.1,0.2;
         bg1 << 0.1,0.1,0.2;
@@ -311,7 +311,7 @@ int main(){
             std::cout << "num jacobian1:  \n" << results.local_numeric_jacobians.at(1) << std::endl;
 
         CHECK_EQ((results.local_jacobians.at(1) - results.local_numeric_jacobians.at(1)).squaredNorm() < 1e-6, true) << "jcaobian error is large";
-
+//
 //            std::cout << "jacobian2:  \n" << results.local_jacobians.at(2) << std::endl;
 //            std::cout << "num jacobian2:  \n" << results.local_numeric_jacobians.at(2) << std::endl;
 

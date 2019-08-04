@@ -203,14 +203,19 @@ namespace hamilton {
             Eigen::Vector3d dba = Bai - linearized_ba;
             Eigen::Vector3d dbg = Bgi - linearized_bg;
 
-            Eigen::Quaterniond corrected_delta_q = delta_q * Utility::deltaQ(dq_dbg * dbg);
+            corrected_delta_q = delta_q * Utility::deltaQ(dq_dbg * dbg);
 
             Eigen::Vector3d corrected_delta_v = delta_v + dv_dba * dba + dv_dbg * dbg;
             Eigen::Vector3d corrected_delta_p = delta_p + dp_dba * dba + dp_dbg * dbg;
 
             residuals.block<3, 1>(O_P, 0) =
                     Qi.inverse() * (0.5 * G * sum_dt * sum_dt + Pj - Pi - Vi * sum_dt) - corrected_delta_p;
-            residuals.block<3, 1>(O_R, 0) = 2 * (corrected_delta_q.inverse() * (Qi.inverse() * Qj)).vec();
+            Eigen::Quaterniond delta_q_ij_hat = Qi.inverse() * Qj;
+            Eigen::Quaterniond delta = (corrected_delta_q.inverse() * delta_q_ij_hat);
+//            if (delta.w() < 0) {
+//                delta.coeffs() = - delta.coeffs();
+//            }
+            residuals.block<3, 1>(O_R, 0) = 2 * delta.vec();
             residuals.block<3, 1>(O_V, 0) = Qi.inverse() * (G * sum_dt + Vj - Vi) - corrected_delta_v;
             residuals.block<3, 1>(O_BA, 0) = Baj - Bai;
             residuals.block<3, 1>(O_BG, 0) = Bgj - Bgi;
@@ -233,6 +238,8 @@ namespace hamilton {
         Eigen::Vector3d delta_p;
         Eigen::Quaterniond delta_q;
         Eigen::Vector3d delta_v;
+
+        Eigen::Quaterniond corrected_delta_q;
 
         std::vector<double> dt_buf;
         std::vector<Eigen::Vector3d> acc_buf;

@@ -2,12 +2,15 @@
 #include "extern/spline_imu_error.h"
 #include "extern/vinsmono_imu_error.h"
 #include "internal/pose_local_parameterization.h"
+#include "PoseSpline/PoseLocalParameter.hpp"
 #include "PoseSpline/NumbDifferentiator.hpp"
 
 #include "PoseSpline/Pose.hpp"
 #include "PoseSpline/PoseSpline.hpp"
 #include "PoseSpline/Time.hpp"
 #include "csv.h"
+
+#include <ceres/gradient_checker.h>
 
 struct StampedPose{
     uint64_t timestamp_;
@@ -251,8 +254,12 @@ int main(){
         hamilton_T0 << t_WI0, hamilton_q_WI0.coeffs();
         hamilton_T1 << t_WI1, hamilton_q_WI1.coeffs();
         Eigen::Matrix<double,9,1> sb0, sb1;
+        ba0 << 0.1,-0.1,-0.2;
+        bg0 << 0.1,-0.1,-0.2;
+
         ba1 << 0.1,0.1,0.2;
         bg1 << 0.1,0.1,0.2;
+
         sb0 << v0, ba0, bg0;
         sb1 << v1, ba1, bg1;
 
@@ -266,11 +273,54 @@ int main(){
         JPL_Imufactor.Evaluate(JPL_parameters, JPL_residuals.data(), NULL);
         hamilton_Imufactor.Evaluate(hamilton_parameters, hamilton_residuals.data(), NULL);
 
+        std::cout << "JPL_intergrateImu     -> correct_q: " << JPL_intergrateImu->corrected_delta_q.transpose() << std::endl;
+        std::cout << "hamilton_intergrateImu-> correct_q: " << hamilton_intergrateImu->corrected_delta_q.coeffs().transpose() << std::endl;
+
         std::cout << "factor JPL_residuals     :" << JPL_residuals.transpose() << std::endl;
         std::cout << "factor hamilton_residuals:" << hamilton_residuals.transpose() << std::endl;
 
-        CHECK_EQ((JPL_residuals - hamilton_residuals).squaredNorm() < 1e-3, true) << "residual error is large";
+        //
+        //CHECK_EQ((JPL_residuals - hamilton_residuals).squaredNorm() < 1e-3, true) << "residual error is large";
 
+
+        // jacnobian
+        ceres::LocalParameterization* localParameterization =
+                new PoseLocalParameter;
+
+        ceres::NumericDiffOptions numeric_diff_options;
+        numeric_diff_options.ridders_relative_initial_step_size = 1e-3;
+
+        std::vector<const ceres::LocalParameterization*> local_parameterizations;
+        local_parameterizations.push_back(localParameterization);
+        local_parameterizations.push_back(NULL);
+        local_parameterizations.push_back(localParameterization);
+        local_parameterizations.push_back(NULL);
+
+        ceres::GradientChecker gradient_checker(
+                &JPL_Imufactor, &local_parameterizations, numeric_diff_options);
+        ceres::GradientChecker::ProbeResults results;
+
+        gradient_checker.Probe(JPL_parameters, 1e-9, &results);
+//            std::cout << "jacobian0:  \n" << results.local_jacobians.at(0) << std::endl;
+//            std::cout << "num jacobian0:  \n" << results.local_numeric_jacobians.at(0) << std::endl;
+//
+        CHECK_EQ((results.local_jacobians.at(0) - results.local_numeric_jacobians.at(0)).squaredNorm() < 1e-6, true) << "jcaobian error is large";
+
+
+            std::cout << "jacobian1:  \n" << results.local_jacobians.at(1) << std::endl;
+            std::cout << "num jacobian1:  \n" << results.local_numeric_jacobians.at(1) << std::endl;
+
+        CHECK_EQ((results.local_jacobians.at(1) - results.local_numeric_jacobians.at(1)).squaredNorm() < 1e-6, true) << "jcaobian error is large";
+
+//            std::cout << "jacobian2:  \n" << results.local_jacobians.at(2) << std::endl;
+//            std::cout << "num jacobian2:  \n" << results.local_numeric_jacobians.at(2) << std::endl;
+
+        CHECK_EQ((results.local_jacobians.at(2) - results.local_numeric_jacobians.at(2)).squaredNorm() < 1e-6, true) << "jcaobian error is large";
+
+//        std::cout << "jacobian3:  \n" << results.local_jacobians.at(3) << std::endl;
+//        std::cout << "num jacobian3:  \n" << results.local_numeric_jacobians.at(3) << std::endl;
+
+        CHECK_EQ((results.local_jacobians.at(3) - results.local_numeric_jacobians.at(3)).squaredNorm() < 1e-6, true) << "jcaobian error is large";
 
 
 //        IMUFactor imuFactor(intergrateImu.get());

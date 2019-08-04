@@ -208,7 +208,8 @@ namespace  JPL {
             Eigen::Vector3d dbg = Bgi - linearized_bg;
 
             Eigen::Vector3d temp = dq_dbg * dbg;
-            QuaternionTemplate<double> corrected_delta_q = quatMult(deltaQuat<double>(temp), delta_q) ;
+            corrected_delta_q = quatMult(deltaQuat<double>(temp), delta_q);
+
             Eigen::Vector3d corrected_delta_v = delta_v + dv_dba * dba + dv_dbg * dbg;
             Eigen::Vector3d corrected_delta_p = delta_p + dp_dba * dba + dp_dbg * dbg;
 
@@ -258,7 +259,7 @@ namespace  JPL {
 
                 J_r_bg0.setZero();
                 J_r_bg0.block<3,3>(O_P, 0) = - dp_dbg;
-                J_r_bg0.block<3,3>(O_R, 0) = - (quatRightComp(quatMult(quatInv(Qj), Qi))* quatLeftComp(quatInv(delta_q))).topLeftCorner(3,3) * dq_dbg;
+                J_r_bg0.block<3,3>(O_R, 0) = - (quatLeftComp(quatInv(delta_q)) * quatRightComp(quatMult(quatInv(Qj), Qi))).topLeftCorner(3,3) * dq_dbg;
                 J_r_bg0.block<3,3>(O_V, 0) = - dv_dbg;
                 J_r_bg0.block<3,3>(O_BG, 0) = - Eigen::Matrix3d::Identity();
 
@@ -299,6 +300,8 @@ namespace  JPL {
         Eigen::Vector3d delta_p;
         QuaternionTemplate<double> delta_q;  // Q_Ikp1_Ik   in JPL
         Eigen::Vector3d delta_v;
+
+        QuaternionTemplate<double> corrected_delta_q;
 
         std::vector<double> dt_buf;
         std::vector<Eigen::Vector3d> acc_buf;
@@ -341,9 +344,28 @@ namespace  JPL {
             Eigen::Vector3d Bgj(parameters[3][6], parameters[3][7], parameters[3][8]);
 
 
+            Eigen::Matrix<double, 15, 3, Eigen::RowMajor> J_r_t_WI0;
+            Eigen::Matrix<double, 15, 4, Eigen::RowMajor> J_r_q_WI0;
+            Eigen::Matrix<double, 15, 3, Eigen::RowMajor> J_r_v_WI0;
+            Eigen::Matrix<double, 15, 3, Eigen::RowMajor> J_r_ba0;
+            Eigen::Matrix<double, 15, 3, Eigen::RowMajor> J_r_bg0;
+
+            Eigen::Matrix<double, 15, 3, Eigen::RowMajor> J_r_t_WI1;
+            Eigen::Matrix<double, 15, 4, Eigen::RowMajor> J_r_q_WI1;
+            Eigen::Matrix<double, 15, 3, Eigen::RowMajor> J_r_v_WI1;
+            Eigen::Matrix<double, 15, 3, Eigen::RowMajor> J_r_ba1;
+            Eigen::Matrix<double, 15, 3, Eigen::RowMajor> J_r_bg1;
+
+
+            double* internal_jacobians[10] = {J_r_t_WI0.data(), J_r_q_WI0.data(),
+                                              J_r_v_WI0.data(), J_r_ba0.data(), J_r_bg0.data(),
+                                              J_r_t_WI1.data(), J_r_q_WI1.data(),
+                                              J_r_v_WI1.data(), J_r_ba1.data(), J_r_bg1.data()};
+
             Eigen::Map<Eigen::Matrix<double, 15, 1>> residual(residuals);
             residual = pre_integration->evaluate(Pi, Qi, Vi, Bai, Bgi,
-                                                 Pj, Qj, Vj, Baj, Bgj);
+                                                 Pj, Qj, Vj, Baj, Bgj,
+                                                 internal_jacobians);
 
             Eigen::Matrix<double, 15, 15> sqrt_info = Eigen::LLT<Eigen::Matrix<double, 15, 15>>(
                     pre_integration->covariance.inverse()).matrixL().transpose();
@@ -354,108 +376,35 @@ namespace  JPL {
             Eigen::Vector3d G{0.0, 0.0, 9.8};
         if (jacobians)
         {
-            double sum_dt = pre_integration->sum_dt;
-            Eigen::Matrix3d dp_dba = pre_integration->jacobian.template block<3, 3>(O_P, O_BA);
-            Eigen::Matrix3d dp_dbg = pre_integration->jacobian.template block<3, 3>(O_P, O_BG);
 
-            Eigen::Matrix3d dq_dbg = pre_integration->jacobian.template block<3, 3>(O_R, O_BG);
+            if (jacobians[0])
+            {
+                Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian_pose_i(jacobians[0]);
+                jacobian_pose_i.setZero();
+                jacobian_pose_i << J_r_t_WI0, J_r_q_WI0;
+            }
+            if (jacobians[1])
+            {
+                Eigen::Map<Eigen::Matrix<double, 15, 9, Eigen::RowMajor>> jacobian_speedbias_i(jacobians[1]);
+                jacobian_speedbias_i.setZero();
+                jacobian_speedbias_i << J_r_v_WI0, J_r_ba0, J_r_bg0;
 
-            Eigen::Matrix3d dv_dba = pre_integration->jacobian.template block<3, 3>(O_V, O_BA);
-            Eigen::Matrix3d dv_dbg = pre_integration->jacobian.template block<3, 3>(O_V, O_BG);
+            }
+            if (jacobians[2])
+            {
+                Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian_pose_j(jacobians[2]);
+                jacobian_pose_j.setZero();
 
+                jacobian_pose_j << J_r_t_WI1, J_r_q_WI1;
 
+            }
+            if (jacobians[3])
+            {
+                Eigen::Map<Eigen::Matrix<double, 15, 9, Eigen::RowMajor>> jacobian_speedbias_j(jacobians[3]);
+                jacobian_speedbias_j.setZero();
 
-
-
-//
-//            if (jacobians[0])
-//            {
-//                Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian_pose_i(jacobians[0]);
-//                jacobian_pose_i.setZero();
-//
-//                jacobian_pose_i.block<3, 3>(O_P, O_P) = -Qi.inverse().toRotationMatrix();
-//                jacobian_pose_i.block<3, 3>(O_P, O_R) = Utility::skewSymmetric(Qi.inverse() * (0.5 * G * sum_dt * sum_dt + Pj - Pi - Vi * sum_dt));
-//
-//
-//                Eigen::Quaterniond corrected_delta_q = pre_integration->delta_q * Utility::deltaQ(dq_dbg * (Bgi - pre_integration->linearized_bg));
-//                jacobian_pose_i.block<3, 3>(O_R, O_R) = -(Utility::Qleft(Qj.inverse() * Qi) * Utility::Qright(corrected_delta_q)).bottomRightCorner<3, 3>();
-//
-//                jacobian_pose_i.block<3, 3>(O_V, O_R) = Utility::skewSymmetric(Qi.inverse() * (G * sum_dt + Vj - Vi));
-//
-//                jacobian_pose_i = sqrt_info * jacobian_pose_i;
-//
-//                if (jacobiansMinimal != nullptr && jacobiansMinimal[0] != nullptr) {
-//                    Eigen::Map<Eigen::Matrix<double, 15, 6, Eigen::RowMajor>> min_jacobian(jacobiansMinimal[0]);
-//                    min_jacobian = jacobian_pose_i.leftCols(6);
-//                }
-//
-//
-//            }
-//            if (jacobians[1])
-//            {
-//                Eigen::Map<Eigen::Matrix<double, 15, 9, Eigen::RowMajor>> jacobian_speedbias_i(jacobians[1]);
-//                jacobian_speedbias_i.setZero();
-//                jacobian_speedbias_i.block<3, 3>(O_P, O_V - O_V) = -Qi.inverse().toRotationMatrix() * sum_dt;
-//                jacobian_speedbias_i.block<3, 3>(O_P, O_BA - O_V) = -dp_dba;
-//                jacobian_speedbias_i.block<3, 3>(O_P, O_BG - O_V) = -dp_dbg;
-//
-//                //Eigen::Quaterniond corrected_delta_q = pre_integration->delta_q * Utility::deltaQ(dq_dbg * (Bgi - pre_integration->linearized_bg));
-//                //jacobian_speedbias_i.block<3, 3>(O_R, O_BG - O_V) = -Utility::Qleft(Qj.inverse() * Qi * corrected_delta_q).bottomRightCorner<3, 3>() * dq_dbg;
-//                jacobian_speedbias_i.block<3, 3>(O_R, O_BG - O_V) = -Utility::Qleft(Qj.inverse() * Qi * pre_integration->delta_q).bottomRightCorner<3, 3>() * dq_dbg;
-//
-//                jacobian_speedbias_i.block<3, 3>(O_V, O_V - O_V) = -Qi.inverse().toRotationMatrix();
-//                jacobian_speedbias_i.block<3, 3>(O_V, O_BA - O_V) = -dv_dba;
-//                jacobian_speedbias_i.block<3, 3>(O_V, O_BG - O_V) = -dv_dbg;
-//
-//                jacobian_speedbias_i.block<3, 3>(O_BA, O_BA - O_V) = -Eigen::Matrix3d::Identity();
-//
-//                jacobian_speedbias_i.block<3, 3>(O_BG, O_BG - O_V) = -Eigen::Matrix3d::Identity();
-//
-//                jacobian_speedbias_i = sqrt_info * jacobian_speedbias_i;
-//
-//                //ROS_ASSERT(fabs(jacobian_speedbias_i.maxCoeff()) < 1e8);
-//                //ROS_ASSERT(fabs(jacobian_speedbias_i.minCoeff()) < 1e8);
-//                if (jacobiansMinimal != nullptr && jacobiansMinimal[1] != nullptr) {
-//                    Eigen::Map<Eigen::Matrix<double, 15, 9, Eigen::RowMajor>> min_jacobian(jacobiansMinimal[1]);
-//                    min_jacobian = jacobian_speedbias_i;
-//                }
-//            }
-//            if (jacobians[2])
-//            {
-//                Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian_pose_j(jacobians[2]);
-//                jacobian_pose_j.setZero();
-//
-//                jacobian_pose_j.block<3, 3>(O_P, O_P) = Qi.inverse().toRotationMatrix();
-//
-//                Eigen::Quaterniond corrected_delta_q = pre_integration->delta_q * Utility::deltaQ(dq_dbg * (Bgi - pre_integration->linearized_bg));
-//                jacobian_pose_j.block<3, 3>(O_R, O_R) = Utility::Qleft(corrected_delta_q.inverse() * Qi.inverse() * Qj).bottomRightCorner<3, 3>();
-//
-//                jacobian_pose_j = sqrt_info * jacobian_pose_j;
-//
-//                if (jacobiansMinimal != nullptr && jacobiansMinimal[2] != nullptr) {
-//                    Eigen::Map<Eigen::Matrix<double, 15, 6, Eigen::RowMajor>> min_jacobian(jacobiansMinimal[2]);
-//                    min_jacobian = jacobian_pose_j.leftCols(6);
-//                }
-//
-//
-//            }
-//            if (jacobians[3])
-//            {
-//                Eigen::Map<Eigen::Matrix<double, 15, 9, Eigen::RowMajor>> jacobian_speedbias_j(jacobians[3]);
-//                jacobian_speedbias_j.setZero();
-//
-//                jacobian_speedbias_j.block<3, 3>(O_V, O_V - O_V) = Qi.inverse().toRotationMatrix();
-//
-//                jacobian_speedbias_j.block<3, 3>(O_BA, O_BA - O_V) = Eigen::Matrix3d::Identity();
-//
-//                jacobian_speedbias_j.block<3, 3>(O_BG, O_BG - O_V) = Eigen::Matrix3d::Identity();
-//
-//                jacobian_speedbias_j = sqrt_info * jacobian_speedbias_j;
-//                if (jacobiansMinimal != nullptr && jacobiansMinimal[3] != nullptr) {
-//                    Eigen::Map<Eigen::Matrix<double, 15, 9, Eigen::RowMajor>> min_jacobian(jacobiansMinimal[3]);
-//                    min_jacobian = jacobian_speedbias_j;
-//                }
-//            }
+                jacobian_speedbias_j << J_r_v_WI1, J_r_ba1, J_r_bg1;
+            }
         }
 
             return true;

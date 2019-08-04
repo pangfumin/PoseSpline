@@ -347,9 +347,9 @@ int main(){
 
 
     std::string pose_file =
-            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
+            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
     std::string imu_meas_file =
-            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
+            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
 
     TestSample testSample;
     testSample.readStates(pose_file);
@@ -515,8 +515,8 @@ int main(){
 //
         numDiffer->df_r_xi<15,9>(noised_parameters,1,numJ1_minimal.data());
 //
-////        std::cout<<"J1_minimal: "<<std::endl<<jacobian1_min<<std::endl;
-////        std::cout<<"numJ1_minimal: "<<std::endl<<numJ1_minimal<<std::endl<<std::endl;
+        std::cout<<"J1_minimal: "<<std::endl<<jacobian1_min<<std::endl;
+        std::cout<<"numJ1_minimal: "<<std::endl<<numJ1_minimal<<std::endl<<std::endl;
         CHECK_EQ((jacobian1_min - numJ1_minimal).squaredNorm() < 0.001, true) << "Analytic and numDiff NOT equal."
                                                                                 <<std::endl<<jacobian1_min
                                                                                 << "\n numJ1_minimal: "

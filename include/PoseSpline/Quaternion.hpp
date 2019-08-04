@@ -293,11 +293,20 @@ inline Eigen::Matrix<T,4,4> quatRightComp( const Eigen::Matrix<T,4,1> q )
 
 
 template<typename T>
-Eigen::Matrix<T,4,1> quatMult( const Eigen::Matrix<T,4,1> q1,const Eigen::Matrix<T,4,1> q2 )
+Eigen::Matrix<T,4,1> quatMult( const Eigen::Matrix<T,4,1> q,const Eigen::Matrix<T,4,1> p)
 {
-    Eigen::Matrix<T,4,1> r;
-    r = quatLeftComp(q1) * q2;
-    return r;
+    Eigen::Matrix<T,4,1> qplus_p;
+    // p0*q3 + p1*q2 - p2*q1 + p3*q0
+    qplus_p[0] = p[0]*q[3] + p[1]*q[2] - p[2]*q[1] + p[3]*q[0];
+    // p2*q0 - p0*q2 + p1*q3 + p3*q1
+    qplus_p[1] = p[2]*q[0] - p[0]*q[2] + p[1]*q[3] + p[3]*q[1];
+    // p0*q1 - p1*q0 + p2*q3 + p3*q2
+    qplus_p[2] = p[0]*q[1] - p[1]*q[0] + p[2]*q[3] + p[3]*q[2];
+    // p3*q3 - p1*q1 - p2*q2 - p0*q0
+    qplus_p[3] = p[3]*q[3] - p[1]*q[1] - p[2]*q[2] - p[0]*q[0];
+
+    
+    return qplus_p;
 }
 
 

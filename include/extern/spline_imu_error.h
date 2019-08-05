@@ -272,23 +272,31 @@ namespace  JPL {
 
                 if (jacobians[0])
                 {
+                    Eigen::Matrix<double,6,7,Eigen::RowMajor> lift;
+                    PoseLocalParameter::liftJacobian(parameters[0], lift.data());
                     Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian(jacobians[0]);
-                    jacobian = J_r_pose_i*J_T_WI0_T0 + J_r_v_WI0*J_v_WI0_T0 + J_r_pose_j*J_T_WI1_T0 + J_r_v_WI1*J_v_WI1_T0;
+                    jacobian = (J_r_pose_i*J_T_WI0_T0 + J_r_v_WI0*J_v_WI0_T0 + J_r_pose_j*J_T_WI1_T0 + J_r_v_WI1*J_v_WI1_T0)*lift;
                 }
                 if (jacobians[1])
                 {
+                    Eigen::Matrix<double,6,7,Eigen::RowMajor> lift;
+                    PoseLocalParameter::liftJacobian(parameters[1], lift.data());
                     Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian(jacobians[1]);
-                    jacobian = J_r_pose_i*J_T_WI0_T1 + J_r_v_WI0*J_v_WI0_T1 + J_r_pose_j*J_T_WI1_T1 + J_r_v_WI1*J_v_WI1_T1;
+                    jacobian = (J_r_pose_i*J_T_WI0_T1 + J_r_v_WI0*J_v_WI0_T1 + J_r_pose_j*J_T_WI1_T1 + J_r_v_WI1*J_v_WI1_T1)*lift;
                 }
                 if (jacobians[2])
                 {
+                    Eigen::Matrix<double,6,7,Eigen::RowMajor> lift;
+                    PoseLocalParameter::liftJacobian(parameters[2], lift.data());
                     Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian(jacobians[2]);
-                    jacobian = J_r_pose_i*J_T_WI0_T2 + J_r_v_WI0*J_v_WI0_T2 + J_r_pose_j*J_T_WI1_T2 + J_r_v_WI1*J_v_WI1_T2;
+                    jacobian = (J_r_pose_i*J_T_WI0_T2 + J_r_v_WI0*J_v_WI0_T2 + J_r_pose_j*J_T_WI1_T2 + J_r_v_WI1*J_v_WI1_T2)*lift;
                 }
                 if (jacobians[3])
                 {
+                    Eigen::Matrix<double,6,7,Eigen::RowMajor> lift;
+                    PoseLocalParameter::liftJacobian(parameters[3], lift.data());
                     Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian(jacobians[3]);
-                    jacobian = J_r_pose_i*J_T_WI0_T3 + J_r_v_WI0*J_v_WI0_T3 + J_r_pose_j*J_T_WI1_T3 + J_r_v_WI1*J_v_WI1_T3;
+                    jacobian = (J_r_pose_i*J_T_WI0_T3 + J_r_v_WI0*J_v_WI0_T3 + J_r_pose_j*J_T_WI1_T3 + J_r_v_WI1*J_v_WI1_T3)*lift;
                 }
 
                 if (jacobians[4])

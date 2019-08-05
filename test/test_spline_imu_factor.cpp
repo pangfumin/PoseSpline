@@ -110,7 +110,7 @@ int main(){
     int start  = testSample.states_vec_.size()* 5/10;
     int end = testSample.states_vec_.size()* 6/10;
 
-    PoseSpline poseSpline(0.1);
+    PoseSpline poseSpline(1.0);
 
     std::vector<std::pair<double,Pose<double>>> samples, queryMeas;
     for(uint i = start; i <end; i++){
@@ -162,7 +162,7 @@ int main(){
     }
 
     std::cout << "test on : " << simulated_imus.size() << std::endl;
-    int imu_integrated_cnt = 500;
+    int imu_integrated_cnt = 20;
     for (int i = imu_integrated_cnt ; i < simulated_imus.size(); i+=imu_integrated_cnt) {
         QuaternionTemplate<double> JPL_q_WI0, JPL_q_WI1;
         Eigen::Quaterniond hamilton_q_WI0, hamilton_q_WI1;
@@ -322,94 +322,6 @@ int main(){
 
         CHECK_EQ((results.local_jacobians.at(3) - results.local_numeric_jacobians.at(3)).squaredNorm() < 1e-6, true) << "jcaobian error is large";
 
-
-//        IMUFactor imuFactor(intergrateImu.get());
-//
-//        Eigen::Matrix<double,7,1> T0, T1;
-//        T0 << t_WI0, q_WI0.coeffs();
-//        T1 << t_WI1, q_WI1.coeffs();
-////        std::cout << "T0: " << T0.transpose() << std::endl;
-////        std::cout << "T1: " << T1.transpose() << std::endl;
-//
-//        Eigen::Matrix<double,9,1> sb0, sb1;
-//        sb0 << v0, ba0, bg0;
-//        sb1 << v1, ba1, bg1;
-//
-////        std::cout << "sb0: " << sb0.transpose() << std::endl;
-////        std::cout << "sb1: " << sb1.transpose() << std::endl;
-//
-//
-//
-//        Eigen::Matrix<double,15,1> residuals;
-//        const double* parameters[4] =  {T0.data(), sb0.data(), T1.data(), sb1.data()};
-//        imuFactor.Evaluate(parameters, residuals.data(),NULL);
-//
-//        CHECK_EQ((residuals).squaredNorm() < 1e-2, true) << "residuals is large"
-//                                                                              <<std::endl<<residuals.transpose();
-//
-//        Eigen::Matrix<double,7,1> noised_T0, noised_T1;
-//        noised_T0 = T0;
-//        noised_T1 = T1;
-//        noised_T0.head<3>() += Eigen::Vector3d(-0.2, 0.01, 0.1);
-//        noised_T1.head<3>() -= Eigen::Vector3d(-0.2, 0.01, 0.1);
-//        double* noised_parameters[4] =  {noised_T0.data(), sb0.data(), noised_T1.data(), sb1.data()};
-//
-//        Eigen::Matrix<double,15,7,Eigen::RowMajor> jacobian0;
-//        Eigen::Matrix<double,15,9,Eigen::RowMajor> jacobian1;
-//        Eigen::Matrix<double,15,7,Eigen::RowMajor> jacobian2;
-//        Eigen::Matrix<double,15,9,Eigen::RowMajor> jacobian3;
-//        double* jacobians[4] = {jacobian0.data(),jacobian1.data(), jacobian2.data(),jacobian3.data()};
-//        Eigen::Matrix<double,15,6,Eigen::RowMajor> jacobian0_min;
-//        Eigen::Matrix<double,15,9,Eigen::RowMajor> jacobian1_min;
-//        Eigen::Matrix<double,15,6,Eigen::RowMajor> jacobian2_min;
-//        Eigen::Matrix<double,15,9,Eigen::RowMajor> jacobian3_min;
-//
-//        double* jacobians_min[4] = {jacobian0_min.data(),jacobian1_min.data(),jacobian2_min.data(),jacobian3_min.data()};
-//
-//        Eigen::Matrix<double,15,6,Eigen::RowMajor> numJ0_minimal;
-//        Eigen::Matrix<double,15,9,Eigen::RowMajor> numJ1_minimal;
-//        Eigen::Matrix<double,15,6,Eigen::RowMajor> numJ2_minimal;
-//        Eigen::Matrix<double,15,9,Eigen::RowMajor> numJ3_minimal;
-//
-//        imuFactor.EvaluateWithMinimalJacobians(noised_parameters,residuals.data(),jacobians,jacobians_min);
-//
-//        NumbDifferentiator<IMUFactor,4>*  numDiffer =
-//                new NumbDifferentiator<IMUFactor,4>(&imuFactor);
-//
-//        numDiffer->df_r_xi<15,7,6,hamilton::PoseLocalParameterization>(noised_parameters,0,numJ0_minimal.data());
-//
-////        std::cout<<"J0_minimal: "<<std::endl<<jacobian0_min<<std::endl;
-////        std::cout<<"numJ0_minimal: "<<std::endl<<numJ0_minimal<<std::endl<<std::endl;
-//        CHECK_EQ((jacobian0_min - numJ0_minimal).squaredNorm() < 0.001, true) << "Analytic and numDiff NOT equal. Error:"
-//                                                                              <<std::endl<<(jacobian0_min - numJ0_minimal);
-////
-//        numDiffer->df_r_xi<15,9>(noised_parameters,1,numJ1_minimal.data());
-////
-//////        std::cout<<"J1_minimal: "<<std::endl<<jacobian1_min<<std::endl;
-//////        std::cout<<"numJ1_minimal: "<<std::endl<<numJ1_minimal<<std::endl<<std::endl;
-//        CHECK_EQ((jacobian1_min - numJ1_minimal).squaredNorm() < 0.001, true) << "Analytic and numDiff NOT equal."
-//                                                                                <<std::endl<<jacobian1_min
-//                                                                                << "\n numJ1_minimal: "
-//                                                                                <<std::endl<< numJ1_minimal;
-//
-//
-//        numDiffer->df_r_xi<15,7,6,hamilton::PoseLocalParameterization>(noised_parameters,2,numJ2_minimal.data());
-//
-////        std::cout<<"J2_minimal: "<<std::endl<<jacobian0_min<<std::endl;
-////        std::cout<<"numJ2_minimal: "<<std::endl<<numJ0_minimal<<std::endl<<std::endl;
-//        CHECK_EQ((jacobian2_min - numJ2_minimal).squaredNorm() < 0.001, true) << "Analytic and numDiff NOT equal. Error:"
-//                                                                              <<std::endl<<(jacobian2_min - numJ2_minimal);
-//
-//        numDiffer->df_r_xi<15,9>(noised_parameters,3,numJ3_minimal.data());
-//
-////        std::cout<<"J3_minimal: "<<std::endl<<jacobian3_min<<std::endl;
-////        std::cout<<"numJ3_minimal: "<<std::endl<<numJ3_minimal<<std::endl<<std::endl;
-//        CHECK_EQ((jacobian3_min - numJ3_minimal).squaredNorm() < 0.001, true) << "Analytic and numDiff NOT equal."
-//                    <<std::endl<<(jacobian3_min - numJ3_minimal);
-//
-//
     }
-
-
     return 0;
 }

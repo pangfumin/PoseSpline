@@ -12,7 +12,7 @@
 #include "extern/JPL_imu_error.h"
 #include "PoseSpline/QuaternionSplineUtility.hpp"
 namespace  JPL {
-    class SplineIMUFactor : public ceres::SizedCostFunction<15, 7, 7, 7, 7, 6,6,6,6> {
+    class SplineIMUFactor : public ceres::SizedCostFunction<15, 7, 7, 7, 7, 6, 6, 6, 6> {
     public:
         SplineIMUFactor() = delete;
 
@@ -215,9 +215,9 @@ namespace  JPL {
                 J_v_WI0_T3.setZero();
                 J_v_WI0_T3.block<3,3>(0,0) = dotBeta03*Eigen::Matrix3d::Identity();
 
-                J_T_WI0_T0.setZero();
-                J_T_WI0_T0.topLeftCorner(3,3) = (1 - Beta01)*Eigen::Matrix3d::Identity();
-                J_T_WI0_T0.bottomRightCorner(4,3) = temp0_0 - temp01_0;
+                J_T_WI1_T0.setZero();
+                J_T_WI1_T0.topLeftCorner(3,3) = (1 - Beta11)*Eigen::Matrix3d::Identity();
+                J_T_WI1_T0.bottomRightCorner(4,3) = temp0_1 - temp01_1;
 
 
                 J_T_WI1_T1.setZero();
@@ -245,34 +245,76 @@ namespace  JPL {
                 J_v_WI1_T3.setZero();
                 J_v_WI1_T3.block<3,3>(0,0) = dotBeta13*Eigen::Matrix3d::Identity();
 
+
+                Eigen::Matrix<double,15,7,Eigen::RowMajor> J_r_pose_i;
+                Eigen::Matrix<double,15,7,Eigen::RowMajor> J_r_pose_j;
+                Eigen::Matrix<double,15,6,Eigen::RowMajor> J_r_bias_i;
+                Eigen::Matrix<double,15,6,Eigen::RowMajor> J_r_bias_j;
+                J_r_pose_i << J_r_t_WI0, J_r_q_WI0;
+                J_r_pose_j << J_r_t_WI1, J_r_q_WI1;
+                J_r_bias_i << J_r_ba0, J_r_bg0;
+                J_r_bias_j << J_r_ba1, J_r_bg1;
+
+
+                Eigen::Matrix<double,6,6,Eigen::RowMajor> J_bias_i_b0, J_bias_i_b1, J_bias_i_b2, J_bias_i_b3;
+                Eigen::Matrix<double,6,6,Eigen::RowMajor> J_bias_j_b0, J_bias_j_b1, J_bias_j_b2, J_bias_j_b3;
+                Eigen::Matrix<double,6,6,Eigen::RowMajor> I6;
+                I6.setIdentity();
+                J_bias_i_b0 = (1 - Beta01)*I6;
+                J_bias_i_b1 = (Beta01 - Beta02)*I6;
+                J_bias_i_b2 = (Beta02 - Beta03)*I6;
+                J_bias_i_b3 = (Beta03)*I6;
+
+                J_bias_j_b0 = (1 - Beta11)*I6;
+                J_bias_j_b1 = (Beta11 - Beta12)*I6;
+                J_bias_j_b2 = (Beta12 - Beta13)*I6;
+                J_bias_j_b3 = (Beta13)*I6;
+
                 if (jacobians[0])
                 {
-                    Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian_pose_i(jacobians[0]);
-                    jacobian_pose_i.setZero();
-                    jacobian_pose_i << J_r_t_WI0, J_r_q_WI0;
+                    Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian(jacobians[0]);
+                    jacobian = J_r_pose_i*J_T_WI0_T0 + J_r_v_WI0*J_v_WI0_T0 + J_r_pose_j*J_T_WI1_T0 + J_r_v_WI1*J_v_WI1_T0;
                 }
                 if (jacobians[1])
                 {
-                    Eigen::Map<Eigen::Matrix<double, 15, 9, Eigen::RowMajor>> jacobian_speedbias_i(jacobians[1]);
-                    jacobian_speedbias_i.setZero();
-                    jacobian_speedbias_i << J_r_v_WI0, J_r_ba0, J_r_bg0;
-
+                    Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian(jacobians[1]);
+                    jacobian = J_r_pose_i*J_T_WI0_T1 + J_r_v_WI0*J_v_WI0_T1 + J_r_pose_j*J_T_WI1_T1 + J_r_v_WI1*J_v_WI1_T1;
                 }
                 if (jacobians[2])
                 {
-                    Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian_pose_j(jacobians[2]);
-                    jacobian_pose_j.setZero();
-
-                    jacobian_pose_j << J_r_t_WI1, J_r_q_WI1;
-
+                    Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian(jacobians[2]);
+                    jacobian = J_r_pose_i*J_T_WI0_T2 + J_r_v_WI0*J_v_WI0_T2 + J_r_pose_j*J_T_WI1_T2 + J_r_v_WI1*J_v_WI1_T2;
                 }
                 if (jacobians[3])
                 {
-                    Eigen::Map<Eigen::Matrix<double, 15, 9, Eigen::RowMajor>> jacobian_speedbias_j(jacobians[3]);
-                    jacobian_speedbias_j.setZero();
-
-                    jacobian_speedbias_j << J_r_v_WI1, J_r_ba1, J_r_bg1;
+                    Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian(jacobians[3]);
+                    jacobian = J_r_pose_i*J_T_WI0_T3 + J_r_v_WI0*J_v_WI0_T3 + J_r_pose_j*J_T_WI1_T3 + J_r_v_WI1*J_v_WI1_T3;
                 }
+
+                if (jacobians[4])
+                {
+                    Eigen::Map<Eigen::Matrix<double, 15, 6, Eigen::RowMajor>> jacobian(jacobians[4]);
+                    jacobian = J_r_bias_i * J_bias_i_b0 + J_r_bias_j * J_bias_j_b0;
+                }
+
+                if (jacobians[5])
+                {
+                    Eigen::Map<Eigen::Matrix<double, 15, 6, Eigen::RowMajor>> jacobian(jacobians[5]);
+                    jacobian = J_r_bias_i * J_bias_i_b1 + J_r_bias_j * J_bias_j_b1;
+                }
+
+                if (jacobians[6])
+                {
+                    Eigen::Map<Eigen::Matrix<double, 15, 6, Eigen::RowMajor>> jacobian(jacobians[6]);
+                    jacobian = J_r_bias_i * J_bias_i_b2 + J_r_bias_j * J_bias_j_b2;
+                }
+
+                if (jacobians[7])
+                {
+                    Eigen::Map<Eigen::Matrix<double, 15, 6, Eigen::RowMajor>> jacobian(jacobians[7]);
+                    jacobian = J_r_bias_i * J_bias_i_b3 + J_r_bias_j * J_bias_j_b3;
+                }
+
             }
 
             return true;

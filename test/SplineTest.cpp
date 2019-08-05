@@ -94,9 +94,9 @@ public:
 
 TEST( Spline , poseSplineInitialization){
     std::string pose_file =
-            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
+            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
     std::string imu_meas_file =
-            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
+            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
 
     TestSample testSample;
     testSample.readStates(pose_file);
@@ -106,7 +106,7 @@ TEST( Spline , poseSplineInitialization){
     int end = testSample.states_vec_.size()/5;
 
     PoseSpline poseSpline(0.1);
-    VectorSpaceSpline vectorSpaceSpline(0.1);
+    VectorSpaceSpline<3> vectorSpaceSpline(0.1);
 
     std::vector<std::pair<double,Pose<double>>> samples, queryMeas;
     std::vector<std::pair<double,Eigen::Vector3d>> queryVelocityMeas;
@@ -317,9 +317,9 @@ TEST( Spline , quaternionSplineInitialization) {
 ////
 
     std::string pose_file =
-            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
+            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
     std::string imu_meas_file =
-            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
+            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
 
     TestSample testSample;
     testSample.readStates(pose_file);

@@ -28,13 +28,13 @@ public:
 };
 
 
-template <>
-class TypeTraits<Eigen::Vector3d> {
+template <int D>
+class TypeTraits<Eigen::Matrix<double, D,1>> {
 public:
     typedef Eigen::Vector3d TypeT;
-    enum {Dim = 3, miniDim = 3};
+    enum {Dim = D, miniDim = D};
     static TypeT zero() {
-        return Eigen::Vector3d::Identity();
+        return Eigen::Matrix<double,D,1>::Zero();
     }
 };
 

@@ -110,7 +110,8 @@ int main(){
     int start  = testSample.states_vec_.size()* 5/10;
     int end = testSample.states_vec_.size()* 6/10;
 
-    PoseSpline poseSpline(1.0);
+    double spline_dt = 1.0;
+    PoseSpline poseSpline(spline_dt);
 
     std::vector<std::pair<double,Pose<double>>> samples, queryMeas;
     for(uint i = start; i <end; i++){
@@ -164,20 +165,28 @@ int main(){
     std::cout << "test on : " << simulated_imus.size() << std::endl;
     int imu_integrated_cnt = 20;
     for (int i = imu_integrated_cnt ; i < simulated_imus.size(); i+=imu_integrated_cnt) {
+        double tt0 = Time(simulated_imus.at(i - imu_integrated_cnt).timestamp_).toSec();
+        double tt1 = Time(simulated_imus.at(i).timestamp_).toSec();
+
+        std::pair<real_t,int> time_pair0 = poseSpline.computeTIndex(tt0);
+        std::pair<real_t,int> time_pair1 = poseSpline.computeTIndex(tt1);
+
+        std::cout << "time_pair0: " << time_pair0.second << " " <<  time_pair1.second << std::endl;
+        if (time_pair0.second != time_pair1.second) {
+            continue;
+        }
+
         QuaternionTemplate<double> JPL_q_WI0, JPL_q_WI1;
-        Eigen::Quaterniond hamilton_q_WI0, hamilton_q_WI1;
         Eigen::Vector3d t_WI0, t_WI1;
         Eigen::Vector3d v0, v1;
         Eigen::Vector3d ba0, ba1;
         Eigen::Vector3d bg0, bg1;
         JPL_q_WI0 = simulated_states.at(i - imu_integrated_cnt).q_.coeffs();
-        hamilton_q_WI0 = Eigen::Quaterniond(quatToRotMat(JPL_q_WI0));
         t_WI0 = simulated_states.at(i - imu_integrated_cnt).t_;
         v0 = simulated_states.at(i - imu_integrated_cnt).v_;
         ba0 << 0,0,0; bg0 << 0,0,0;
 
         JPL_q_WI1 = simulated_states.at(i).q_.coeffs();
-        hamilton_q_WI1 = Eigen::Quaterniond(quatToRotMat(JPL_q_WI1));
 
         t_WI1 = simulated_states.at(i).t_;
         v1 = simulated_states.at(i).v_;
@@ -190,9 +199,9 @@ int main(){
 
         std::shared_ptr<JPL::IntegrationBase> JPL_intergrateImu = std::make_shared<JPL::IntegrationBase>(
                 accel, gyro, ba0, bg0, imuParam);
+        std::shared_ptr<JPL::IntegrationBase> spline_intergrateImu = std::make_shared<JPL::IntegrationBase>(
+                accel, gyro, ba0, bg0, imuParam);
 
-        std::shared_ptr<hamilton::IntegrationBase> hamilton_intergrateImu = std::make_shared<hamilton::IntegrationBase>(
-                accel, gyro, ba0, bg0, imuParam1);
 
         for (int j = i - imu_integrated_cnt + 1; j < i; j++) {
             uint64_t tk = simulated_imus.at(j).timestamp_;
@@ -201,126 +210,17 @@ int main(){
 
             auto dt = (double)(tk - t0)/ 1e9;
             t0 = tk;
-            JPL_intergrateImu->push_back(dt, accel,gyro);
-            hamilton_intergrateImu->push_back(dt, accel,gyro);
+            JPL_intergrateImu->push_back(dt, accel, gyro);
+            spline_intergrateImu->push_back(dt, accel, gyro);
         }
 
-        QuaternionTemplate<double> JPL_delta_q = JPL_intergrateImu->delta_q;
-        QuaternionTemplate<double> JPL_q_I1I0 = quatMult(quatInv(JPL_q_WI1),JPL_q_WI0);
-        std::cout << std::endl;
-        std::cout << "JPL_delta_q     : " << JPL_delta_q.transpose() << std::endl;
-        std::cout << "JPL_q_I1I0      : " << JPL_q_I1I0.transpose() << std::endl;
-
-        Eigen::Quaterniond hmailton_delta_q = hamilton_intergrateImu->delta_q;
-        Eigen::Quaterniond hmailton_q_I0I1 = hamilton_q_WI0.inverse()*hamilton_q_WI1;
-        std::cout << "hmailton_delta_q: " << hmailton_delta_q.coeffs().transpose() << std::endl;
-        std::cout << "hmailton_q_I0I1 : " << hmailton_q_I0I1.coeffs().transpose() << std::endl;
+        JPL::IMUFactor JPL_imuFactor(JPL_intergrateImu.get());
+        JPL::SplineIMUFactor splineImuFactor(JPL_intergrateImu.get(), spline_dt, time_pair0.first, time_pair1.first);
 
 
-        Eigen::Vector3d JPL_delta_p = JPL_intergrateImu->delta_p;
-        Eigen::Vector3d JPL_delta_v = JPL_intergrateImu->delta_v;
-        std::cout << "JPL_delta_p     : " << JPL_delta_p.transpose() << std::endl;
-        std::cout << "JPL_delta_v     : " << JPL_delta_v.transpose() << std::endl;
-
-        Eigen::Vector3d hamilton_delta_p = hamilton_intergrateImu->delta_p;
-        Eigen::Vector3d hamilton_delta_v = hamilton_intergrateImu->delta_v;
-        std::cout << "hamilton_delta_p: " << hamilton_delta_p.transpose() << std::endl;
-        std::cout << "hamilton_delta_v: " << hamilton_delta_v.transpose() << std::endl;
-
-        Eigen::Matrix<double,15,15> JPL_jacobian, JPL_covariance;
-        JPL_jacobian = JPL_intergrateImu->jacobian;
-        JPL_covariance = JPL_intergrateImu->covariance;
-        Eigen::Matrix<double,15,15> hamilton_jacobian, hamilton_covariance;
-        hamilton_jacobian = hamilton_intergrateImu->jacobian;
-        hamilton_covariance = hamilton_intergrateImu->covariance;
-
-        CHECK_EQ((JPL_jacobian - hamilton_jacobian).squaredNorm() < 1e-6, true) << "jacobian error is large";
-        CHECK_EQ((JPL_covariance - hamilton_covariance).squaredNorm() < 1e-6, true) << "covariance error is large";
 
 
-        Eigen::Matrix<double,15,1> JPL_residuals, hamilton_residuals;
-        JPL_residuals = JPL_intergrateImu->evaluate(t_WI0, JPL_q_WI0, v0,ba0,bg0, t_WI1, JPL_q_WI1, v1,ba1,bg1);
-        hamilton_residuals = hamilton_intergrateImu->evaluate(t_WI0, hamilton_q_WI0, v0,ba0,bg0, t_WI1, hamilton_q_WI1, v1,ba1,bg1);
 
-        std::cout << "JPL_residuals     :" << JPL_residuals.transpose() << std::endl;
-        std::cout << "hamilton_residuals:" << hamilton_residuals.transpose() << std::endl;
-
-        CHECK_EQ((JPL_residuals - hamilton_residuals).squaredNorm() < 1e-3, true) << "residual error is large";
-
-        Eigen::Matrix<double,7,1> JPL_T0, JPL_T1;
-        JPL_T0 << t_WI0, JPL_q_WI0;
-        JPL_T1 << t_WI1, JPL_q_WI1;
-        Eigen::Matrix<double,7,1> hamilton_T0, hamilton_T1;
-        hamilton_T0 << t_WI0, hamilton_q_WI0.coeffs();
-        hamilton_T1 << t_WI1, hamilton_q_WI1.coeffs();
-        Eigen::Matrix<double,9,1> sb0, sb1;
-//        ba0 << 0.1,-0.1,-0.2;
-        bg0 << 0.005,-0.0051,-0.00512;
-
-        ba1 << 0.1,0.1,0.2;
-        bg1 << 0.1,0.1,0.2;
-
-        sb0 << v0, ba0, bg0;
-        sb1 << v1, ba1, bg1;
-
-        double* JPL_parameters[4] = {JPL_T0.data(), sb0.data(), JPL_T1.data(), sb1.data()};
-        double* hamilton_parameters[4] = {hamilton_T0.data(), sb0.data(), hamilton_T1.data(), sb1.data()};
-
-
-        JPL::IMUFactor JPL_Imufactor(JPL_intergrateImu.get());
-        hamilton::IMUFactor hamilton_Imufactor(hamilton_intergrateImu.get());
-
-        JPL_Imufactor.Evaluate(JPL_parameters, JPL_residuals.data(), NULL);
-        hamilton_Imufactor.Evaluate(hamilton_parameters, hamilton_residuals.data(), NULL);
-
-        std::cout << "JPL_intergrateImu     -> correct_q: " << JPL_intergrateImu->corrected_delta_q.transpose() << std::endl;
-        std::cout << "hamilton_intergrateImu-> correct_q: " << hamilton_intergrateImu->corrected_delta_q.coeffs().transpose() << std::endl;
-
-        std::cout << "factor JPL_residuals     :" << JPL_residuals.transpose() << std::endl;
-        std::cout << "factor hamilton_residuals:" << hamilton_residuals.transpose() << std::endl;
-
-        //
-        //CHECK_EQ((JPL_residuals - hamilton_residuals).squaredNorm() < 1e-3, true) << "residual error is large";
-
-
-        // jacnobian
-        ceres::LocalParameterization* localParameterization =
-                new PoseLocalParameter;
-
-        ceres::NumericDiffOptions numeric_diff_options;
-        numeric_diff_options.ridders_relative_initial_step_size = 1e-3;
-
-        std::vector<const ceres::LocalParameterization*> local_parameterizations;
-        local_parameterizations.push_back(localParameterization);
-        local_parameterizations.push_back(NULL);
-        local_parameterizations.push_back(localParameterization);
-        local_parameterizations.push_back(NULL);
-
-        ceres::GradientChecker gradient_checker(
-                &JPL_Imufactor, &local_parameterizations, numeric_diff_options);
-        ceres::GradientChecker::ProbeResults results;
-
-        gradient_checker.Probe(JPL_parameters, 1e-9, &results);
-//            std::cout << "jacobian0:  \n" << results.local_jacobians.at(0) << std::endl;
-//            std::cout << "num jacobian0:  \n" << results.local_numeric_jacobians.at(0) << std::endl;
-//
-        CHECK_EQ((results.local_jacobians.at(0) - results.local_numeric_jacobians.at(0)).squaredNorm() < 1e-6, true) << "jcaobian error is large";
-
-
-            std::cout << "jacobian1:  \n" << results.local_jacobians.at(1) << std::endl;
-            std::cout << "num jacobian1:  \n" << results.local_numeric_jacobians.at(1) << std::endl;
-
-        CHECK_EQ((results.local_jacobians.at(1) - results.local_numeric_jacobians.at(1)).squaredNorm() < 1e-6, true) << "jcaobian error is large";
-//
-//            std::cout << "jacobian2:  \n" << results.local_jacobians.at(2) << std::endl;
-//            std::cout << "num jacobian2:  \n" << results.local_numeric_jacobians.at(2) << std::endl;
-
-        CHECK_EQ((results.local_jacobians.at(2) - results.local_numeric_jacobians.at(2)).squaredNorm() < 1e-6, true) << "jcaobian error is large";
-
-//        std::cout << "jacobian3:  \n" << results.local_jacobians.at(3) << std::endl;
-//        std::cout << "num jacobian3:  \n" << results.local_numeric_jacobians.at(3) << std::endl;
-
-        CHECK_EQ((results.local_jacobians.at(3) - results.local_numeric_jacobians.at(3)).squaredNorm() < 1e-6, true) << "jcaobian error is large";
 
     }
     return 0;

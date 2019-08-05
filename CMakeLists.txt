@@ -64,6 +64,7 @@ if(CATKIN_ENABLE_TESTING)
             test/testProjectError.cpp
             test/testSplineRotateError.cpp
             test/testSplineProjectError.cpp
+            test/VectorSplineCeresTest.cpp
             )
     if(TARGET ceres_tests)
         target_link_libraries(ceres_tests ${PROJECT_NAME} -lpthread -lm)

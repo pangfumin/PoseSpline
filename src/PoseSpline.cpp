@@ -78,6 +78,11 @@
         Eigen::Map<Eigen::Matrix<double, 3,1>> t2(getControlPoint(bidx+2));
         Eigen::Map<Eigen::Matrix<double, 3,1>> t3(getControlPoint(bidx+3));
 
+//        std::cout << "t0: " << t0.transpose() << std::endl;
+//        std::cout << "t1: " << t1.transpose() << std::endl;
+//        std::cout << "t2: " << t2.transpose() << std::endl;
+//        std::cout << "t3: " << t3.transpose() << std::endl;
+
         Eigen::Map<Eigen::Matrix<double, 4,1>> q0(getControlPoint(bidx) + 3);
         Eigen::Map<Eigen::Matrix<double, 4,1>> q1(getControlPoint(bidx+1) + 3);
         Eigen::Map<Eigen::Matrix<double, 4,1>> q2(getControlPoint(bidx+2) + 3);
@@ -85,7 +90,7 @@
 
         return PSUtility::EvaluatePS(u,
                                      Pose<double>(t0, q0), Pose<double>(t1, q1),
-                                     Pose<double>(t2, q2), Pose<double>(t2,q3));
+                                     Pose<double>(t2, q2), Pose<double>(t3, q3));
     }
 
     Eigen::Vector3d PoseSpline::evalLinearVelocity(real_t t ){

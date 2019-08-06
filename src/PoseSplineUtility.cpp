@@ -6,6 +6,8 @@ Pose<double> PSUtility::EvaluatePS(double u, const Pose<double>& P0, const Pose<
     double b2 = QSUtility::beta2(u);
     double b3 = QSUtility::beta3(u);
 
+//    std::cout << "U: " << u << " " << b1 << " " << b2 << " " << b3 << std::endl;
+
     Quaternion Q0 = P0.rotation();
     Quaternion Q1 = P1.rotation();
     Quaternion Q2 = P2.rotation();
@@ -24,7 +26,18 @@ Pose<double> PSUtility::EvaluatePS(double u, const Pose<double>& P0, const Pose<
     Eigen::Vector3d V2 = P2.translation();
     Eigen::Vector3d V3 = P3.translation();
 
+//    std::cout << "-V0: " << V0.transpose() << std::endl;
+//    std::cout << "-V1: " << (V1).transpose() << std::endl;
+//    std::cout << "-V2: " << (V2).transpose() << std::endl;
+//    std::cout << "-V3: " << (V3).transpose() << std::endl;
+
     Eigen::Vector3d V = V0 + b1*(V1 - V0) +  b2*(V2 - V1) + b3*(V3 - V2);
+//    std::cout << "V0: " << V0.transpose() << std::endl;
+//    std::cout << "V1: " << (V1 - V0).transpose() << std::endl;
+//    std::cout << "V2: " << (V2 - V1).transpose() << std::endl;
+//    std::cout << "V3: " << (V3 - V2).transpose() << std::endl;
+//    std::cout << "V : " << V.transpose()<< std::endl;
+
 
     return Pose<double>( V, quatLeftComp(Q0)*quatLeftComp(r1)*quatLeftComp(r2)*r3);
 }

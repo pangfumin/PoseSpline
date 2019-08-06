@@ -183,11 +183,11 @@ int main(){
         double tt0 = Time(simulated_imus.at(i - imu_integrated_cnt).timestamp_).toSec();
         double tt1 = Time(simulated_imus.at(i).timestamp_).toSec();
 
-        std::pair<real_t,int> time_pair0 = poseSpline.computeTIndex(tt0);
-        std::pair<real_t,int> time_pair1 = poseSpline.computeTIndex(tt1);
+        std::pair<real_t,int> time_pair0 = poseSpline.computeUAndTIndex(tt0);
+        std::pair<real_t,int> time_pair1 = poseSpline.computeUAndTIndex(tt1);
 
-
-        std::cout << "time_pair0: " << time_pair0.second << " " <<  time_pair1.second << std::endl;
+        std::cout << "time_pair0 idx: " << time_pair0.second << " " <<  time_pair1.second << std::endl;
+        std::cout << "time_pair0   u: " << time_pair0.first << " " <<  time_pair1.first << std::endl;
         if (time_pair0.second != time_pair1.second) {
             continue;
         }
@@ -198,12 +198,14 @@ int main(){
         Eigen::Vector3d ba0, ba1;
         Eigen::Vector3d bg0, bg1;
         JPL_q_WI0 = simulated_states.at(i - imu_integrated_cnt).q_.coeffs();
+        auto temp =  poseSpline.evalPoseSpline(tt0).translation();
+        std::cout << temp.transpose() << std::endl;
         t_WI0 = simulated_states.at(i - imu_integrated_cnt).t_;
         v0 = simulated_states.at(i - imu_integrated_cnt).v_;
         ba0 << 0,0,0; bg0 << 0,0,0;
 
-        JPL_q_WI1 = simulated_states.at(i).q_.coeffs();
 
+        JPL_q_WI1 = simulated_states.at(i).q_.coeffs();
         t_WI1 = simulated_states.at(i).t_;
         v1 = simulated_states.at(i).v_;
         ba1 << 0,0,0; bg1 << 0,0,0;
@@ -241,6 +243,18 @@ int main(){
         sb0 << v0, ba0, bg0;
         sb1 << v1, ba1, bg1;
 
+//        std::cout << "-- Pi: " << t_WI0.transpose() << std::endl;
+//        std::cout << "-- Qi: " << JPL_q_WI0.transpose() << std::endl;
+//        std::cout << "-- Vi: " << v0.transpose() << std::endl;
+//        std::cout << "-- Bai: " << ba0.transpose() << std::endl;
+//        std::cout << "-- Bgi: " << bg0.transpose() << std::endl;
+//
+//        std::cout << "-- Pj: " << t_WI1.transpose() << std::endl;
+//        std::cout << "-- Qj: " << JPL_q_WI1.transpose() << std::endl;
+//        std::cout << "-- Vj: " << v1.transpose() << std::endl;
+//        std::cout << "-- Baj: " << ba1.transpose() << std::endl;
+//        std::cout << "-- Bgj: " << bg1.transpose() << std::endl;
+
         double* JPL_parameters[4] = {JPL_T0.data(), sb0.data(), JPL_T1.data(), sb1.data()};
         Eigen::VectorXd residual(15);
         JPL_imuFactor.Evaluate(JPL_parameters, residual.data(), NULL);
@@ -255,6 +269,12 @@ int main(){
         Eigen::Matrix<double,7,1> cp_T1(poseSpline.getControlPoint(bidx+1));
         Eigen::Matrix<double,7,1> cp_T2(poseSpline.getControlPoint(bidx+2));
         Eigen::Matrix<double,7,1> cp_T3(poseSpline.getControlPoint(bidx+3));
+
+//        std::cout << "t0: " << cp_T0.transpose() << std::endl;
+//        std::cout << "t1: " << cp_T1.transpose() << std::endl;
+//        std::cout << "t2: " << cp_T2.transpose() << std::endl;
+//        std::cout << "t3: " << cp_T3.transpose() << std::endl;
+
 
         Eigen::Matrix<double,6,1> cp_bias0, cp_bias1, cp_bias2, cp_bias3;
         cp_bias0 << Eigen::Vector3d(baSpline.getControlPoint(bidx)),

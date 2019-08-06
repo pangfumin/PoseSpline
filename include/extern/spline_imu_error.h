@@ -57,9 +57,17 @@ namespace  JPL {
             Eigen::Matrix<double,3,1> t2 = T2.translation();
             Eigen::Matrix<double,3,1> t3 = T3.translation();
 
+//            std::cout << "t0: " << t0.transpose() << std::endl;
+//            std::cout << "t1: " << t1.transpose() << std::endl;
+//            std::cout << "t2: " << t2.transpose() << std::endl;
+//            std::cout << "t3: " << t3.transpose() << std::endl;
+
             double  Beta01 = QSUtility::beta1(t0_);
             double  Beta02 = QSUtility::beta2((t0_));
             double  Beta03 = QSUtility::beta3((t0_));
+
+//            std::cout << "U: " << t0_ << " " << Beta01 << " " << Beta02 << " " << Beta03 << std::endl;
+
 
             double  Beta11 = QSUtility::beta1((t1_));
             double  Beta12 = QSUtility::beta2((t1_));
@@ -87,17 +95,36 @@ namespace  JPL {
 
 
             Eigen::Vector3d Pi = t0 + Beta01*(t1 - t0) +  Beta02*(t2 - t1) + Beta03*(t3 - t2);
+//            std::cout << "V0: " << t0.transpose() << std::endl;
+//            std::cout << "V1: " << (t1 - t0).transpose() << std::endl;
+//            std::cout << "V2: " << (t2 - t1).transpose() << std::endl;
+//            std::cout << "V3: " << (t3 - t2).transpose() << std::endl;
+
             QuaternionTemplate<double> Qi = quatLeftComp(Q0)*quatLeftComp(r_01)*quatLeftComp(r_02)*r_03;
             Eigen::Vector3d Vi = dotBeta01*(t1 - t0) +  dotBeta02*(t2 - t1) + dotBeta03*(t3 - t2);
-            Eigen::Vector3d Bai = (b0 + Beta01*(b1 - b1) +  Beta02*(b2 - b1) + Beta03*(b3 - b2)).head<3>();
-            Eigen::Vector3d Bgi = (b0 + Beta01*(b1 - b1) +  Beta02*(b2 - b1) + Beta03*(b3 - b2)).tail<3>();
+            Eigen::Matrix<double,6,1> bias_i = b0 + Beta01*(b1 - b0) +  Beta02*(b2 - b1) + Beta03*(b3 - b2);
+            Eigen::Vector3d Bai = bias_i.head<3>();
+            Eigen::Vector3d Bgi = bias_i.tail<3>();
 
             Eigen::Vector3d Pj = t0 + Beta11*(t1 - t0) +  Beta12*(t2 - t1) + Beta13*(t3 - t2);
             QuaternionTemplate<double> Qj = quatLeftComp(Q0)*quatLeftComp(r_11)*quatLeftComp(r_12)*r_13;
             Eigen::Vector3d Vj = dotBeta11*(t1 - t0) +  dotBeta12*(t2 - t1) + dotBeta13*(t3 - t2);
 
-            Eigen::Vector3d Baj = (b0 + Beta11*(b1 - b1) +  Beta12*(b2 - b1) + Beta13*(b3 - b2)).head<3>();
-            Eigen::Vector3d Bgj = (b0 + Beta11*(b1 - b1) +  Beta12*(b2 - b1) + Beta13*(b3 - b2)).tail<3>();
+            Eigen::Matrix<double,6,1> bias_j = b0 + Beta11*(b1 - b0) +  Beta12*(b2 - b1) + Beta13*(b3 - b2);
+            Eigen::Vector3d Baj = bias_j.head<3>();
+            Eigen::Vector3d Bgj = bias_j.tail<3>();
+
+//            std::cout << "** Pi: " << Pi.transpose() << std::endl;
+//            std::cout << "** Qi: " << Qi.transpose() << std::endl;
+//            std::cout << "** Vi: " << Vi.transpose() << std::endl;
+//            std::cout << "** Bai: " << Bai.transpose() << std::endl;
+//            std::cout << "** Bgi: " << Bgi.transpose() << std::endl;
+//
+//            std::cout << "** Pj: " << Pj.transpose() << std::endl;
+//            std::cout << "** Qj: " << Qj.transpose() << std::endl;
+//            std::cout << "** Vj: " << Vj.transpose() << std::endl;
+//            std::cout << "** Baj: " << Baj.transpose() << std::endl;
+//            std::cout << "** Bgj: " << Bgj.transpose() << std::endl;
 
 
             Eigen::Matrix<double, 15, 3, Eigen::RowMajor> J_r_t_WI0;

@@ -354,14 +354,10 @@ namespace  JPL {
 
             return true;
         }
-
-
         IntegrationBase *pre_integration;
         double spline_dt_;
         double t0_;
         double t1_;
-
     };
-
 }
 #endif

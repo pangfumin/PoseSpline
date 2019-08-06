@@ -1,5 +1,6 @@
 
 #include "extern/spline_imu_error.h"
+#include "extern/spline_imu_cross_error.h"
 #include "extern/vinsmono_imu_error.h"
 #include "internal/pose_local_parameterization.h"
 #include "PoseSpline/PoseLocalParameter.hpp"
@@ -188,9 +189,7 @@ int main(){
 
         std::cout << "time_pair0 idx: " << time_pair0.second << " " <<  time_pair1.second << std::endl;
         std::cout << "time_pair0   u: " << time_pair0.first << " " <<  time_pair1.first << std::endl;
-        if (time_pair0.second != time_pair1.second) {
-            continue;
-        }
+
 
         QuaternionTemplate<double> JPL_q_WI0, JPL_q_WI1;
         Eigen::Vector3d t_WI0, t_WI1;
@@ -233,7 +232,7 @@ int main(){
         }
 
         JPL::IMUFactor JPL_imuFactor(JPL_intergrateImu.get());
-        JPL::SplineIMUFactor splineImuFactor(JPL_intergrateImu.get(), spline_dt, time_pair0.first, time_pair1.first);
+
 
         Eigen::Matrix<double,7,1> JPL_T0, JPL_T1;
         JPL_T0 << t_WI0, JPL_q_WI0;
@@ -243,17 +242,7 @@ int main(){
         sb0 << v0, ba0, bg0;
         sb1 << v1, ba1, bg1;
 
-//        std::cout << "-- Pi: " << t_WI0.transpose() << std::endl;
-//        std::cout << "-- Qi: " << JPL_q_WI0.transpose() << std::endl;
-//        std::cout << "-- Vi: " << v0.transpose() << std::endl;
-//        std::cout << "-- Bai: " << ba0.transpose() << std::endl;
-//        std::cout << "-- Bgi: " << bg0.transpose() << std::endl;
 //
-//        std::cout << "-- Pj: " << t_WI1.transpose() << std::endl;
-//        std::cout << "-- Qj: " << JPL_q_WI1.transpose() << std::endl;
-//        std::cout << "-- Vj: " << v1.transpose() << std::endl;
-//        std::cout << "-- Baj: " << ba1.transpose() << std::endl;
-//        std::cout << "-- Bgj: " << bg1.transpose() << std::endl;
 
         double* JPL_parameters[4] = {JPL_T0.data(), sb0.data(), JPL_T1.data(), sb1.data()};
         Eigen::VectorXd residual(15);
@@ -263,10 +252,13 @@ int main(){
 
 
         int bidx = time_pair0.second - poseSpline.spline_order() + 1;
-        Eigen::Matrix<double,7,1> cp_T0(poseSpline.getControlPoint(bidx));
-        Eigen::Matrix<double,7,1> cp_T1(poseSpline.getControlPoint(bidx+1));
-        Eigen::Matrix<double,7,1> cp_T2(poseSpline.getControlPoint(bidx+2));
-        Eigen::Matrix<double,7,1> cp_T3(poseSpline.getControlPoint(bidx+3));
+
+        if (time_pair0.second == time_pair1.second) {
+            JPL::SplineIMUFactor splineImuFactor(spline_intergrateImu.get(), spline_dt, time_pair0.first, time_pair1.first);
+            Eigen::Matrix<double,7,1> cp_T0(poseSpline.getControlPoint(bidx));
+            Eigen::Matrix<double,7,1> cp_T1(poseSpline.getControlPoint(bidx+1));
+            Eigen::Matrix<double,7,1> cp_T2(poseSpline.getControlPoint(bidx+2));
+            Eigen::Matrix<double,7,1> cp_T3(poseSpline.getControlPoint(bidx+3));
 
 //        std::cout << "t0: " << cp_T0.transpose() << std::endl;
 //        std::cout << "t1: " << cp_T1.transpose() << std::endl;
@@ -274,81 +266,139 @@ int main(){
 //        std::cout << "t3: " << cp_T3.transpose() << std::endl;
 
 
-        Eigen::Matrix<double,6,1> cp_bias0, cp_bias1, cp_bias2, cp_bias3;
-        cp_bias0 << Eigen::Vector3d(baSpline.getControlPoint(bidx)),
-                Eigen::Vector3d(bgSpline.getControlPoint(bidx));
+            Eigen::Matrix<double,6,1> cp_bias0, cp_bias1, cp_bias2, cp_bias3;
+            cp_bias0 << Eigen::Vector3d(baSpline.getControlPoint(bidx)),
+                    Eigen::Vector3d(bgSpline.getControlPoint(bidx));
 
-        cp_bias1 << Eigen::Vector3d(baSpline.getControlPoint(bidx + 1)),
-                Eigen::Vector3d(bgSpline.getControlPoint(bidx + 1 ));
+            cp_bias1 << Eigen::Vector3d(baSpline.getControlPoint(bidx + 1)),
+                    Eigen::Vector3d(bgSpline.getControlPoint(bidx + 1 ));
 
-        cp_bias2 << Eigen::Vector3d(baSpline.getControlPoint(bidx+2)),
-                Eigen::Vector3d(bgSpline.getControlPoint(bidx+2));
+            cp_bias2 << Eigen::Vector3d(baSpline.getControlPoint(bidx+2)),
+                    Eigen::Vector3d(bgSpline.getControlPoint(bidx+2));
 
-        cp_bias3 << Eigen::Vector3d(baSpline.getControlPoint(bidx + 3)),
-                Eigen::Vector3d(bgSpline.getControlPoint(bidx + 3));
+            cp_bias3 << Eigen::Vector3d(baSpline.getControlPoint(bidx + 3)),
+                    Eigen::Vector3d(bgSpline.getControlPoint(bidx + 3));
 
-        double* spline_parameters[8] = {cp_T0.data(), cp_T1.data(), cp_T2.data(), cp_T3.data(),
-                                     cp_bias0.data(), cp_bias1.data(), cp_bias2.data(), cp_bias3.data()};
-        Eigen::VectorXd spline_residual(15);
-        splineImuFactor.Evaluate(spline_parameters, spline_residual.data(), NULL);
-        std::cout << "spline_residual: " << spline_residual.transpose() << std::endl;
+            double* spline_parameters[8] = {cp_T0.data(), cp_T1.data(), cp_T2.data(), cp_T3.data(),
+                                            cp_bias0.data(), cp_bias1.data(), cp_bias2.data(), cp_bias3.data()};
+            Eigen::VectorXd spline_residual(15);
+            splineImuFactor.Evaluate(spline_parameters, spline_residual.data(), NULL);
+            std::cout << "spline_residual: " << spline_residual.transpose() << std::endl;
 
-
-        // jacnobian
-        ceres::LocalParameterization* localParameterization =
-                new PoseLocalParameter;
-
-        ceres::NumericDiffOptions numeric_diff_options;
-        numeric_diff_options.ridders_relative_initial_step_size = 1e-3;
-
-        std::vector<const ceres::LocalParameterization*> local_parameterizations;
-        local_parameterizations.push_back(localParameterization);
-        local_parameterizations.push_back(localParameterization);
-        local_parameterizations.push_back(localParameterization);
-        local_parameterizations.push_back(localParameterization);
-        local_parameterizations.push_back(NULL);
-        local_parameterizations.push_back(NULL);
-        local_parameterizations.push_back(NULL);
-        local_parameterizations.push_back(NULL);
+            CHECK_EQ((spline_residual - residual).norm() < 1e-6, true) << "residuals are not consist";
 
 
-        ceres::GradientChecker gradient_checker(
-                &splineImuFactor, &local_parameterizations, numeric_diff_options);
-        ceres::GradientChecker::ProbeResults results;
+            // jacnobian
+            ceres::LocalParameterization* localParameterization =
+                    new PoseLocalParameter;
+
+            ceres::NumericDiffOptions numeric_diff_options;
+            numeric_diff_options.ridders_relative_initial_step_size = 1e-3;
+
+            std::vector<const ceres::LocalParameterization*> local_parameterizations;
+            local_parameterizations.push_back(localParameterization);
+            local_parameterizations.push_back(localParameterization);
+            local_parameterizations.push_back(localParameterization);
+            local_parameterizations.push_back(localParameterization);
+            local_parameterizations.push_back(NULL);
+            local_parameterizations.push_back(NULL);
+            local_parameterizations.push_back(NULL);
+            local_parameterizations.push_back(NULL);
 
 
-        gradient_checker.Probe(spline_parameters, 1e-9, &results);
+            ceres::GradientChecker gradient_checker(
+                    &splineImuFactor, &local_parameterizations, numeric_diff_options);
+            ceres::GradientChecker::ProbeResults results;
+
+
+            gradient_checker.Probe(spline_parameters, 1e-9, &results);
 //        std::cout << "jacobian0:  \n" << results.local_jacobians.at(0) << std::endl;
 //        std::cout << "num jacobian0:  \n" << results.local_numeric_jacobians.at(0) << std::endl;
 
-        std::cout << "jacobian0 error " << (results.local_jacobians.at(0) - results.local_numeric_jacobians.at(0)).norm() << std::endl;
-        CHECK_EQ((results.local_jacobians.at(0) - results.local_numeric_jacobians.at(0)).norm() < 1e-6, true) << "jcaobian error is large";
+            std::cout << "jacobian0 error " << (results.local_jacobians.at(0) - results.local_numeric_jacobians.at(0)).norm() << std::endl;
+            CHECK_EQ((results.local_jacobians.at(0) - results.local_numeric_jacobians.at(0)).norm() < 1e-6, true) << "jcaobian error is large";
 
 //        std::cout << "jacobian1:  \n" << results.local_jacobians.at(1) << std::endl;
 //        std::cout << "num jacobian1:  \n" << results.local_numeric_jacobians.at(1) << std::endl;
 
-        CHECK_EQ((results.local_jacobians.at(1) - results.local_numeric_jacobians.at(1)).norm() < 1e-6, true) << "jcaobian error is large";
+            CHECK_EQ((results.local_jacobians.at(1) - results.local_numeric_jacobians.at(1)).norm() < 1e-6, true) << "jcaobian error is large";
 //
 //            std::cout << "jacobian2:  \n" << results.local_jacobians.at(2) << std::endl;
 //            std::cout << "num jacobian2:  \n" << results.local_numeric_jacobians.at(2) << std::endl;
 
-        CHECK_EQ((results.local_jacobians.at(2) - results.local_numeric_jacobians.at(2)).norm() < 1e-6, true) << "jcaobian error is large";
+            CHECK_EQ((results.local_jacobians.at(2) - results.local_numeric_jacobians.at(2)).norm() < 1e-6, true) << "jcaobian error is large";
 
 //        std::cout << "jacobian3:  \n" << results.local_jacobians.at(3) << std::endl;
 //        std::cout << "num jacobian3:  \n" << results.local_numeric_jacobians.at(3) << std::endl;
 
-        CHECK_EQ((results.local_jacobians.at(3) - results.local_numeric_jacobians.at(3)).norm() < 1e-6, true) << "jcaobian error is large";
+            CHECK_EQ((results.local_jacobians.at(3) - results.local_numeric_jacobians.at(3)).norm() < 1e-6, true) << "jcaobian error is large";
+
+            CHECK_EQ((results.local_jacobians.at(4) - results.local_numeric_jacobians.at(4)).norm() < 1e-6, true) << "jcaobian error is large";
+
+            CHECK_EQ((results.local_jacobians.at(5) - results.local_numeric_jacobians.at(5)).norm() < 1e-6, true) << "jcaobian error is large";
+
+            CHECK_EQ((results.local_jacobians.at(6) - results.local_numeric_jacobians.at(6)).norm() < 1e-6, true) << "jcaobian error is large";
+
+            CHECK_EQ((results.local_jacobians.at(7) - results.local_numeric_jacobians.at(7)).norm() < 1e-6, true) << "jcaobian error is large";
+
+
+        } else {
+
+//            std::cout << "-- Pi: " << t_WI0.transpose() << std::endl;
+//            std::cout << "-- Qi: " << JPL_q_WI0.transpose() << std::endl;
+//            std::cout << "-- Vi: " << v0.transpose() << std::endl;
+//            std::cout << "-- Bai: " << ba0.transpose() << std::endl;
+//            std::cout << "-- Bgi: " << bg0.transpose() << std::endl;
+//
+//            std::cout << "-- Pj: " << t_WI1.transpose() << std::endl;
+//            std::cout << "-- Qj: " << JPL_q_WI1.transpose() << std::endl;
+//            std::cout << "-- Vj: " << v1.transpose() << std::endl;
+//            std::cout << "-- Baj: " << ba1.transpose() << std::endl;
+//            std::cout << "-- Bgj: " << bg1.transpose() << std::endl;
+
+            JPL::SplineIMUCrossFactor splineImuCrossFactor(spline_intergrateImu.get(), spline_dt, time_pair0.first, time_pair1.first);
+
+            Eigen::Matrix<double,7,1> cp_T0(poseSpline.getControlPoint(bidx));
+            Eigen::Matrix<double,7,1> cp_T1(poseSpline.getControlPoint(bidx+1));
+            Eigen::Matrix<double,7,1> cp_T2(poseSpline.getControlPoint(bidx+2));
+            Eigen::Matrix<double,7,1> cp_T3(poseSpline.getControlPoint(bidx+3));
+            Eigen::Matrix<double,7,1> cp_T4(poseSpline.getControlPoint(bidx+4));
+
+//        std::cout << "t0: " << cp_T0.transpose() << std::endl;
+//        std::cout << "t1: " << cp_T1.transpose() << std::endl;
+//        std::cout << "t2: " << cp_T2.transpose() << std::endl;
+//        std::cout << "t3: " << cp_T3.transpose() << std::endl;
+
+
+            Eigen::Matrix<double,6,1> cp_bias0, cp_bias1, cp_bias2, cp_bias3, cp_bias4;
+            cp_bias0 << Eigen::Vector3d(baSpline.getControlPoint(bidx)),
+                    Eigen::Vector3d(bgSpline.getControlPoint(bidx));
+
+            cp_bias1 << Eigen::Vector3d(baSpline.getControlPoint(bidx + 1)),
+                    Eigen::Vector3d(bgSpline.getControlPoint(bidx + 1 ));
+
+            cp_bias2 << Eigen::Vector3d(baSpline.getControlPoint(bidx+2)),
+                    Eigen::Vector3d(bgSpline.getControlPoint(bidx+2));
+
+            cp_bias3 << Eigen::Vector3d(baSpline.getControlPoint(bidx + 3)),
+                    Eigen::Vector3d(bgSpline.getControlPoint(bidx + 3));
+
+            cp_bias4 << Eigen::Vector3d(baSpline.getControlPoint(bidx + 4)),
+                    Eigen::Vector3d(bgSpline.getControlPoint(bidx + 4));
+
+            double* spline_parameters[10] = {cp_T0.data(), cp_T1.data(), cp_T2.data(), cp_T3.data(), cp_T4.data(),
+                                            cp_bias0.data(), cp_bias1.data(), cp_bias2.data(), cp_bias3.data(), cp_bias4.data()};
+            Eigen::VectorXd spline_residual(15);
+            splineImuCrossFactor.Evaluate(spline_parameters, spline_residual.data(), NULL);
+            std::cout << "spline_residual: " << spline_residual.transpose() << std::endl;
+
+            CHECK_EQ((spline_residual - residual).norm() < 1e-6, true) << "residuals are not consist";
+
+
+        }
 
 
 
-
-        CHECK_EQ((results.local_jacobians.at(4) - results.local_numeric_jacobians.at(4)).norm() < 1e-6, true) << "jcaobian error is large";
-
-        CHECK_EQ((results.local_jacobians.at(5) - results.local_numeric_jacobians.at(5)).norm() < 1e-6, true) << "jcaobian error is large";
-
-        CHECK_EQ((results.local_jacobians.at(6) - results.local_numeric_jacobians.at(6)).norm() < 1e-6, true) << "jcaobian error is large";
-
-        CHECK_EQ((results.local_jacobians.at(7) - results.local_numeric_jacobians.at(7)).norm() < 1e-6, true) << "jcaobian error is large";
 
 
 

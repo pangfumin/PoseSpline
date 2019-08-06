@@ -3,6 +3,7 @@
 #include "extern/vinsmono_imu_error.h"
 #include "internal/pose_local_parameterization.h"
 #include "PoseSpline/PoseLocalParameter.hpp"
+#include "PoseSpline/VectorSpaceSpline.hpp"
 #include "PoseSpline/NumbDifferentiator.hpp"
 
 #include "PoseSpline/Pose.hpp"
@@ -23,6 +24,8 @@ struct StampedImu{
     uint64_t timestamp_;
     Eigen::Vector3d accel_;
     Eigen::Vector3d gyro_;
+    Eigen::Vector3d ba_;
+    Eigen::Vector3d bg_;
 };
 class TestSample {
 public:
@@ -32,7 +35,6 @@ public:
                        "p_RS_R_x [m]", "p_RS_R_y [m]", "p_RS_R_z [m]",
                        "q_RS_w []", "q_RS_x []", "q_RS_y []", "q_RS_z []",
                        "v_RS_R_x [m s^-1]", "v_RS_R_y [m s^-1]", "v_RS_R_z [m s^-1]");
-        std::string vendor; int size; double speed;
         int64_t timestamp;
 
         double p_RS_R_x, p_RS_R_y, p_RS_R_z;
@@ -65,7 +67,6 @@ public:
         in.read_header(io::ignore_extra_column, "#timestamp [ns]",
                        "w_RS_S_x [rad s^-1]", "w_RS_S_y [rad s^-1]", "w_RS_S_z [rad s^-1]",
                        "a_RS_S_x [m s^-2]", "a_RS_S_y [m s^-2]", "a_RS_S_z [m s^-2]");
-        std::string vendor; int size; double speed;
         int64_t timestamp;
 
         double w_RS_S_x, w_RS_S_y, w_RS_S_z;
@@ -99,13 +100,10 @@ int main(){
     JPL::ImuParam imuParam;
     hamilton::ImuParam imuParam1;
     std::string pose_file =
-            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
-    std::string imu_meas_file =
-            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/imu0/data.csv";
+            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
 
     TestSample testSample;
     testSample.readStates(pose_file);
-    testSample.readImu(imu_meas_file);
 
     int start  = testSample.states_vec_.size()* 5/10;
     int end = testSample.states_vec_.size()* 6/10;
@@ -113,7 +111,11 @@ int main(){
     double spline_dt = 1.0;
     PoseSpline poseSpline(spline_dt);
 
-    std::vector<std::pair<double,Pose<double>>> samples, queryMeas;
+    VectorSpaceSpline<3> baSpline(spline_dt);
+    VectorSpaceSpline<3> bgSpline(spline_dt);
+
+    std::vector<std::pair<double, Pose<double>>> samples, queryMeas;
+    std::vector<std::pair<double, Eigen::Matrix<double,3,1>>> baSamples;
     for(uint i = start; i <end; i++){
         StampedPose stampedPose = testSample.states_vec_.at(i);
         Eigen::Quaterniond QuatHamilton(stampedPose.q_);
@@ -125,11 +127,16 @@ int main(){
 
         if(i % 5  == 0){
             samples.push_back(std::pair<double,Pose<double>>(Time(stampedPose.timestamp_).toSec(), pose ) );
+            baSamples.push_back(
+                    std::pair<double, Eigen::Matrix<double,3,1>>(Time(stampedPose.timestamp_).toSec(),
+                            Eigen::Matrix<double,3,1>::Zero()) );
         }
 
     }
 
     poseSpline.initialPoseSpline(samples);
+    baSpline.initialSpline(baSamples);
+    bgSpline.initialSpline(baSamples);
 
 
     std::vector<StampedPose> simulated_states;
@@ -156,6 +163,14 @@ int main(){
             stampedImu.timestamp_ = Time(pair.first).toNSec();
             stampedImu.gyro_ = query_omega;
             stampedImu.accel_ = query_accel;
+
+
+
+            Eigen::Vector3d  query_ba = baSpline.evaluateSpline(pair.first);
+            Eigen::Vector3d  query_bg = bgSpline.evaluateSpline(pair.first);
+            stampedImu.ba_ = query_ba;
+            stampedImu.bg_ = query_bg;
+
 
             simulated_imus.push_back(stampedImu);
 
@@ -216,6 +231,19 @@ int main(){
 
         JPL::IMUFactor JPL_imuFactor(JPL_intergrateImu.get());
         JPL::SplineIMUFactor splineImuFactor(JPL_intergrateImu.get(), spline_dt, time_pair0.first, time_pair1.first);
+
+        Eigen::Matrix<double,7,1> JPL_T0, JPL_T1;
+        JPL_T0 << t_WI0, JPL_q_WI0;
+        JPL_T1 << t_WI1, JPL_q_WI1;
+
+        Eigen::Matrix<double,9,1> sb0, sb1;
+        sb0 << v0, ba0, bg0;
+        sb1 << v1, ba1, bg1;
+
+        double* JPL_parameters[4] = {JPL_T0.data(), sb0.data(), JPL_T1.data(), sb1.data()};
+        Eigen::VectorXd residual(15);
+        JPL_imuFactor.Evaluate(JPL_parameters, residual.data(), NULL);
+        std::cout << "JPL residual: " << residual.transpose() << std::endl;
 
 
 

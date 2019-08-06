@@ -263,8 +263,6 @@ int main(){
 
 
         int bidx = time_pair0.second - poseSpline.spline_order() + 1;
-
-
         Eigen::Matrix<double,7,1> cp_T0(poseSpline.getControlPoint(bidx));
         Eigen::Matrix<double,7,1> cp_T1(poseSpline.getControlPoint(bidx+1));
         Eigen::Matrix<double,7,1> cp_T2(poseSpline.getControlPoint(bidx+2));
@@ -296,7 +294,61 @@ int main(){
         std::cout << "spline_residual: " << spline_residual.transpose() << std::endl;
 
 
+        // jacnobian
+        ceres::LocalParameterization* localParameterization =
+                new PoseLocalParameter;
 
+        ceres::NumericDiffOptions numeric_diff_options;
+        numeric_diff_options.ridders_relative_initial_step_size = 1e-3;
+
+        std::vector<const ceres::LocalParameterization*> local_parameterizations;
+        local_parameterizations.push_back(localParameterization);
+        local_parameterizations.push_back(localParameterization);
+        local_parameterizations.push_back(localParameterization);
+        local_parameterizations.push_back(localParameterization);
+        local_parameterizations.push_back(NULL);
+        local_parameterizations.push_back(NULL);
+        local_parameterizations.push_back(NULL);
+        local_parameterizations.push_back(NULL);
+
+
+        ceres::GradientChecker gradient_checker(
+                &splineImuFactor, &local_parameterizations, numeric_diff_options);
+        ceres::GradientChecker::ProbeResults results;
+
+
+        gradient_checker.Probe(spline_parameters, 1e-9, &results);
+//        std::cout << "jacobian0:  \n" << results.local_jacobians.at(0) << std::endl;
+//        std::cout << "num jacobian0:  \n" << results.local_numeric_jacobians.at(0) << std::endl;
+
+        std::cout << "jacobian0 error " << (results.local_jacobians.at(0) - results.local_numeric_jacobians.at(0)).norm() << std::endl;
+        CHECK_EQ((results.local_jacobians.at(0) - results.local_numeric_jacobians.at(0)).norm() < 1e-6, true) << "jcaobian error is large";
+
+//        std::cout << "jacobian1:  \n" << results.local_jacobians.at(1) << std::endl;
+//        std::cout << "num jacobian1:  \n" << results.local_numeric_jacobians.at(1) << std::endl;
+
+        CHECK_EQ((results.local_jacobians.at(1) - results.local_numeric_jacobians.at(1)).norm() < 1e-6, true) << "jcaobian error is large";
+//
+//            std::cout << "jacobian2:  \n" << results.local_jacobians.at(2) << std::endl;
+//            std::cout << "num jacobian2:  \n" << results.local_numeric_jacobians.at(2) << std::endl;
+
+        CHECK_EQ((results.local_jacobians.at(2) - results.local_numeric_jacobians.at(2)).norm() < 1e-6, true) << "jcaobian error is large";
+
+//        std::cout << "jacobian3:  \n" << results.local_jacobians.at(3) << std::endl;
+//        std::cout << "num jacobian3:  \n" << results.local_numeric_jacobians.at(3) << std::endl;
+
+        CHECK_EQ((results.local_jacobians.at(3) - results.local_numeric_jacobians.at(3)).norm() < 1e-6, true) << "jcaobian error is large";
+
+
+
+
+        CHECK_EQ((results.local_jacobians.at(4) - results.local_numeric_jacobians.at(4)).norm() < 1e-6, true) << "jcaobian error is large";
+
+        CHECK_EQ((results.local_jacobians.at(5) - results.local_numeric_jacobians.at(5)).norm() < 1e-6, true) << "jcaobian error is large";
+
+        CHECK_EQ((results.local_jacobians.at(6) - results.local_numeric_jacobians.at(6)).norm() < 1e-6, true) << "jcaobian error is large";
+
+        CHECK_EQ((results.local_jacobians.at(7) - results.local_numeric_jacobians.at(7)).norm() < 1e-6, true) << "jcaobian error is large";
 
 
 

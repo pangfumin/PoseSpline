@@ -163,200 +163,221 @@ namespace  JPL {
             residual = sqrt_info * residual;
 
             Eigen::Vector3d G{0.0, 0.0, 9.8};
-//            if (jacobians)
-//            {
-//                Eigen::Matrix<double,4,3> Vee = QSUtility::V<double>();
-//
-//                Eigen::Vector3d BetaPhi01 = Beta01*phi1;
-//                Eigen::Vector3d BetaPhi02 = Beta02*phi2;
-//                Eigen::Vector3d BetaPhi03 = Beta03*phi3;
-//
-//                Eigen::Vector3d BetaPhi11 = Beta11*phi1;
-//                Eigen::Vector3d BetaPhi12 = Beta12*phi2;
-//                Eigen::Vector3d BetaPhi13 = Beta13*phi3;
-//
-//                Eigen::Matrix3d S01 = quatS(BetaPhi01);
-//                Eigen::Matrix3d S02 = quatS(BetaPhi02);
-//                Eigen::Matrix3d S03 = quatS(BetaPhi03);
-//
-//                Eigen::Matrix3d S11 = quatS(BetaPhi11);
-//                Eigen::Matrix3d S12 = quatS(BetaPhi12);
-//                Eigen::Matrix3d S13 = quatS(BetaPhi13);
-//
-//
-//                Quaternion invQ0Q1 = quatLeftComp(quatInv<double>(Q0))*Q1;
-//                Quaternion invQ1Q2 = quatLeftComp(quatInv<double>(Q1))*Q2;
-//                Quaternion invQ2Q3 = quatLeftComp(quatInv<double>(Q2))*Q3;
-//                Eigen::Matrix3d L1 = quatL(invQ0Q1);
-//                Eigen::Matrix3d L2 = quatL(invQ1Q2);
-//                Eigen::Matrix3d L3 = quatL(invQ2Q3);
-//
-//                Eigen::Matrix3d C0 = quatToRotMat<double>(Q0);
-//                Eigen::Matrix3d C1 = quatToRotMat<double>(Q1);
-//                Eigen::Matrix3d C2 = quatToRotMat<double>(Q2);
-//
-//
-//                Eigen::Matrix<double,4,3> temp0_0, temp0_1;
-//                Eigen::Matrix<double,4,3> temp01_0, temp01_1;
-//                Eigen::Matrix<double,4,3> temp12_0, temp12_1;
-//                Eigen::Matrix<double,4,3> temp23_0, temp23_1;
-//
-//
-//                temp0_0 = quatRightComp<double>(quatLeftComp<double>(r_01)*quatLeftComp<double>(r_02)*r_03)*quatRightComp<double>(Q0)*Vee;
-//                temp01_0 = quatLeftComp<double>(Q0)*quatRightComp<double>(quatLeftComp<double>(r_02)*r_03)*quatRightComp<double>(r_01)*Vee*S01*Beta01*L1*C0.transpose();
-//                temp12_0 = quatLeftComp<double>(Q0)*quatLeftComp<double>(r_01)*quatRightComp<double>(r_03)*quatRightComp<double>(r_02)*Vee*S02*Beta02*L2*C1.transpose();
-//                temp23_0 = quatLeftComp<double>(Q0)*quatLeftComp<double>(r_01)*quatLeftComp<double>(r_02)*quatRightComp<double>(r_03)*Vee*S03*Beta03*L3*C2.transpose();
-//
-//                temp0_1 = quatRightComp<double>(quatLeftComp<double>(r_11)*quatLeftComp<double>(r_12)*r_13)*quatRightComp<double>(Q0)*Vee;
-//                temp01_1 = quatLeftComp<double>(Q0)*quatRightComp<double>(quatLeftComp<double>(r_12)*r_13)*quatRightComp<double>(r_11)*Vee*S11*Beta11*L1*C0.transpose();
-//                temp12_1 = quatLeftComp<double>(Q0)*quatLeftComp<double>(r_11)*quatRightComp<double>(r_13)*quatRightComp<double>(r_12)*Vee*S12*Beta12*L2*C1.transpose();
-//                temp23_1 = quatLeftComp<double>(Q0)*quatLeftComp<double>(r_11)*quatLeftComp<double>(r_12)*quatRightComp<double>(r_13)*Vee*S13*Beta13*L3*C2.transpose();
-//
-//
-//                Eigen::Matrix<double,7,6,Eigen::RowMajor> J_T_WI0_T0, J_T_WI0_T1, J_T_WI0_T2, J_T_WI0_T3;
-//                Eigen::Matrix<double,7,6,Eigen::RowMajor> J_T_WI1_T0, J_T_WI1_T1, J_T_WI1_T2, J_T_WI1_T3;
-//                Eigen::Matrix<double,3,6,Eigen::RowMajor> J_v_WI0_T0, J_v_WI0_T1, J_v_WI0_T2, J_v_WI0_T3;
-//                Eigen::Matrix<double,3,6,Eigen::RowMajor> J_v_WI1_T0, J_v_WI1_T1, J_v_WI1_T2, J_v_WI1_T3;
-//
-//                J_T_WI0_T0.setZero();
-//                J_T_WI0_T0.topLeftCorner(3,3) = (1 - Beta01)*Eigen::Matrix3d::Identity();
-//                J_T_WI0_T0.bottomRightCorner(4,3) = temp0_0 - temp01_0;
-//
-//
-//                J_T_WI0_T1.setZero();
-//                J_T_WI0_T1.topLeftCorner(3,3) = (Beta01 - Beta02)*Eigen::Matrix3d::Identity();
-//                J_T_WI0_T1.bottomRightCorner(4,3) = temp01_0 - temp12_0;
-//
-//                J_T_WI0_T2.setZero();
-//                J_T_WI0_T2.topLeftCorner(3,3) = (Beta02 - Beta03)*Eigen::Matrix3d::Identity();
-//                J_T_WI0_T2.bottomRightCorner(4,3) = temp12_0 - temp23_0;
-//
-//                J_T_WI0_T3.setZero();
-//                J_T_WI0_T3.topLeftCorner(3,3) = Beta03*Eigen::Matrix3d::Identity();;
-//                J_T_WI0_T3.bottomRightCorner(4,3) = temp23_0;
-//
-//
-//                J_v_WI0_T0.setZero();
-//                J_v_WI0_T0.block<3,3>(0,0) = -dotBeta01*Eigen::Matrix3d::Identity();
-//
-//                J_v_WI0_T1.setZero();
-//                J_v_WI0_T1.block<3,3>(0,0) = (dotBeta01 - dotBeta02)*Eigen::Matrix3d::Identity();
-//
-//                J_v_WI0_T2.setZero();
-//                J_v_WI0_T2.block<3,3>(0,0) = (dotBeta02 - dotBeta03)*Eigen::Matrix3d::Identity();
-//
-//                J_v_WI0_T3.setZero();
-//                J_v_WI0_T3.block<3,3>(0,0) = dotBeta03*Eigen::Matrix3d::Identity();
-//
-//                J_T_WI1_T0.setZero();
-//                J_T_WI1_T0.topLeftCorner(3,3) = (1 - Beta11)*Eigen::Matrix3d::Identity();
-//                J_T_WI1_T0.bottomRightCorner(4,3) = temp0_1 - temp01_1;
-//
-//
-//                J_T_WI1_T1.setZero();
-//                J_T_WI1_T1.topLeftCorner(3,3) = (Beta11 - Beta12)*Eigen::Matrix3d::Identity();
-//                J_T_WI1_T1.bottomRightCorner(4,3) = temp01_1 - temp12_1;
-//
-//                J_T_WI1_T2.setZero();
-//                J_T_WI1_T2.topLeftCorner(3,3) = (Beta12 - Beta13)*Eigen::Matrix3d::Identity();
-//                J_T_WI1_T2.bottomRightCorner(4,3) = temp12_1 - temp23_1;
-//
-//                J_T_WI1_T3.setZero();
-//                J_T_WI1_T3.topLeftCorner(3,3) = Beta13*Eigen::Matrix3d::Identity();;
-//                J_T_WI1_T3.bottomRightCorner(4,3) = temp23_1;
-//
-//
-//                J_v_WI1_T0.setZero();
-//                J_v_WI1_T0.block<3,3>(0,0) = -dotBeta11*Eigen::Matrix3d::Identity();
-//
-//                J_v_WI1_T1.setZero();
-//                J_v_WI1_T1.block<3,3>(0,0) = (dotBeta11 - dotBeta12)*Eigen::Matrix3d::Identity();
-//
-//                J_v_WI1_T2.setZero();
-//                J_v_WI1_T2.block<3,3>(0,0) = (dotBeta12 - dotBeta13)*Eigen::Matrix3d::Identity();
-//
-//                J_v_WI1_T3.setZero();
-//                J_v_WI1_T3.block<3,3>(0,0) = dotBeta13*Eigen::Matrix3d::Identity();
-//
-//
-//                Eigen::Matrix<double,15,7,Eigen::RowMajor> J_r_pose_i;
-//                Eigen::Matrix<double,15,7,Eigen::RowMajor> J_r_pose_j;
-//                Eigen::Matrix<double,15,6,Eigen::RowMajor> J_r_bias_i;
-//                Eigen::Matrix<double,15,6,Eigen::RowMajor> J_r_bias_j;
-//                J_r_pose_i << J_r_t_WI0, J_r_q_WI0;
-//                J_r_pose_j << J_r_t_WI1, J_r_q_WI1;
-//                J_r_bias_i << J_r_ba0, J_r_bg0;
-//                J_r_bias_j << J_r_ba1, J_r_bg1;
-//
-//
-//                Eigen::Matrix<double,6,6,Eigen::RowMajor> J_bias_i_b0, J_bias_i_b1, J_bias_i_b2, J_bias_i_b3;
-//                Eigen::Matrix<double,6,6,Eigen::RowMajor> J_bias_j_b0, J_bias_j_b1, J_bias_j_b2, J_bias_j_b3;
-//                Eigen::Matrix<double,6,6,Eigen::RowMajor> I6;
-//                I6.setIdentity();
-//                J_bias_i_b0 = (1 - Beta01)*I6;
-//                J_bias_i_b1 = (Beta01 - Beta02)*I6;
-//                J_bias_i_b2 = (Beta02 - Beta03)*I6;
-//                J_bias_i_b3 = (Beta03)*I6;
-//
-//                J_bias_j_b0 = (1 - Beta11)*I6;
-//                J_bias_j_b1 = (Beta11 - Beta12)*I6;
-//                J_bias_j_b2 = (Beta12 - Beta13)*I6;
-//                J_bias_j_b3 = (Beta13)*I6;
-//
-//                if (jacobians[0])
-//                {
-//                    Eigen::Matrix<double,6,7,Eigen::RowMajor> lift;
-//                    PoseLocalParameter::liftJacobian(parameters[0], lift.data());
-//                    Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian(jacobians[0]);
-//                    jacobian = (J_r_pose_i*J_T_WI0_T0 + J_r_v_WI0*J_v_WI0_T0 + J_r_pose_j*J_T_WI1_T0 + J_r_v_WI1*J_v_WI1_T0)*lift;
-//                }
-//                if (jacobians[1])
-//                {
-//                    Eigen::Matrix<double,6,7,Eigen::RowMajor> lift;
-//                    PoseLocalParameter::liftJacobian(parameters[1], lift.data());
-//                    Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian(jacobians[1]);
-//                    jacobian = (J_r_pose_i*J_T_WI0_T1 + J_r_v_WI0*J_v_WI0_T1 + J_r_pose_j*J_T_WI1_T1 + J_r_v_WI1*J_v_WI1_T1)*lift;
-//                }
-//                if (jacobians[2])
-//                {
-//                    Eigen::Matrix<double,6,7,Eigen::RowMajor> lift;
-//                    PoseLocalParameter::liftJacobian(parameters[2], lift.data());
-//                    Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian(jacobians[2]);
-//                    jacobian = (J_r_pose_i*J_T_WI0_T2 + J_r_v_WI0*J_v_WI0_T2 + J_r_pose_j*J_T_WI1_T2 + J_r_v_WI1*J_v_WI1_T2)*lift;
-//                }
-//                if (jacobians[3])
-//                {
-//                    Eigen::Matrix<double,6,7,Eigen::RowMajor> lift;
-//                    PoseLocalParameter::liftJacobian(parameters[3], lift.data());
-//                    Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian(jacobians[3]);
-//                    jacobian = (J_r_pose_i*J_T_WI0_T3 + J_r_v_WI0*J_v_WI0_T3 + J_r_pose_j*J_T_WI1_T3 + J_r_v_WI1*J_v_WI1_T3)*lift;
-//                }
-//
-//                if (jacobians[4])
-//                {
-//                    Eigen::Map<Eigen::Matrix<double, 15, 6, Eigen::RowMajor>> jacobian(jacobians[4]);
-//                    jacobian = J_r_bias_i * J_bias_i_b0 + J_r_bias_j * J_bias_j_b0;
-//                }
-//
-//                if (jacobians[5])
-//                {
-//                    Eigen::Map<Eigen::Matrix<double, 15, 6, Eigen::RowMajor>> jacobian(jacobians[5]);
-//                    jacobian = J_r_bias_i * J_bias_i_b1 + J_r_bias_j * J_bias_j_b1;
-//                }
-//
-//                if (jacobians[6])
-//                {
-//                    Eigen::Map<Eigen::Matrix<double, 15, 6, Eigen::RowMajor>> jacobian(jacobians[6]);
-//                    jacobian = J_r_bias_i * J_bias_i_b2 + J_r_bias_j * J_bias_j_b2;
-//                }
-//
-//                if (jacobians[7])
-//                {
-//                    Eigen::Map<Eigen::Matrix<double, 15, 6, Eigen::RowMajor>> jacobian(jacobians[7]);
-//                    jacobian = J_r_bias_i * J_bias_i_b3 + J_r_bias_j * J_bias_j_b3;
-//                }
+            if (jacobians)
+            {
+                Eigen::Matrix<double,4,3> Vee = QSUtility::V<double>();
 
-//            }
+                Eigen::Vector3d BetaPhi01 = Beta01*phi1;
+                Eigen::Vector3d BetaPhi02 = Beta02*phi2;
+                Eigen::Vector3d BetaPhi03 = Beta03*phi3;
+
+                Eigen::Vector3d BetaPhi11 = Beta11*phi2;
+                Eigen::Vector3d BetaPhi12 = Beta12*phi3;
+                Eigen::Vector3d BetaPhi13 = Beta13*phi4;
+
+                Eigen::Matrix3d S01 = quatS(BetaPhi01);
+                Eigen::Matrix3d S02 = quatS(BetaPhi02);
+                Eigen::Matrix3d S03 = quatS(BetaPhi03);
+
+                Eigen::Matrix3d S11 = quatS(BetaPhi11);
+                Eigen::Matrix3d S12 = quatS(BetaPhi12);
+                Eigen::Matrix3d S13 = quatS(BetaPhi13);
+
+
+                Quaternion invQ0Q1 = quatLeftComp(quatInv<double>(Q0))*Q1;
+                Quaternion invQ1Q2 = quatLeftComp(quatInv<double>(Q1))*Q2;
+                Quaternion invQ2Q3 = quatLeftComp(quatInv<double>(Q2))*Q3;
+                Quaternion invQ3Q4 = quatLeftComp(quatInv<double>(Q3))*Q4;
+
+                Eigen::Matrix3d L1 = quatL(invQ0Q1);
+                Eigen::Matrix3d L2 = quatL(invQ1Q2);
+                Eigen::Matrix3d L3 = quatL(invQ2Q3);
+                Eigen::Matrix3d L4 = quatL(invQ3Q4);
+
+                Eigen::Matrix3d C0 = quatToRotMat<double>(Q0);
+                Eigen::Matrix3d C1 = quatToRotMat<double>(Q1);
+                Eigen::Matrix3d C2 = quatToRotMat<double>(Q2);
+                Eigen::Matrix3d C3 = quatToRotMat<double>(Q3);
+
+
+                Eigen::Matrix<double,4,3> temp0_0, temp1_1;
+                Eigen::Matrix<double,4,3> temp01_0, temp12_1;
+                Eigen::Matrix<double,4,3> temp12_0, temp23_1;
+                Eigen::Matrix<double,4,3> temp23_0, temp34_1;
+
+
+                temp0_0 = quatRightComp<double>(quatLeftComp<double>(r_01)*quatLeftComp<double>(r_02)*r_03)*quatRightComp<double>(Q0)*Vee;
+                temp01_0 = quatLeftComp<double>(Q0)*quatRightComp<double>(quatLeftComp<double>(r_02)*r_03)*quatRightComp<double>(r_01)*Vee*S01*Beta01*L1*C0.transpose();
+                temp12_0 = quatLeftComp<double>(Q0)*quatLeftComp<double>(r_01)*quatRightComp<double>(r_03)*quatRightComp<double>(r_02)*Vee*S02*Beta02*L2*C1.transpose();
+                temp23_0 = quatLeftComp<double>(Q0)*quatLeftComp<double>(r_01)*quatLeftComp<double>(r_02)*quatRightComp<double>(r_03)*Vee*S03*Beta03*L3*C2.transpose();
+
+                temp1_1 = quatRightComp<double>(quatLeftComp<double>(r_11)*quatLeftComp<double>(r_12)*r_13)*quatRightComp<double>(Q1)*Vee;
+                temp12_1 = quatLeftComp<double>(Q1)*quatRightComp<double>(quatLeftComp<double>(r_12)*r_13)*quatRightComp<double>(r_11)*Vee*S11*Beta11*L2*C1.transpose();
+                temp23_1 = quatLeftComp<double>(Q1)*quatLeftComp<double>(r_11)*quatRightComp<double>(r_13)*quatRightComp<double>(r_12)*Vee*S12*Beta12*L3*C2.transpose();
+                temp34_1 = quatLeftComp<double>(Q1)*quatLeftComp<double>(r_11)*quatLeftComp<double>(r_12)*quatRightComp<double>(r_13)*Vee*S13*Beta13*L4*C3.transpose();
+
+
+                Eigen::Matrix<double,7,6,Eigen::RowMajor> J_T_WI0_T0, J_T_WI0_T1, J_T_WI0_T2, J_T_WI0_T3;
+                Eigen::Matrix<double,7,6,Eigen::RowMajor>             J_T_WI1_T1, J_T_WI1_T2, J_T_WI1_T3, J_T_WI1_T4;
+                Eigen::Matrix<double,3,6,Eigen::RowMajor> J_v_WI0_T0, J_v_WI0_T1, J_v_WI0_T2, J_v_WI0_T3;
+                Eigen::Matrix<double,3,6,Eigen::RowMajor>             J_v_WI1_T1, J_v_WI1_T2, J_v_WI1_T3, J_v_WI1_T4;
+
+                J_T_WI0_T0.setZero();
+                J_T_WI0_T0.topLeftCorner(3,3) = (1 - Beta01)*Eigen::Matrix3d::Identity();
+                J_T_WI0_T0.bottomRightCorner(4,3) = temp0_0 - temp01_0;
+
+
+                J_T_WI0_T1.setZero();
+                J_T_WI0_T1.topLeftCorner(3,3) = (Beta01 - Beta02)*Eigen::Matrix3d::Identity();
+                J_T_WI0_T1.bottomRightCorner(4,3) = temp01_0 - temp12_0;
+
+                J_T_WI0_T2.setZero();
+                J_T_WI0_T2.topLeftCorner(3,3) = (Beta02 - Beta03)*Eigen::Matrix3d::Identity();
+                J_T_WI0_T2.bottomRightCorner(4,3) = temp12_0 - temp23_0;
+
+                J_T_WI0_T3.setZero();
+                J_T_WI0_T3.topLeftCorner(3,3) = Beta03*Eigen::Matrix3d::Identity();
+                J_T_WI0_T3.bottomRightCorner(4,3) = temp23_0;
+
+
+                J_v_WI0_T0.setZero();
+                J_v_WI0_T0.block<3,3>(0,0) = -dotBeta01*Eigen::Matrix3d::Identity();
+
+                J_v_WI0_T1.setZero();
+                J_v_WI0_T1.block<3,3>(0,0) = (dotBeta01 - dotBeta02)*Eigen::Matrix3d::Identity();
+
+                J_v_WI0_T2.setZero();
+                J_v_WI0_T2.block<3,3>(0,0) = (dotBeta02 - dotBeta03)*Eigen::Matrix3d::Identity();
+
+                J_v_WI0_T3.setZero();
+                J_v_WI0_T3.block<3,3>(0,0) = dotBeta03*Eigen::Matrix3d::Identity();
+
+
+
+
+                J_T_WI1_T1.setZero();
+                J_T_WI1_T1.topLeftCorner(3,3) = (1 - Beta11)*Eigen::Matrix3d::Identity();
+                J_T_WI1_T1.bottomRightCorner(4,3) = temp1_1 - temp12_1;
+
+                J_T_WI1_T2.setZero();
+                J_T_WI1_T2.topLeftCorner(3,3) = (Beta11 - Beta12)*Eigen::Matrix3d::Identity();
+                J_T_WI1_T2.bottomRightCorner(4,3) = temp12_1 - temp23_1;
+
+                J_T_WI1_T3.setZero();
+                J_T_WI1_T3.topLeftCorner(3,3) = (Beta12 - Beta13)*Eigen::Matrix3d::Identity();
+                J_T_WI1_T3.bottomRightCorner(4,3) = temp23_1 - temp34_1;
+
+
+                J_T_WI1_T4.setZero();
+                J_T_WI1_T4.topLeftCorner(3,3) = (Beta13)*Eigen::Matrix3d::Identity();
+                J_T_WI1_T4.bottomRightCorner(4,3) = temp34_1;
+
+
+                J_v_WI1_T1.setZero();
+                J_v_WI1_T1.block<3,3>(0,0) = -dotBeta11*Eigen::Matrix3d::Identity();
+
+                J_v_WI1_T2.setZero();
+                J_v_WI1_T2.block<3,3>(0,0) = (dotBeta11 - dotBeta12)*Eigen::Matrix3d::Identity();
+
+                J_v_WI1_T3.setZero();
+                J_v_WI1_T3.block<3,3>(0,0) = (dotBeta12 - dotBeta13)*Eigen::Matrix3d::Identity();
+
+                J_v_WI1_T4.setZero();
+                J_v_WI1_T4.block<3,3>(0,0) = dotBeta13*Eigen::Matrix3d::Identity();
+
+
+                Eigen::Matrix<double,15,7,Eigen::RowMajor> J_r_pose_i;
+                Eigen::Matrix<double,15,7,Eigen::RowMajor> J_r_pose_j;
+                Eigen::Matrix<double,15,6,Eigen::RowMajor> J_r_bias_i;
+                Eigen::Matrix<double,15,6,Eigen::RowMajor> J_r_bias_j;
+                J_r_pose_i << J_r_t_WI0, J_r_q_WI0;
+                J_r_pose_j << J_r_t_WI1, J_r_q_WI1;
+                J_r_bias_i << J_r_ba0, J_r_bg0;
+                J_r_bias_j << J_r_ba1, J_r_bg1;
+
+
+                Eigen::Matrix<double,6,6,Eigen::RowMajor> J_bias_i_b0, J_bias_i_b1, J_bias_i_b2, J_bias_i_b3;
+                Eigen::Matrix<double,6,6,Eigen::RowMajor>              J_bias_j_b1, J_bias_j_b2, J_bias_j_b3, J_bias_j_b4;
+                Eigen::Matrix<double,6,6,Eigen::RowMajor> I6;
+                I6.setIdentity();
+                J_bias_i_b0 = (1 - Beta01)*I6;
+                J_bias_i_b1 = (Beta01 - Beta02)*I6;
+                J_bias_i_b2 = (Beta02 - Beta03)*I6;
+                J_bias_i_b3 = (Beta03)*I6;
+
+                J_bias_j_b1 = (1 - Beta11)*I6;
+                J_bias_j_b2 = (Beta11 - Beta12)*I6;
+                J_bias_j_b3 = (Beta12 - Beta13)*I6;
+                J_bias_j_b4 = (Beta13)*I6;
+
+                if (jacobians[0])
+                {
+                    Eigen::Matrix<double,6,7,Eigen::RowMajor> lift;
+                    PoseLocalParameter::liftJacobian(parameters[0], lift.data());
+                    Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian(jacobians[0]);
+                    jacobian = (J_r_pose_i*J_T_WI0_T0 + J_r_v_WI0*J_v_WI0_T0)*lift;
+                }
+                if (jacobians[1])
+                {
+                    Eigen::Matrix<double,6,7,Eigen::RowMajor> lift;
+                    PoseLocalParameter::liftJacobian(parameters[1], lift.data());
+                    Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian(jacobians[1]);
+                    jacobian = (J_r_pose_i*J_T_WI0_T1 + J_r_v_WI0*J_v_WI0_T1 + J_r_pose_j*J_T_WI1_T1 + J_r_v_WI1*J_v_WI1_T1)*lift;
+                }
+                if (jacobians[2])
+                {
+                    Eigen::Matrix<double,6,7,Eigen::RowMajor> lift;
+                    PoseLocalParameter::liftJacobian(parameters[2], lift.data());
+                    Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian(jacobians[2]);
+                    jacobian = (J_r_pose_i*J_T_WI0_T2 + J_r_v_WI0*J_v_WI0_T2 + J_r_pose_j*J_T_WI1_T2 + J_r_v_WI1*J_v_WI1_T2)*lift;
+                }
+                if (jacobians[3])
+                {
+                    Eigen::Matrix<double,6,7,Eigen::RowMajor> lift;
+                    PoseLocalParameter::liftJacobian(parameters[3], lift.data());
+                    Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian(jacobians[3]);
+                    jacobian = (J_r_pose_i*J_T_WI0_T3 + J_r_v_WI0*J_v_WI0_T3 + J_r_pose_j*J_T_WI1_T3 + J_r_v_WI1*J_v_WI1_T3)*lift;
+                }
+
+                if (jacobians[4])
+                {
+                    Eigen::Matrix<double,6,7,Eigen::RowMajor> lift;
+                    PoseLocalParameter::liftJacobian(parameters[4], lift.data());
+                    Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian(jacobians[4]);
+                    jacobian = (J_r_pose_j*J_T_WI1_T4 + J_r_v_WI1*J_v_WI1_T4)*lift;
+                }
+
+                if (jacobians[5])
+                {
+                    Eigen::Map<Eigen::Matrix<double, 15, 6, Eigen::RowMajor>> jacobian(jacobians[5]);
+                    jacobian = J_r_bias_i * J_bias_i_b0;
+                }
+
+                if (jacobians[6])
+                {
+                    Eigen::Map<Eigen::Matrix<double, 15, 6, Eigen::RowMajor>> jacobian(jacobians[6]);
+                    jacobian = J_r_bias_i * J_bias_i_b1 + J_r_bias_j * J_bias_j_b1;
+                }
+
+                if (jacobians[7])
+                {
+                    Eigen::Map<Eigen::Matrix<double, 15, 6, Eigen::RowMajor>> jacobian(jacobians[7]);
+                    jacobian = J_r_bias_i * J_bias_i_b2 + J_r_bias_j * J_bias_j_b2;
+                }
+
+                if (jacobians[8])
+                {
+                    Eigen::Map<Eigen::Matrix<double, 15, 6, Eigen::RowMajor>> jacobian(jacobians[8]);
+                    jacobian = J_r_bias_i * J_bias_i_b3 + J_r_bias_j * J_bias_j_b3;
+                }
+
+                if (jacobians[9])
+                {
+                    Eigen::Map<Eigen::Matrix<double, 15, 6, Eigen::RowMajor>> jacobian(jacobians[9]);
+                    jacobian = J_r_bias_j * J_bias_j_b4;
+                }
+
+            }
 
             return true;
         }

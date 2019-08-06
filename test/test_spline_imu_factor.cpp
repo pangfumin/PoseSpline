@@ -186,6 +186,7 @@ int main(){
         std::pair<real_t,int> time_pair0 = poseSpline.computeTIndex(tt0);
         std::pair<real_t,int> time_pair1 = poseSpline.computeTIndex(tt1);
 
+
         std::cout << "time_pair0: " << time_pair0.second << " " <<  time_pair1.second << std::endl;
         if (time_pair0.second != time_pair1.second) {
             continue;
@@ -243,7 +244,36 @@ int main(){
         double* JPL_parameters[4] = {JPL_T0.data(), sb0.data(), JPL_T1.data(), sb1.data()};
         Eigen::VectorXd residual(15);
         JPL_imuFactor.Evaluate(JPL_parameters, residual.data(), NULL);
-        std::cout << "JPL residual: " << residual.transpose() << std::endl;
+        std::cout << "JPL residual   : " << residual.transpose() << std::endl;
+
+
+
+        int bidx = time_pair0.second - poseSpline.spline_order() + 1;
+
+
+        Eigen::Matrix<double,7,1> cp_T0(poseSpline.getControlPoint(bidx));
+        Eigen::Matrix<double,7,1> cp_T1(poseSpline.getControlPoint(bidx+1));
+        Eigen::Matrix<double,7,1> cp_T2(poseSpline.getControlPoint(bidx+2));
+        Eigen::Matrix<double,7,1> cp_T3(poseSpline.getControlPoint(bidx+3));
+
+        Eigen::Matrix<double,6,1> cp_bias0, cp_bias1, cp_bias2, cp_bias3;
+        cp_bias0 << Eigen::Vector3d(baSpline.getControlPoint(bidx)),
+                Eigen::Vector3d(bgSpline.getControlPoint(bidx));
+
+        cp_bias1 << Eigen::Vector3d(baSpline.getControlPoint(bidx + 1)),
+                Eigen::Vector3d(bgSpline.getControlPoint(bidx + 1 ));
+
+        cp_bias2 << Eigen::Vector3d(baSpline.getControlPoint(bidx+2)),
+                Eigen::Vector3d(bgSpline.getControlPoint(bidx+2));
+
+        cp_bias3 << Eigen::Vector3d(baSpline.getControlPoint(bidx + 3)),
+                Eigen::Vector3d(bgSpline.getControlPoint(bidx + 3));
+
+        double* spline_parameters[8] = {cp_T0.data(), cp_T1.data(), cp_T2.data(), cp_T3.data(),
+                                     cp_bias0.data(), cp_bias1.data(), cp_bias2.data(), cp_bias3.data()};
+        Eigen::VectorXd spline_residual(15);
+        splineImuFactor.Evaluate(spline_parameters, spline_residual.data(), NULL);
+        std::cout << "spline_residual: " << spline_residual.transpose() << std::endl;
 
 
 

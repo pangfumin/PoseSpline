@@ -45,16 +45,16 @@ public:
             Eigen::Map<Eigen::Matrix<double,Dim,1>> CpMap2(cp2);
             Eigen::Map<Eigen::Matrix<double,Dim,1>> CpMap3(cp3);
 
-            VectorSplineSampleError* vectorSplineSampleError
-                    = new VectorSplineSampleError(u,i.second);
+            VectorSplineSampleError<Dim>* vectorSplineSampleError
+                    = new VectorSplineSampleError<Dim>(u,i.second);
 //
 //            ceres::CostFunction* vectorSplineSampleError
 //                    = new ceres::AutoDiffCostFunction<VectorSplineSampleAutoError,3,3,3,3,3>(new VectorSplineSampleAutoError(u, i.second));
 
-            problem.AddParameterBlock(cp0,3);
-            problem.AddParameterBlock(cp1,3);
-            problem.AddParameterBlock(cp2,3);
-            problem.AddParameterBlock(cp3,3);
+            problem.AddParameterBlock(cp0, Dim);
+            problem.AddParameterBlock(cp1, Dim);
+            problem.AddParameterBlock(cp2, Dim);
+            problem.AddParameterBlock(cp3, Dim);
 
             problem.AddResidualBlock(vectorSplineSampleError, NULL, cp0, cp1, cp2, cp3);
 

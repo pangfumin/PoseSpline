@@ -31,7 +31,7 @@ public:
 template <int D>
 class TypeTraits<Eigen::Matrix<double, D,1>> {
 public:
-    typedef Eigen::Vector3d TypeT;
+    typedef Eigen::Matrix<double,D,1> TypeT;
     enum {Dim = D, miniDim = D};
     static TypeT zero() {
         return Eigen::Matrix<double,D,1>::Zero();

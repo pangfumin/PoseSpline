@@ -107,10 +107,12 @@ TEST( Spline , poseSplineInitialization){
 
     PoseSpline poseSpline(0.1);
     VectorSpaceSpline<3> vectorSpaceSpline(0.1);
+    VectorSpaceSpline<6> vectorSpaceSpline6(0.1);
 
     std::vector<std::pair<double,Pose<double>>> samples, queryMeas;
     std::vector<std::pair<double,Eigen::Vector3d>> queryVelocityMeas;
     std::vector<std::pair<double,Eigen::Vector3d>> positionSamples;
+    std::vector<std::pair<double,Eigen::Matrix<double, 6, 1>>> position6Samples;
 
 
     //
@@ -129,12 +131,16 @@ TEST( Spline , poseSplineInitialization){
         if(i % 5  == 0){
             samples.push_back(std::pair<double,Pose<double>>(Time(stampedPose.timestamp_).toSec(), pose ) );
             positionSamples.push_back(std::pair<double, Eigen::Vector3d>(Time(stampedPose.timestamp_).toSec(), stampedPose.t_ ) );
+            Eigen::VectorXd meas(6);
+            meas << stampedPose.t_, stampedPose.t_ ;
+            position6Samples.push_back(std::pair<double, Eigen::Matrix<double, 6, 1>>(Time(stampedPose.timestamp_).toSec(), meas ) );
         }
 
     }
 
     poseSpline.initialPoseSpline(samples);
     vectorSpaceSpline.initialSpline(positionSamples);
+    vectorSpaceSpline6.initialSpline(position6Samples);
 
     /*
      *  Test: pose spline evalPoseSpline
@@ -152,6 +158,12 @@ TEST( Spline , poseSplineInitialization){
             // evaluate vector
             Eigen::Vector3d queryPosition = vectorSpaceSpline.evaluateSpline(pair.first);
             GTEST_ASSERT_LT((pair.second.r() - queryPosition).norm(), 5e-2);
+
+            Eigen::Matrix<double, 6, 1> queryPosition6 = vectorSpaceSpline6.evaluateSpline(pair.first);
+            GTEST_ASSERT_LT((pair.second.r() - queryPosition6.head<3>()).norm(), 5e-2);
+            GTEST_ASSERT_LT((pair.second.r() - queryPosition6.tail<3>()).norm(), 5e-2);
+
+
 
         }
 

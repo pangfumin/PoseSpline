@@ -101,7 +101,7 @@ int main(){
     JPL::ImuParam imuParam;
     hamilton::ImuParam imuParam1;
     std::string pose_file =
-            "/home/pang/data/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
+            "/home/pang/disk/dataset/euroc/MH_01_easy/mav0/state_groundtruth_estimate0/data.csv";
 
     TestSample testSample;
     testSample.readStates(pose_file);
@@ -428,8 +428,8 @@ int main(){
             std::cout << "jacobian0 error " << (results.local_jacobians.at(0) - results.local_numeric_jacobians.at(0)).norm() << std::endl;
             CHECK_EQ((results.local_jacobians.at(0) - results.local_numeric_jacobians.at(0)).norm() < 1e-6, true) << "jcaobian error is large";
 
-            std::cout << "jacobian1:  \n" << results.local_jacobians.at(1) << std::endl;
-            std::cout << "num jacobian1:  \n" << results.local_numeric_jacobians.at(1) << std::endl;
+//            std::cout << "jacobian1:  \n" << results.local_jacobians.at(1) << std::endl;
+//            std::cout << "num jacobian1:  \n" << results.local_numeric_jacobians.at(1) << std::endl;
 
             CHECK_EQ((results.local_jacobians.at(1) - results.local_numeric_jacobians.at(1)).norm() < 1e-6, true) << "jcaobian error is large";
 //

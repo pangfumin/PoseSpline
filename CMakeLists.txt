@@ -34,7 +34,6 @@ cs_add_library(${PROJECT_NAME}
         src/OmegaExtrinsicTemperalError.cpp
         src/QuaternionOmegaSampleError.cpp
         src/PoseSpline.cpp
-        src/VectorSplineSampleError.cpp
         src/VectorSplineSampleAutoError.cpp
         src/VectorSplineSampleVelocityError.cpp
         src/Time.cpp

@@ -184,10 +184,10 @@ namespace  JPL {
                 Eigen::Matrix3d S13 = quatS(BetaPhi13);
 
 
-                Quaternion invQ0Q1 = quatLeftComp(quatInv<double>(Q0))*Q1;
-                Quaternion invQ1Q2 = quatLeftComp(quatInv<double>(Q1))*Q2;
-                Quaternion invQ2Q3 = quatLeftComp(quatInv<double>(Q2))*Q3;
-                Quaternion invQ3Q4 = quatLeftComp(quatInv<double>(Q3))*Q4;
+                QuaternionTemplate<double> invQ0Q1 = quatLeftComp(quatInv<double>(Q0))*Q1;
+                QuaternionTemplate<double> invQ1Q2 = quatLeftComp(quatInv<double>(Q1))*Q2;
+                QuaternionTemplate<double> invQ2Q3 = quatLeftComp(quatInv<double>(Q2))*Q3;
+                QuaternionTemplate<double> invQ3Q4 = quatLeftComp(quatInv<double>(Q3))*Q4;
 
                 Eigen::Matrix3d L1 = quatL(invQ0Q1);
                 Eigen::Matrix3d L2 = quatL(invQ1Q2);

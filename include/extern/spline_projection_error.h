@@ -19,7 +19,9 @@ struct SplineProjectFunctor{
     template <typename  T>
     bool operator()(const T* const T0_param, const T* const T1_param,
                     const T* const T2_param, const T* const T3_param,
-                    const T* const rho_param, T* residuals) const {
+                    const T* const rho_param,
+                    const T* const bias_t,
+                    T* residuals) const {
 
         Pose<T> T0(T0_param);
         Pose<T> T1(T1_param);
@@ -39,13 +41,18 @@ struct SplineProjectFunctor{
         Eigen::Matrix<T,3,1> t2 = T2.translation();
         Eigen::Matrix<T,3,1> t3 = T3.translation();
 
-        T  Beta01 = QSUtility::beta1(T(t0_));
-        T  Beta02 = QSUtility::beta2(T(t0_));
-        T  Beta03 = QSUtility::beta3(T(t0_));
+        T correst_t0 = T(t0_) + *bias_t;
+        T correst_t1 = T(t1_) + *bias_t;
 
-        T  Beta11 = QSUtility::beta1(T(t1_));
-        T  Beta12 = QSUtility::beta2(T(t1_));
-        T  Beta13 = QSUtility::beta3(T(t1_));
+//        std::cout << "bias_t[0]: " << bias_t[0] << std::endl;
+
+        T  Beta01 = QSUtility::beta1(correst_t0);
+        T  Beta02 = QSUtility::beta2(correst_t0);
+        T  Beta03 = QSUtility::beta3(correst_t0);
+
+        T  Beta11 = QSUtility::beta1(correst_t1);
+        T  Beta12 = QSUtility::beta2(correst_t1);
+        T  Beta13 = QSUtility::beta3(correst_t1);
 
         Eigen::Matrix<T,3,1> phi1 = QSUtility::Phi<T>(Q0,Q1);
         Eigen::Matrix<T,3,1> phi2 = QSUtility::Phi<T>(Q1,Q2);
@@ -69,6 +76,11 @@ struct SplineProjectFunctor{
 
         Eigen::Matrix<T,3,3> R_WI0 = quatToRotMat(Q_WI0_hat);
         Eigen::Matrix<T,3,3> R_WI1 = quatToRotMat(Q_WI1_hat);
+
+//        std::cout << "R_WI0:  " <<  Eigen::Quaternion<T>(R_WI0).coeffs().transpose() << std::endl;
+//        std::cout << "R_WI1:  " <<  Eigen::Quaternion<T>(R_WI1).coeffs().transpose() << std::endl;
+
+//        std::cout << "R_WI0: \n" << R_WI0 << std::endl;
 
         Eigen::Matrix<T,3,3> R_IC = T_IC_.matrix().topLeftCorner(3,3).cast<T>();
         Eigen::Matrix<T,3,1> t_IC = T_IC_.matrix().topRightCorner(3,1).cast<T>();

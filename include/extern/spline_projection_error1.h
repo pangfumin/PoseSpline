@@ -22,6 +22,7 @@ struct SplineProjectFunctor1{
     bool operator()(const T* const T0_param, const T* const T1_param,
                     const T* const T2_param, const T* const T3_param,
                     const T* const T4_param, const T* const rho_param,
+                    const T* const bias_t,
                     T* residuals) const {
 
         Pose<T> T0(T0_param);
@@ -44,13 +45,18 @@ struct SplineProjectFunctor1{
         Eigen::Matrix<T,3,1> t3 = T3.translation();
         Eigen::Matrix<T,3,1> t4 = T4.translation();
 
-        T  Beta01 = QSUtility::beta1(T(t0_));
-        T  Beta02 = QSUtility::beta2(T(t0_));
-        T  Beta03 = QSUtility::beta3(T(t0_));
+        T correst_t0 = T(t0_) + *bias_t;
+        T correst_t1 = T(t1_) + *bias_t;
 
-        T  Beta11 = QSUtility::beta1(T(t1_));
-        T  Beta12 = QSUtility::beta2(T(t1_));
-        T  Beta13 = QSUtility::beta3(T(t1_));
+
+        T  Beta01 = QSUtility::beta1(correst_t0);
+        T  Beta02 = QSUtility::beta2(correst_t0);
+        T  Beta03 = QSUtility::beta3(correst_t0);
+
+        T  Beta11 = QSUtility::beta1(correst_t1);
+        T  Beta12 = QSUtility::beta2(correst_t1);
+        T  Beta13 = QSUtility::beta3(correst_t1);
+
         Eigen::Matrix<T,3,1> phi1 = QSUtility::Phi<T>(Q0,Q1);
         Eigen::Matrix<T,3,1> phi2 = QSUtility::Phi<T>(Q1,Q2);
         Eigen::Matrix<T,3,1> phi3 = QSUtility::Phi<T>(Q2,Q3);

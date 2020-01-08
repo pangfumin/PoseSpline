@@ -182,6 +182,17 @@ int main() {
     problem.AddParameterBlock(&est_dt, 1);
 
 
+    PoseSplineSampleTemporalError* quatSplineError0 =
+            new PoseSplineSampleTemporalError(PoseSplineSampleTemporalFunctor(u,P_meas));
+    PoseSplineSampleTemporalError* quatSplineError1 =
+            new PoseSplineSampleTemporalError(PoseSplineSampleTemporalFunctor(u1,P_meas1));
+    PoseSplineSampleTemporalError* quatSplineError2 =
+            new PoseSplineSampleTemporalError(PoseSplineSampleTemporalFunctor(u2,P_meas2));
+    PoseSplineSampleTemporalError* quatSplineError3 =
+            new PoseSplineSampleTemporalError(PoseSplineSampleTemporalFunctor(u3,P_meas3));
+    PoseSplineSampleTemporalError* quatSplineError4 =
+            new PoseSplineSampleTemporalError(PoseSplineSampleTemporalFunctor(u4,P_meas4));
+
 
 
     PoseSplineSampleTemporalError* quatSplineError5 =
@@ -189,6 +200,23 @@ int main() {
 
 
 
+
+    problem.AddResidualBlock(quatSplineError0, loss_function, pose0.parameterPtr(),pose1.parameterPtr(),
+                             pose2.parameterPtr(),pose3.parameterPtr(),
+                             &est_dt);
+    problem.AddResidualBlock(quatSplineError1, loss_function, pose0.parameterPtr(),pose1.parameterPtr(),
+                             pose2.parameterPtr(),pose3.parameterPtr(),
+                             &est_dt);
+    problem.AddResidualBlock(quatSplineError2, loss_function, pose0.parameterPtr(),pose1.parameterPtr(),
+                             pose2.parameterPtr(),pose3.parameterPtr(),
+                             &est_dt);
+    problem.AddResidualBlock(quatSplineError3, loss_function, pose0.parameterPtr(),pose1.parameterPtr(),
+                             pose2.parameterPtr(),pose3.parameterPtr(),
+                             &est_dt);
+
+    problem.AddResidualBlock(quatSplineError4, loss_function, pose0.parameterPtr(),pose1.parameterPtr(),
+                             pose2.parameterPtr(),pose3.parameterPtr(),
+                             &est_dt);
     problem.AddResidualBlock(quatSplineError5, loss_function, pose0.parameterPtr(),pose1.parameterPtr(),
                              pose2.parameterPtr(),pose3.parameterPtr(),
                              &est_dt);

@@ -113,7 +113,7 @@ struct SplineProjectFunctor{
     Eigen::Isometry3d T_IC_;
 };
 
-class SplineProjectError{
+class SplineProjectError : public ceres::SizedCostFunction<2,7,7,7,7,1,1>{
 
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

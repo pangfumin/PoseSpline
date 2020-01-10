@@ -73,6 +73,9 @@ TEST(Geometry, quaternion){
 
     GTEST_ASSERT_LT((dot_r - numdiff_r).norm(), 1e-5);
 
+    std::cout << "dot_r: " << dot_r.transpose() << " " << dot_r.norm() << std::endl;
+    std::cout << "numdiff_r: " << numdiff_r.transpose() << " " << numdiff_r.norm() << std::endl;
+
 
     /*
      * test d2r_dt2

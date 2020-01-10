@@ -60,11 +60,11 @@ if(CATKIN_ENABLE_TESTING)
 
     catkin_add_gtest(ceres_tests
             test/test_main.cpp
-            test/QuaternionCeresTest.cpp
-            test/testProjectError.cpp
-            test/testSplineRotateError.cpp
+#            test/QuaternionCeresTest.cpp
+#            test/testProjectError.cpp
+#            test/testSplineRotateError.cpp
             test/testSplineProjectError.cpp
-            test/VectorSplineCeresTest.cpp
+#            test/VectorSplineCeresTest.cpp
             )
     if(TARGET ceres_tests)
         target_link_libraries(ceres_tests ${PROJECT_NAME} -lpthread -lm)
@@ -100,7 +100,8 @@ target_link_libraries(test_JPL_imu_factor ${PROJECT_NAME}  -lpthread -lm)
 
 add_executable(testPoseSplineSampleTemporalError test/testPoseSplineSampleTemporalError.cpp)
 target_link_libraries(testPoseSplineSampleTemporalError ${PROJECT_NAME}  -lpthread -lm)
-
+add_executable(testPoseSplineSampleError test/testPoseSplineSampleError.cpp)
+target_link_libraries(testPoseSplineSampleError ${PROJECT_NAME}  -lpthread -lm)
 
 cs_install()
 cs_export()

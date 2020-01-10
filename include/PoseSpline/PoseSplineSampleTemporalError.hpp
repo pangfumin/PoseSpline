@@ -67,7 +67,7 @@ public:
 
         Eigen::Matrix<T,3,1> t_hat = t0 + Beta1*(t1 - t0) +  Beta2*(t2 - t1) + Beta3*(t3 - t2);
 
-        error.head(3) =  t_hat - T_Meas_.translation();
+        error.head(3) =  t_hat - T_Meas_.translation().cast<T>();
         error.tail(3) =  T(2.0) * dQ.template head<3>();
     }
 private:

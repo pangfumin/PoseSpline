@@ -70,7 +70,7 @@ TEST(Ceres, VectorSpaceSpline){
                                  AnaliJacobian2.data(),
                                  AnaliJacobian3.data()};
 
-    VectorSplineSampleError* vectorSplineSampleError =  new VectorSplineSampleError(sample_t,sample_V);
+    VectorSplineSampleError<3>* vectorSplineSampleError =  new VectorSplineSampleError<3>(sample_t,sample_V);
     vectorSplineSampleError->EvaluateWithMinimalJacobians(paramters,Residual.data(),AnaliJacobians,AnaliJacobians_minimal);
 
     std::cout<<"Residual: "<<Residual.transpose()<<std::endl;
@@ -88,7 +88,7 @@ TEST(Ceres, VectorSpaceSpline){
 
     // check jacobian_minimal0
     Eigen::Matrix<double,3,3,Eigen::RowMajor> numJacobian_min0;
-    NumbDifferentiator<VectorSplineSampleError,4> numbDifferentiator(vectorSplineSampleError);
+    NumbDifferentiator<VectorSplineSampleError<3>,4> numbDifferentiator(vectorSplineSampleError);
     numbDifferentiator.df_r_xi<3,3>(paramters,0,numJacobian_min0.data());
 
     std::cout<<"numJacobian_min0: "<<std::endl<<numJacobian_min0<<std::endl;
@@ -138,12 +138,12 @@ TEST(Ceres, VectorSpaceSpline){
     problem.AddParameterBlock(Cp2.data(), 3);
     problem.AddParameterBlock(Cp3.data(), 3);
 
-    VectorSplineSampleError* vectorSplineSampleError0 = new VectorSplineSampleError(u1,V_meas);
-    VectorSplineSampleError* vectorSplineSampleError1 = new VectorSplineSampleError(u1,V_meas1);
-    VectorSplineSampleError* vectorSplineSampleError2 = new VectorSplineSampleError(u2,V_meas2);
-    VectorSplineSampleError* vectorSplineSampleError3 = new VectorSplineSampleError(u3,V_meas3);
-    VectorSplineSampleError* vectorSplineSampleError4 = new VectorSplineSampleError(u4,V_meas4);
-    VectorSplineSampleError* vectorSplineSampleError5 = new VectorSplineSampleError(u5,V_meas5);
+    VectorSplineSampleError<3>* vectorSplineSampleError0 = new VectorSplineSampleError<3>(u1,V_meas);
+    VectorSplineSampleError<3>* vectorSplineSampleError1 = new VectorSplineSampleError<3>(u1,V_meas1);
+    VectorSplineSampleError<3>* vectorSplineSampleError2 = new VectorSplineSampleError<3>(u2,V_meas2);
+    VectorSplineSampleError<3>* vectorSplineSampleError3 = new VectorSplineSampleError<3>(u3,V_meas3);
+    VectorSplineSampleError<3>* vectorSplineSampleError4 = new VectorSplineSampleError<3>(u4,V_meas4);
+    VectorSplineSampleError<3>* vectorSplineSampleError5 = new VectorSplineSampleError<3>(u5,V_meas5);
 
     problem.AddResidualBlock(vectorSplineSampleError0, loss_function, Cp0.data(),Cp1.data(),Cp2.data(),Cp3.data());
     problem.AddResidualBlock(vectorSplineSampleError1, loss_function, Cp0.data(),Cp1.data(),Cp2.data(),Cp3.data());

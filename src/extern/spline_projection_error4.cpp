@@ -22,7 +22,7 @@ bool SplineProjectError4::EvaluateWithMinimalJacobians(double const *const *para
 
     if (!jacobians) {
         return ceres::internal::VariadicEvaluate<
-                SplineProjectFunctor4, double, 7, 7, 7, 7, 7, 7, 7, 7, 1,0>
+                SplineProjectFunctor4, double, 7, 7, 7, 7, 7, 7, 7, 7, 1,1>
         ::Call(functor_, parameters, residuals);
     }
 
@@ -30,7 +30,7 @@ bool SplineProjectError4::EvaluateWithMinimalJacobians(double const *const *para
 
 
     bool success =  ceres::internal::AutoDiff<SplineProjectFunctor4, double,
-            7,7,7,7,7,7,7,7,1>::Differentiate(
+            7,7,7,7,7,7,7,7,1,1>::Differentiate(
             functor_,
             parameters,
             2,
@@ -60,6 +60,13 @@ bool SplineProjectError4::EvaluateWithMinimalJacobians(double const *const *para
             Eigen::Map<Eigen::Matrix<double,2,1>> J8_map(jacobians[8]);
             J8_minimal_map = J8_map;
         }
+
+        if( jacobiansMinimal[9] != NULL){
+            Eigen::Map<Eigen::Matrix<double,2,1>> J_minimal_map(jacobiansMinimal[9]);
+            Eigen::Map<Eigen::Matrix<double,2,1>> J_map(jacobians[9]);
+            J_minimal_map = J_map;
+        }
+
 
     }
 

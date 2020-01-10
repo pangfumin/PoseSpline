@@ -51,6 +51,7 @@ struct SplineProjectFunctor{
         T  Beta12 = QSUtility::beta2(correct_t1);
         T  Beta13 = QSUtility::beta3(correct_t1);
 
+
         Eigen::Matrix<T,3,1> phi1 = QSUtility::Phi<T>(Q0,Q1);
         Eigen::Matrix<T,3,1> phi2 = QSUtility::Phi<T>(Q1,Q2);
         Eigen::Matrix<T,3,1> phi3 = QSUtility::Phi<T>(Q2,Q3);
@@ -73,6 +74,11 @@ struct SplineProjectFunctor{
 
         Eigen::Matrix<T,3,3> R_WI0 = quatToRotMat(Q_WI0_hat);
         Eigen::Matrix<T,3,3> R_WI1 = quatToRotMat(Q_WI1_hat);
+
+//        std::cout << "R_WI0:  " <<  Eigen::Quaternion<T>(R_WI0).coeffs().transpose() << std::endl;
+//        std::cout << "R_WI1:  " <<  Eigen::Quaternion<T>(R_WI1).coeffs().transpose() << std::endl;
+
+//        std::cout << "R_WI0: \n" << R_WI0 << std::endl;
 
         Eigen::Matrix<T,3,3> R_IC = T_IC_.matrix().topLeftCorner(3,3).cast<T>();
         Eigen::Matrix<T,3,1> t_IC = T_IC_.matrix().topRightCorner(3,1).cast<T>();
@@ -105,7 +111,7 @@ struct SplineProjectFunctor{
     Eigen::Isometry3d T_IC_;
 };
 
-class SplineProjectError{
+class SplineProjectError : public ceres::SizedCostFunction<2,7,7,7,7,1,1>{
 
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

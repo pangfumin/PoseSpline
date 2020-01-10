@@ -19,7 +19,7 @@ bool SplineProjectError::EvaluateWithMinimalJacobians(double const *const *param
                                                        double **jacobians,
                                                        double **jacobiansMinimal) const {
 
-    if (!jacobians) {
+    if (jacobians == nullptr) {
         return ceres::internal::VariadicEvaluate<
                 SplineProjectFunctor, double, 7, 7, 7, 7, 1,1,0,0,0,0>
         ::Call(functor_, parameters, residuals);

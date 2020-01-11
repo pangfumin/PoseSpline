@@ -20,7 +20,7 @@ namespace  JPL {
                 const double spline_dt,
                 const double& u0, const double& u1,
                 const int num_vertex_involved) :
-                        pre_integration(_pre_integration),
+                        pre_integration_(_pre_integration),
                         spline_dt_(spline_dt),
                         t0_(u0), t1_(u1),
                         num_vertex_involved_(num_vertex_involved){
@@ -444,27 +444,26 @@ namespace  JPL {
             QuaternionTemplate<T> Qi = quatLeftComp(Q0)*quatLeftComp(r_01)*quatLeftComp(r_02)*r_03;
             Eigen::Matrix<T,3,1> Vi = dotBeta01*(t1 - t0) +  dotBeta02*(t2 - t1) + dotBeta03*(t3 - t2);
             Eigen::Matrix<T,6,1> bias_i = b0 + Beta01*(b1 - b0) +  Beta02*(b2 - b1) + Beta03*(b3 - b2);
-            Eigen::Matrix<T,3,1> Bai = bias_i.head<3>();
-            Eigen::Matrix<T,3,1> Bgi = bias_i.tail<3>();
+            Eigen::Matrix<T,3,1> Bai = bias_i.template head<3>();
+            Eigen::Matrix<T,3,1> Bgi = bias_i.template tail<3>();
 
             Eigen::Matrix<T,3,1> Pj = t0 + Beta11*(t1 - t0) +  Beta12*(t2 - t1) + Beta13*(t3 - t2);
             QuaternionTemplate<T> Qj = quatLeftComp(Q0)*quatLeftComp(r_11)*quatLeftComp(r_12)*r_13;
             Eigen::Matrix<T,3,1> Vj = dotBeta11*(t1 - t0) +  dotBeta12*(t2 - t1) + dotBeta13*(t3 - t2);
 
             Eigen::Matrix<T,6,1> bias_j = b0 + Beta11*(b1 - b0) +  Beta12*(b2 - b1) + Beta13*(b3 - b2);
-            Eigen::Matrix<T,3,1> Baj = bias_j.head<3>();
-            Eigen::Matrix<T,3,1> Bgj = bias_j.tail<3>();
+            Eigen::Matrix<T,3,1> Baj = bias_j.template head<3>();
+            Eigen::Matrix<T,3,1> Bgj = bias_j.template tail<3>();
 
-            Eigen::Map<Eigen::Matrix<T, 15, 1>> residual(residuals);
-            residual = pre_integration->evaluate(Pi, Qi, Vi, Bai, Bgi,
+            Eigen::Map<Eigen::Matrix<T, 15, 1>> error(residual);
+            error = pre_integration_->evaluate(Pi, Qi, Vi, Bai, Bgi,
                                                  Pj, Qj, Vj, Baj, Bgj,
-                                                 internal_jacobians);
+                                                 NULL);
 
-            Eigen::Matrix<T, 15, 15> sqrt_info = Eigen::LLT<Eigen::Matrix<T, 15, 15>>(
-                    pre_integration->covariance.inverse()).matrixL().transpose();
+            Eigen::Matrix<T, 15, 15> sqrt_info = pre_integration_->sqrt_Sigma;
 //            sqrt_info.setIdentity();
 
-            residual = sqrt_info * residual;
+            error = sqrt_info * error;
 
 
         }

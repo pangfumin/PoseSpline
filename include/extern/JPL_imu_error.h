@@ -34,7 +34,7 @@ namespace  JPL {
         O_GW = 9
     };
 
-class IntegrationBase: public ceres::SizedCostFunction<15,7,9,7,9> {
+class IntegrationBase{
     public:
         IntegrationBase() = delete;
 
@@ -156,6 +156,9 @@ class IntegrationBase: public ceres::SizedCostFunction<15,7,9,7,9> {
             //step_V = V;
             jacobian = F * jacobian;
             covariance = F * covariance * F.transpose() + V * noise * V.transpose();
+
+            sqrt_Sigma = Eigen::LLT<Eigen::Matrix<double, 15, 15>>(
+                    covariance.inverse()).matrixL().transpose();
         }
 
         }
@@ -189,12 +192,16 @@ class IntegrationBase: public ceres::SizedCostFunction<15,7,9,7,9> {
 
         }
 
-        Eigen::Matrix<double, 15, 1>
-        evaluate(const Eigen::Vector3d &Pi, const QuaternionTemplate<double> &Qi, const Eigen::Vector3d &Vi,
-                 const Eigen::Vector3d &Bai, const Eigen::Vector3d &Bgi,
-                 const Eigen::Vector3d &Pj, const QuaternionTemplate<double> &Qj, const Eigen::Vector3d &Vj,
-                 const Eigen::Vector3d &Baj, const Eigen::Vector3d &Bgj, double **jacobians = NULL) const  {
-            Eigen::Vector3d G{0.0, 0.0, 9.8};
+        template <typename  T>
+        Eigen::Matrix<T, 15, 1>
+        evaluate(const Eigen::Matrix<T,3,1> &Pi, const QuaternionTemplate<double> &Qi,
+                 const Eigen::Matrix<T,3,1> &Vi,
+                 const Eigen::Matrix<T,3,1> &Bai, const Eigen::Matrix<T,3,1> &Bgi,
+                 const Eigen::Matrix<T,3,1> &Pj, const QuaternionTemplate<double> &Qj,
+                 const Eigen::Matrix<T,3,1> &Vj,
+                 const Eigen::Matrix<T,3,1> &Baj, const Eigen::Matrix<T,3,1> &Bgj,
+                 double **jacobians = NULL) const  {
+            Eigen::Matrix<T,3,1> G{0.0, 0.0, 9.8};
             Eigen::Matrix<double, 15, 1> residuals;
 
             Eigen::Matrix3d dp_dba = jacobian.block<3, 3>(O_P, O_BA);
@@ -205,19 +212,19 @@ class IntegrationBase: public ceres::SizedCostFunction<15,7,9,7,9> {
             Eigen::Matrix3d dv_dba = jacobian.block<3, 3>(O_V, O_BA);
             Eigen::Matrix3d dv_dbg = jacobian.block<3, 3>(O_V, O_BG);
 
-            Eigen::Vector3d dba = Bai - linearized_ba;
-            Eigen::Vector3d dbg = Bgi - linearized_bg;
+            Eigen::Matrix<T,3,1> dba = Bai - linearized_ba;
+            Eigen::Matrix<T,3,1> dbg = Bgi - linearized_bg;
 
-            Eigen::Vector3d temp = dq_dbg * dbg;
+            Eigen::Matrix<T,3,1> temp = dq_dbg * dbg;
             corrected_delta_q = quatMult(deltaQuat<double>(temp), delta_q);
 
-            Eigen::Vector3d corrected_delta_v = delta_v + dv_dba * dba + dv_dbg * dbg;
-            Eigen::Vector3d corrected_delta_p = delta_p + dp_dba * dba + dp_dbg * dbg;
+            Eigen::Matrix<T,3,1> corrected_delta_v = delta_v + dv_dba * dba + dv_dbg * dbg;
+            Eigen::Matrix<T,3,1> corrected_delta_p = delta_p + dp_dba * dba + dp_dbg * dbg;
 
 
             Eigen::Matrix3d R_WIi = quatToRotMat(Qi);
-            Eigen::Vector3d temp_p = 0.5 * G * sum_dt * sum_dt + Pj - Pi - Vi * sum_dt;
-            Eigen::Vector3d temp_v = G * sum_dt + Vj - Vi;
+            Eigen::Matrix<T,3,1> temp_p = 0.5 * G * sum_dt * sum_dt + Pj - Pi - Vi * sum_dt;
+            Eigen::Matrix<T,3,1> temp_v = G * sum_dt + Vj - Vi;
             residuals.block<3, 1>(O_P, 0) = R_WIi.transpose() * temp_p - corrected_delta_p;
             residuals.block<3, 1>(O_R, 0) = 2 * quatMult(quatInv(corrected_delta_q), quatMult(quatInv(Qj), Qi)).head<3>();
             residuals.block<3, 1>(O_V, 0) = R_WIi.transpose() * temp_v - corrected_delta_v;
@@ -285,29 +292,7 @@ class IntegrationBase: public ceres::SizedCostFunction<15,7,9,7,9> {
             return residuals;
         }
 
-        virtual bool Evaluate(double const *const *parameters, double *residuals,
-                              double **jacobians) const {
 
-
-
-            Eigen::Map<const Eigen::Vector3d> Pi(parameters[0]);
-            Eigen::Map<const QuaternionTemplate<double>> Qi(parameters[0] + 3);
-            Eigen::Map<const Eigen::Vector3d> Vi(parameters[1]);
-            Eigen::Map<const Eigen::Vector3d> Bai(parameters[1] + 3);
-            Eigen::Map<const Eigen::Vector3d> Bgi(parameters[1] + 6);
-
-            Eigen::Map<const Eigen::Vector3d> Pj(parameters[1]);
-            Eigen::Map<const QuaternionTemplate<double>> Qj(parameters[1] + 3);
-            Eigen::Map<const Eigen::Vector3d> Vj(parameters[2]);
-            Eigen::Map<const Eigen::Vector3d> Baj(parameters[2] + 3);
-            Eigen::Map<const Eigen::Vector3d> Bgj(parameters[2] + 6);
-
-            Eigen::Map<Eigen::Matrix<double,15,1>> error(residuals);
-
-            error = evaluate(Pi, Qi,Vi,Bai, Bgi, Pj, Qj, Vj, Baj, Bgj, jacobians);
-
-            return true;
-        }
 
         double dt;
         Eigen::Vector3d acc_0, gyr_0;
@@ -317,6 +302,8 @@ class IntegrationBase: public ceres::SizedCostFunction<15,7,9,7,9> {
         Eigen::Vector3d linearized_ba, linearized_bg;
 
         Eigen::Matrix<double, 15, 15> jacobian, covariance;
+        Eigen::Matrix<double, 15, 15> sqrt_Sigma;
+
         Eigen::Matrix<double, 15, 15> step_jacobian;
         Eigen::Matrix<double, 15, 18> step_V;
         Eigen::Matrix<double, 18, 18> noise;

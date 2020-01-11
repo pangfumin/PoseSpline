@@ -10,6 +10,7 @@
 #include "PoseSpline/PoseLocalParameter.hpp"
 #include "PoseSpline/QuaternionLocalParameter.hpp"
 
+
 namespace  JPL {
     struct ImuParam {
         double ACC_N = 0.1;
@@ -33,7 +34,7 @@ namespace  JPL {
         O_GW = 9
     };
 
-    class IntegrationBase {
+class IntegrationBase: public ceres::SizedCostFunction<15,7,9,7,9> {
     public:
         IntegrationBase() = delete;
 
@@ -192,7 +193,7 @@ namespace  JPL {
         evaluate(const Eigen::Vector3d &Pi, const QuaternionTemplate<double> &Qi, const Eigen::Vector3d &Vi,
                  const Eigen::Vector3d &Bai, const Eigen::Vector3d &Bgi,
                  const Eigen::Vector3d &Pj, const QuaternionTemplate<double> &Qj, const Eigen::Vector3d &Vj,
-                 const Eigen::Vector3d &Baj, const Eigen::Vector3d &Bgj, double **jacobians = NULL) {
+                 const Eigen::Vector3d &Baj, const Eigen::Vector3d &Bgj, double **jacobians = NULL) const  {
             Eigen::Vector3d G{0.0, 0.0, 9.8};
             Eigen::Matrix<double, 15, 1> residuals;
 
@@ -284,6 +285,30 @@ namespace  JPL {
             return residuals;
         }
 
+        virtual bool Evaluate(double const *const *parameters, double *residuals,
+                              double **jacobians) const {
+
+
+
+            Eigen::Map<const Eigen::Vector3d> Pi(parameters[0]);
+            Eigen::Map<const QuaternionTemplate<double>> Qi(parameters[0] + 3);
+            Eigen::Map<const Eigen::Vector3d> Vi(parameters[1]);
+            Eigen::Map<const Eigen::Vector3d> Bai(parameters[1] + 3);
+            Eigen::Map<const Eigen::Vector3d> Bgi(parameters[1] + 6);
+
+            Eigen::Map<const Eigen::Vector3d> Pj(parameters[1]);
+            Eigen::Map<const QuaternionTemplate<double>> Qj(parameters[1] + 3);
+            Eigen::Map<const Eigen::Vector3d> Vj(parameters[2]);
+            Eigen::Map<const Eigen::Vector3d> Baj(parameters[2] + 3);
+            Eigen::Map<const Eigen::Vector3d> Bgj(parameters[2] + 6);
+
+            Eigen::Map<Eigen::Matrix<double,15,1>> error(residuals);
+
+            error = evaluate(Pi, Qi,Vi,Bai, Bgi, Pj, Qj, Vj, Baj, Bgj, jacobians);
+
+            return true;
+        }
+
         double dt;
         Eigen::Vector3d acc_0, gyr_0;
         Eigen::Vector3d acc_1, gyr_1;
@@ -301,7 +326,8 @@ namespace  JPL {
         QuaternionTemplate<double> delta_q;  // Q_Ikp1_Ik   in JPL
         Eigen::Vector3d delta_v;
 
-        QuaternionTemplate<double> corrected_delta_q;
+        mutable  QuaternionTemplate<double> corrected_delta_q;
+
 
         std::vector<double> dt_buf;
         std::vector<Eigen::Vector3d> acc_buf;

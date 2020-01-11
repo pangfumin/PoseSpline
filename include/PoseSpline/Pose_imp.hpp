@@ -105,7 +105,7 @@ inline Pose<T>::Pose()
         : r_(&parameters_[0]),
           q_(&parameters_[3]),
           C_(Eigen::Matrix<T,3,3>::Identity()) {
-    r_ = Eigen::Matrix<T,3,1>(0.0, 0.0, 0.0);
+    r_ = Eigen::Matrix<T,3,1>(T(0.0), T(0.0), T(0.0));
     q_ = unitQuat<T>();
 }
 

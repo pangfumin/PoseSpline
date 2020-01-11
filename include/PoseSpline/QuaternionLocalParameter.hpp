@@ -63,21 +63,22 @@ public:
         return true;
 
     }
-    static bool liftJacobian(const double* x,double* jacobian) {
+    template <typename  T>
+    static bool liftJacobian(const T* x, T* jacobian) {
 
-        Eigen::Map<Eigen::Matrix<double, 3, 4, Eigen::RowMajor> > J_lift(jacobian);
+        Eigen::Map<Eigen::Matrix<T, 3, 4, Eigen::RowMajor> > J_lift(jacobian);
 
-        Quaternion q_inv(-x[0],-x[1],-x[2],x[3]);
-        Eigen::Matrix<double, 3, 4> Jq_pinv;
+        QuaternionTemplate<T> q_inv(-x[0],-x[1],-x[2],x[3]);
+        Eigen::Matrix<T, 3, 4> Jq_pinv;
         Jq_pinv.setZero();
-        Jq_pinv.topLeftCorner<3,3>() = Eigen::Matrix3d::Identity() * 2.0;
+        Jq_pinv.template topLeftCorner<3,3>() = Eigen::Matrix<T,3,3>::Identity() * T(2.0);
         J_lift = Jq_pinv*quatRightComp(q_inv);
 
         return true;
     }
-    // Extent interface
+    // Additional interface
     bool ComputeLiftJacobian(const double* x, double* jacobian) const {
-        liftJacobian(x,jacobian);
+        liftJacobian<double>(x,jacobian);
         return true;
     }
 

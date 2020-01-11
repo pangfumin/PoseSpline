@@ -188,95 +188,100 @@ namespace  JPL {
 
         }
 
-        Eigen::Matrix<double, 15, 1>
-        evaluate(const Eigen::Vector3d &Pi, const QuaternionTemplate<double> &Qi, const Eigen::Vector3d &Vi,
-                 const Eigen::Vector3d &Bai, const Eigen::Vector3d &Bgi,
-                 const Eigen::Vector3d &Pj, const QuaternionTemplate<double> &Qj, const Eigen::Vector3d &Vj,
-                 const Eigen::Vector3d &Baj, const Eigen::Vector3d &Bgj, double **jacobians = NULL) {
-            Eigen::Vector3d G{0.0, 0.0, 9.8};
-            Eigen::Matrix<double, 15, 1> residuals;
+        template <typename  T>
+        Eigen::Matrix<T, 15, 1>
+        evaluate(const Eigen::Matrix<T,3,1> &Pi, const QuaternionTemplate<double> &Qi,
+                 const Eigen::Matrix<T,3,1> &Vi,
+                 const Eigen::Matrix<T,3,1> &Bai, const Eigen::Matrix<T,3,1> &Bgi,
+                 const Eigen::Matrix<T,3,1> &Pj, const QuaternionTemplate<double> &Qj,
+                 const Eigen::Matrix<T,3,1> &Vj,
+                 const Eigen::Matrix<T,3,1> &Baj, const Eigen::Matrix<T,3,1> &Bgj,
+                 double **jacobians = NULL) {
+            Eigen::Matrix<T,3,1> G{T(0.0), T(0.0), T(9.8)};
+            Eigen::Matrix<T, 15, 1> residuals;
 
-            Eigen::Matrix3d dp_dba = jacobian.block<3, 3>(O_P, O_BA);
-            Eigen::Matrix3d dp_dbg = jacobian.block<3, 3>(O_P, O_BG);
+            Eigen::Matrix<T,3,3> dp_dba = jacobian.block<3, 3>(O_P, O_BA).cast<T>();
+            Eigen::Matrix<T,3,3> dp_dbg = jacobian.block<3, 3>(O_P, O_BG).cast<T>();
 
-            Eigen::Matrix3d dq_dbg = jacobian.block<3, 3>(O_R, O_BG);
+            Eigen::Matrix<T,3,3> dq_dbg = jacobian.block<3, 3>(O_R, O_BG).cast<T>();
 
-            Eigen::Matrix3d dv_dba = jacobian.block<3, 3>(O_V, O_BA);
-            Eigen::Matrix3d dv_dbg = jacobian.block<3, 3>(O_V, O_BG);
+            Eigen::Matrix<T,3,3> dv_dba = jacobian.block<3, 3>(O_V, O_BA).cast<T>();
+            Eigen::Matrix<T,3,3> dv_dbg = jacobian.block<3, 3>(O_V, O_BG).cast<T>();
 
-            Eigen::Vector3d dba = Bai - linearized_ba;
-            Eigen::Vector3d dbg = Bgi - linearized_bg;
+            Eigen::Matrix<T,3,1> dba = Bai - linearized_ba.cast<T>();
+            Eigen::Matrix<T,3,1> dbg = Bgi - linearized_bg.cast<T>();
 
-            Eigen::Vector3d temp = dq_dbg * dbg;
-            corrected_delta_q = quatMult(deltaQuat<double>(temp), delta_q);
+            Eigen::Matrix<T,3,1> temp = dq_dbg * dbg;
+            QuaternionTemplate<T> corrected_delta_q = quatMult(deltaQuat<T>(temp), delta_q.cast<T>());
 
-            Eigen::Vector3d corrected_delta_v = delta_v + dv_dba * dba + dv_dbg * dbg;
-            Eigen::Vector3d corrected_delta_p = delta_p + dp_dba * dba + dp_dbg * dbg;
+            Eigen::Matrix<T,3,1> corrected_delta_v = delta_v.cast<T>() + dv_dba * dba + dv_dbg * dbg;
+            Eigen::Matrix<T,3,1> corrected_delta_p = delta_p.cast<T>() + dp_dba * dba + dp_dbg * dbg;
 
 
-            Eigen::Matrix3d R_WIi = quatToRotMat(Qi);
-            Eigen::Vector3d temp_p = 0.5 * G * sum_dt * sum_dt + Pj - Pi - Vi * sum_dt;
-            Eigen::Vector3d temp_v = G * sum_dt + Vj - Vi;
-            residuals.block<3, 1>(O_P, 0) = R_WIi.transpose() * temp_p - corrected_delta_p;
-            residuals.block<3, 1>(O_R, 0) = 2 * quatMult(quatInv(corrected_delta_q), quatMult(quatInv(Qj), Qi)).head<3>();
-            residuals.block<3, 1>(O_V, 0) = R_WIi.transpose() * temp_v - corrected_delta_v;
-            residuals.block<3, 1>(O_BA, 0) = Baj - Bai;
-            residuals.block<3, 1>(O_BG, 0) = Bgj - Bgi;
+            T _sum_dt = T(sum_dt);
+            Eigen::Matrix<T,3,3> R_WIi = quatToRotMat(Qi);
+            Eigen::Matrix<T,3,1> temp_p = T(0.5) * G * _sum_dt * _sum_dt + Pj - Pi - Vi * _sum_dt;
+            Eigen::Matrix<T,3,1> temp_v = G * _sum_dt + Vj - Vi;
+            residuals.template block<3, 1>(O_P, 0) = R_WIi.transpose() * temp_p - corrected_delta_p;
+            residuals.template block<3, 1>(O_R, 0) = T(2) * quatMult(quatInv(corrected_delta_q), quatMult(quatInv(Qj), Qi)).template head<3>();
+            residuals.template block<3, 1>(O_V, 0) = R_WIi.transpose() * temp_v - corrected_delta_v;
+            residuals.template block<3, 1>(O_BA, 0) = Baj - Bai;
+            residuals.template block<3, 1>(O_BG, 0) = Bgj - Bgi;
 
             if (jacobians != nullptr) {
-                Eigen::Map<Eigen::Matrix<double, 15, 3, Eigen::RowMajor>> J_r_t_WI0(jacobians[0]);
-                Eigen::Map<Eigen::Matrix<double, 15, 4, Eigen::RowMajor>> J_r_q_WI0(jacobians[1]);
-                Eigen::Map<Eigen::Matrix<double, 15, 3, Eigen::RowMajor>> J_r_v_WI0(jacobians[2]);
-                Eigen::Map<Eigen::Matrix<double, 15, 3, Eigen::RowMajor>> J_r_ba0(jacobians[3]);
-                Eigen::Map<Eigen::Matrix<double, 15, 3, Eigen::RowMajor>> J_r_bg0(jacobians[4]);
+                Eigen::Map<Eigen::Matrix<T, 15, 3, Eigen::RowMajor>> J_r_t_WI0(jacobians[0]);
+                Eigen::Map<Eigen::Matrix<T, 15, 4, Eigen::RowMajor>> J_r_q_WI0(jacobians[1]);
+                Eigen::Map<Eigen::Matrix<T, 15, 3, Eigen::RowMajor>> J_r_v_WI0(jacobians[2]);
+                Eigen::Map<Eigen::Matrix<T, 15, 3, Eigen::RowMajor>> J_r_ba0(jacobians[3]);
+                Eigen::Map<Eigen::Matrix<T, 15, 3, Eigen::RowMajor>> J_r_bg0(jacobians[4]);
 
-                Eigen::Map<Eigen::Matrix<double, 15, 3, Eigen::RowMajor>> J_r_t_WI1(jacobians[5]);
-                Eigen::Map<Eigen::Matrix<double, 15, 4, Eigen::RowMajor>> J_r_q_WI1(jacobians[6]);
-                Eigen::Map<Eigen::Matrix<double, 15, 3, Eigen::RowMajor>> J_r_v_WI1(jacobians[7]);
-                Eigen::Map<Eigen::Matrix<double, 15, 3, Eigen::RowMajor>> J_r_ba1(jacobians[8]);
-                Eigen::Map<Eigen::Matrix<double, 15, 3, Eigen::RowMajor>> J_r_bg1(jacobians[9]);
+                Eigen::Map<Eigen::Matrix<T, 15, 3, Eigen::RowMajor>> J_r_t_WI1(jacobians[5]);
+                Eigen::Map<Eigen::Matrix<T, 15, 4, Eigen::RowMajor>> J_r_q_WI1(jacobians[6]);
+                Eigen::Map<Eigen::Matrix<T, 15, 3, Eigen::RowMajor>> J_r_v_WI1(jacobians[7]);
+                Eigen::Map<Eigen::Matrix<T, 15, 3, Eigen::RowMajor>> J_r_ba1(jacobians[8]);
+                Eigen::Map<Eigen::Matrix<T, 15, 3, Eigen::RowMajor>> J_r_bg1(jacobians[9]);
 
 
                 J_r_t_WI0.setZero();
-                J_r_t_WI0.block<3,3>(O_P, 0) = - R_WIi.transpose();
+                J_r_t_WI0.template block<3,3>(O_P, 0) = - R_WIi.transpose();
 
-                Eigen::Matrix<double,3,4,Eigen::RowMajor> lift0, lift1;
+                Eigen::Matrix<T,3,4,Eigen::RowMajor> lift0, lift1;
                 QuaternionLocalParameter::liftJacobian(Qi.data(), lift0.data());
                 QuaternionLocalParameter::liftJacobian(Qj.data(), lift1.data());
                 J_r_q_WI0.setZero();
-                J_r_q_WI0.block<3,4>(O_P, 0) = - R_WIi.transpose() * crossMat(temp_p) * lift0;
-                J_r_q_WI0.block<3,4>(O_R, 0) = 2 * quatLeftComp(quatMult(quatInv(corrected_delta_q), quatInv(Qj))).topRows(3);
-                J_r_q_WI0.block<3,4>(O_V, 0) = - R_WIi.transpose() * crossMat(temp_v) * lift0;
+                J_r_q_WI0.template block<3,4>(O_P, 0) = - R_WIi.transpose() * crossMat(temp_p) * lift0;
+                J_r_q_WI0.template block<3,4>(O_R, 0) = T(2) * quatLeftComp(quatMult(quatInv(corrected_delta_q), quatInv(Qj))).topRows(3);
+                J_r_q_WI0.template block<3,4>(O_V, 0) = - R_WIi.transpose() * crossMat(temp_v) * lift0;
 
                 J_r_v_WI0.setZero();
-                J_r_v_WI0.block<3,3>(O_P, 0) = - R_WIi.transpose()*sum_dt;
-                J_r_v_WI0.block<3,3>(O_V, 0) = - R_WIi.transpose();
+                J_r_v_WI0.template block<3,3>(O_P, 0) = - R_WIi.transpose()*_sum_dt;
+                J_r_v_WI0.template block<3,3>(O_V, 0) = - R_WIi.transpose();
 
                 J_r_ba0.setZero();
-                J_r_ba0.block<3,3>(O_P, 0) = - dp_dba;
-                J_r_ba0.block<3,3>(O_V, 0) = - dv_dba;
-                J_r_ba0.block<3,3>(O_BA, 0) = - Eigen::Matrix3d::Identity();
+                J_r_ba0.template block<3,3>(O_P, 0) = - dp_dba;
+                J_r_ba0.template block<3,3>(O_V, 0) = - dv_dba;
+                J_r_ba0.template block<3,3>(O_BA, 0) = - Eigen::Matrix3d::Identity();
 
                 J_r_bg0.setZero();
-                J_r_bg0.block<3,3>(O_P, 0) = - dp_dbg;
-                J_r_bg0.block<3,3>(O_R, 0) = - (quatLeftComp(quatInv(delta_q)) * quatRightComp(quatMult(quatInv(Qj), Qi))).topLeftCorner(3,3) * dq_dbg;
-                J_r_bg0.block<3,3>(O_V, 0) = - dv_dbg;
-                J_r_bg0.block<3,3>(O_BG, 0) = - Eigen::Matrix3d::Identity();
+                J_r_bg0.template block<3,3>(O_P, 0) = - dp_dbg;
+                J_r_bg0.template block<3,3>(O_R, 0) = - (quatLeftComp(quatInv(delta_q.cast<T>())) * quatRightComp(quatMult(quatInv(Qj), Qi))).topLeftCorner(3,3) * dq_dbg;
+                J_r_bg0.template block<3,3>(O_V, 0) = - dv_dbg;
+                J_r_bg0.template block<3,3>(O_BG, 0) = - Eigen::Matrix3d::Identity();
 
                 J_r_t_WI1.setZero();
-                J_r_t_WI1.block<3,3>(O_P, 0) = R_WIi.transpose();
+                J_r_t_WI1.template block<3,3>(O_P, 0) = R_WIi.transpose();
 
                 J_r_q_WI1.setZero();
-                J_r_q_WI1.block<3,4>(O_R, 0) = - (quatLeftComp(quatMult(quatInv(corrected_delta_q), quatInv(Qj))) * quatRightComp(Qi)).topLeftCorner(3,3) * lift1;
+                J_r_q_WI1.template block<3,4>(O_R, 0) = - (quatLeftComp(quatMult(quatInv(corrected_delta_q), quatInv(Qj))) * quatRightComp(Qi)).topLeftCorner(3,3) * lift1;
 
                 J_r_v_WI1.setZero();
-                J_r_v_WI1.block<3,3>(O_V, 0) = R_WIi.transpose();
+                J_r_v_WI1.template block<3,3>(O_V, 0) = R_WIi.transpose();
 
                 J_r_ba1.setZero();
-                J_r_ba1.block<3,3>(O_BA, 0) = Eigen::Matrix3d::Identity();
+                J_r_ba1.template block<3,3>(O_BA, 0) = Eigen::Matrix<T,3,3>::Identity();
 
                 J_r_bg1.setZero();
-                J_r_bg1.block<3,3>(O_BG, 0) = Eigen::Matrix3d::Identity();
+                J_r_bg1.template block<3,3>(O_BG, 0) = Eigen::Matrix<T,3,3>::Identity();
 
             }
 
@@ -301,7 +306,7 @@ namespace  JPL {
         QuaternionTemplate<double> delta_q;  // Q_Ikp1_Ik   in JPL
         Eigen::Vector3d delta_v;
 
-        QuaternionTemplate<double> corrected_delta_q;
+
 
         std::vector<double> dt_buf;
         std::vector<Eigen::Vector3d> acc_buf;

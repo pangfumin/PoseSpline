@@ -194,13 +194,13 @@ class IntegrationBase{
 
         template <typename  T>
         Eigen::Matrix<T, 15, 1>
-        evaluate(const Eigen::Matrix<T,3,1> &Pi, const QuaternionTemplate<double> &Qi,
+        evaluate(const Eigen::Matrix<T,3,1> &Pi, const QuaternionTemplate<T> &Qi,
                  const Eigen::Matrix<T,3,1> &Vi,
                  const Eigen::Matrix<T,3,1> &Bai, const Eigen::Matrix<T,3,1> &Bgi,
-                 const Eigen::Matrix<T,3,1> &Pj, const QuaternionTemplate<double> &Qj,
+                 const Eigen::Matrix<T,3,1> &Pj, const QuaternionTemplate<T> &Qj,
                  const Eigen::Matrix<T,3,1> &Vj,
                  const Eigen::Matrix<T,3,1> &Baj, const Eigen::Matrix<T,3,1> &Bgj,
-                 double **jacobians = NULL) {
+                 T **jacobians = NULL) {
             Eigen::Matrix<T,3,1> G{T(0.0), T(0.0), T(9.8)};
             Eigen::Matrix<T, 15, 1> residuals;
 
@@ -216,7 +216,7 @@ class IntegrationBase{
             Eigen::Matrix<T,3,1> dbg = Bgi - linearized_bg.cast<T>();
 
             Eigen::Matrix<T,3,1> temp = dq_dbg * dbg;
-            QuaternionTemplate<T> corrected_delta_q = quatMult(deltaQuat<T>(temp), delta_q.cast<T>());
+            QuaternionTemplate<T> corrected_delta_q = quatMult<T>(deltaQuat<T>(temp), delta_q.cast<T>());
 
             Eigen::Matrix<T,3,1> corrected_delta_v = delta_v.cast<T>() + dv_dba * dba + dv_dbg * dbg;
             Eigen::Matrix<T,3,1> corrected_delta_p = delta_p.cast<T>() + dp_dba * dba + dp_dbg * dbg;
@@ -227,7 +227,7 @@ class IntegrationBase{
             Eigen::Matrix<T,3,1> temp_p = T(0.5) * G * _sum_dt * _sum_dt + Pj - Pi - Vi * _sum_dt;
             Eigen::Matrix<T,3,1> temp_v = G * _sum_dt + Vj - Vi;
             residuals.template block<3, 1>(O_P, 0) = R_WIi.transpose() * temp_p - corrected_delta_p;
-            residuals.template block<3, 1>(O_R, 0) = T(2) * quatMult(quatInv(corrected_delta_q), quatMult(quatInv(Qj), Qi)).template head<3>();
+            residuals.template block<3, 1>(O_R, 0) = T(2) * quatMult<T>(quatInv<T>(corrected_delta_q), quatMult<T>(quatInv(Qj), Qi)).template head<3>();
             residuals.template block<3, 1>(O_V, 0) = R_WIi.transpose() * temp_v - corrected_delta_v;
             residuals.template block<3, 1>(O_BA, 0) = Baj - Bai;
             residuals.template block<3, 1>(O_BG, 0) = Bgj - Bgi;
@@ -250,11 +250,11 @@ class IntegrationBase{
                 J_r_t_WI0.template block<3,3>(O_P, 0) = - R_WIi.transpose();
 
                 Eigen::Matrix<T,3,4,Eigen::RowMajor> lift0, lift1;
-                QuaternionLocalParameter::liftJacobian(Qi.data(), lift0.data());
-                QuaternionLocalParameter::liftJacobian(Qj.data(), lift1.data());
+                QuaternionLocalParameter::liftJacobian<T>(Qi.data(), lift0.data());
+                QuaternionLocalParameter::liftJacobian<T>(Qj.data(), lift1.data());
                 J_r_q_WI0.setZero();
                 J_r_q_WI0.template block<3,4>(O_P, 0) = - R_WIi.transpose() * crossMat(temp_p) * lift0;
-                J_r_q_WI0.template block<3,4>(O_R, 0) = T(2) * quatLeftComp(quatMult(quatInv(corrected_delta_q), quatInv(Qj))).topRows(3);
+                J_r_q_WI0.template block<3,4>(O_R, 0) = T(2) * quatLeftComp<T>(quatMult<T>(quatInv<T>(corrected_delta_q), quatInv<T>(Qj))).topRows(3);
                 J_r_q_WI0.template block<3,4>(O_V, 0) = - R_WIi.transpose() * crossMat(temp_v) * lift0;
 
                 J_r_v_WI0.setZero();
@@ -264,19 +264,19 @@ class IntegrationBase{
                 J_r_ba0.setZero();
                 J_r_ba0.template block<3,3>(O_P, 0) = - dp_dba;
                 J_r_ba0.template block<3,3>(O_V, 0) = - dv_dba;
-                J_r_ba0.template block<3,3>(O_BA, 0) = - Eigen::Matrix3d::Identity();
+                J_r_ba0.template block<3,3>(O_BA, 0) = - Eigen::Matrix<T,3,3>::Identity();
 
                 J_r_bg0.setZero();
                 J_r_bg0.template block<3,3>(O_P, 0) = - dp_dbg;
-                J_r_bg0.template block<3,3>(O_R, 0) = - (quatLeftComp(quatInv(delta_q.cast<T>())) * quatRightComp(quatMult(quatInv(Qj), Qi))).topLeftCorner(3,3) * dq_dbg;
+                J_r_bg0.template block<3,3>(O_R, 0) = - (quatLeftComp<T>(quatInv<T>(delta_q.cast<T>())) * quatRightComp<T>(quatMult<T>(quatInv<T>(Qj), Qi))).topLeftCorner(3,3) * dq_dbg;
                 J_r_bg0.template block<3,3>(O_V, 0) = - dv_dbg;
-                J_r_bg0.template block<3,3>(O_BG, 0) = - Eigen::Matrix3d::Identity();
+                J_r_bg0.template block<3,3>(O_BG, 0) = - Eigen::Matrix<T,3,3>::Identity();
 
                 J_r_t_WI1.setZero();
                 J_r_t_WI1.template block<3,3>(O_P, 0) = R_WIi.transpose();
 
                 J_r_q_WI1.setZero();
-                J_r_q_WI1.template block<3,4>(O_R, 0) = - (quatLeftComp(quatMult(quatInv(corrected_delta_q), quatInv(Qj))) * quatRightComp(Qi)).topLeftCorner(3,3) * lift1;
+                J_r_q_WI1.template block<3,4>(O_R, 0) = - (quatLeftComp<T>(quatMult<T>(quatInv<T>(corrected_delta_q), quatInv<T>(Qj))) * quatRightComp<T>(Qi)).topLeftCorner(3,3) * lift1;
 
                 J_r_v_WI1.setZero();
                 J_r_v_WI1.template block<3,3>(O_V, 0) = R_WIi.transpose();

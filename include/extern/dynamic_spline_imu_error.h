@@ -445,11 +445,11 @@ namespace  JPL {
             Eigen::Matrix<T,3,1> Bgj = bias_j.template tail<3>();
 
             Eigen::Map<Eigen::Matrix<T, 15, 1>> error(residual);
-            error = pre_integration_->evaluate(Pi, Qi, Vi, Bai, Bgi,
+            error = pre_integration_->evaluate<T>(Pi, Qi, Vi, Bai, Bgi,
                                                  Pj, Qj, Vj, Baj, Bgj,
                                                  NULL);
 
-            Eigen::Matrix<T, 15, 15> sqrt_info = pre_integration_->sqrt_Sigma;
+            Eigen::Matrix<T, 15, 15> sqrt_info = pre_integration_->sqrt_Sigma.cast<T>();
             sqrt_info.setIdentity();
 
             error = sqrt_info * error;

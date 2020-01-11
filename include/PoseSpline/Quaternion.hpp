@@ -40,9 +40,9 @@ Eigen::Matrix<T,4,1> quatMap(T* ptr){
 template<typename T>
 inline Eigen::Matrix<T,3,3> crossMat(const Eigen::Matrix<T,3,1>& vec)
 {
-    return (Eigen::Matrix<T,3,3>()<< 0,       -vec[2], vec[1],
-                                    vec[2],  0,       -vec[0],
-                                    -vec[1], vec[0],  0).finished();
+    return (Eigen::Matrix<T,3,3>() << T(0),       -vec[2], vec[1],
+                                    vec[2],  T(0),       -vec[0],
+                                    -vec[1], vec[0],  T(0)).finished();
 }
 
 
@@ -204,7 +204,7 @@ Eigen::Matrix<T,4,1> deltaQuat( Eigen::Matrix<T,3,1> &deltaTheta )
     Eigen::Matrix<T,3,1> deltaq = T(0.5) * deltaTheta;
 
     r.head(3) = deltaq;
-    r(3) = 1.0;
+    r(3) = T(1.0);
 
     return r;
 }

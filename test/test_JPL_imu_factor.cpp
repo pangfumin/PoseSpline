@@ -279,8 +279,8 @@ int main(){
         std::cout << "factor JPL_residuals     :" << JPL_residuals.transpose() << std::endl;
         std::cout << "factor hamilton_residuals:" << hamilton_residuals.transpose() << std::endl;
 
-        //
-        //CHECK_EQ((JPL_residuals - hamilton_residuals).squaredNorm() < 1e-3, true) << "residual error is large";
+        // todo(Pang): the orientation part is not accurent enough
+        CHECK_EQ((JPL_residuals - hamilton_residuals).squaredNorm() < 1e-3, true) << "residual error is large";
 
 
         // jacnobian

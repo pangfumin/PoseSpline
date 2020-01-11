@@ -273,8 +273,8 @@ int main(){
         JPL_Imufactor.Evaluate(JPL_parameters, JPL_residuals.data(), NULL);
         hamilton_Imufactor.Evaluate(hamilton_parameters, hamilton_residuals.data(), NULL);
 
-        std::cout << "JPL_intergrateImu     -> correct_q: " << JPL_intergrateImu->corrected_delta_q.transpose() << std::endl;
-        std::cout << "hamilton_intergrateImu-> correct_q: " << hamilton_intergrateImu->corrected_delta_q.coeffs().transpose() << std::endl;
+//        std::cout << "JPL_intergrateImu     -> correct_q: " << JPL_intergrateImu->corrected_delta_q.transpose() << std::endl;
+//        std::cout << "hamilton_intergrateImu-> correct_q: " << hamilton_intergrateImu->corrected_delta_q.coeffs().transpose() << std::endl;
 
         std::cout << "factor JPL_residuals     :" << JPL_residuals.transpose() << std::endl;
         std::cout << "factor hamilton_residuals:" << hamilton_residuals.transpose() << std::endl;

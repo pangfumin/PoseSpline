@@ -282,7 +282,7 @@ int main(){
             double* spline_parameters[8] = {cp_T0.data(), cp_T1.data(), cp_T2.data(), cp_T3.data(),
                                             cp_bias0.data(), cp_bias1.data(), cp_bias2.data(), cp_bias3.data()};
             Eigen::VectorXd spline_residual(15);
-//            splineImuFactor.Evaluate(spline_parameters, spline_residual.data(), NULL);
+            splineImuFactor.evaluate(spline_parameters, spline_residual.data(), NULL);
             std::cout << "spline_residual: " << spline_residual.transpose() << std::endl;
 
             CHECK_EQ((spline_residual - residual).norm() < 1e-6, true) << "residuals are not consist";

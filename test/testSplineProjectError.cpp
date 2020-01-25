@@ -11,6 +11,7 @@
 #include "PoseSpline/PoseSplineUtility.hpp"
 #include <gtest/gtest.h>
 #include <Eigen/Geometry>
+#include "internal/OptimizationChecker.h"
 #include <gtest/gtest.h>
 
 TEST(Ceres, SplineProjectCeres) {
@@ -194,49 +195,49 @@ GTEST_ASSERT_EQ((numJacobian_min4 - jacobian4_min).norm()< 1e6, true);
 
     ceres::Problem problem;
     ceres::LossFunction* loss_function =  new ceres::HuberLoss(1.0);
-
-    PoseLocalParameter*  local_parameterization = new PoseLocalParameter;
+//
+//    PoseLocalParameter*  local_parameterization = new PoseLocalParameter;
     double est_dt = 0;
     Pose<double> pose0 = T0;
     Pose<double> pose1 = T1;
     Pose<double> pose2 = T2;
     Pose<double> pose3 = T3;
-
-    problem.AddParameterBlock(pose0.parameterPtr(), 7);
-    problem.SetParameterization(pose0.parameterPtr(),local_parameterization);
-    problem.SetParameterBlockConstant(pose0.parameterPtr());
-
-    problem.AddParameterBlock(pose1.parameterPtr(), 7);
-    problem.SetParameterization(pose1.parameterPtr(),local_parameterization);
-    problem.SetParameterBlockConstant(pose1.parameterPtr());
-
-    problem.AddParameterBlock(pose2.parameterPtr(), 7);
-    problem.SetParameterization(pose2.parameterPtr(),local_parameterization);
-    problem.SetParameterBlockConstant(pose2.parameterPtr());
-
-    problem.AddParameterBlock(pose3.parameterPtr(), 7);
-    problem.SetParameterization(pose3.parameterPtr(),local_parameterization);
-    problem.SetParameterBlockConstant(pose3.parameterPtr());
-
-    problem.AddParameterBlock(&est_dt, 1);
-
-
-
-
-    SplineProjectFunctor functor(u0, uv0, u1, uv1, ext_T_IC);
-    SplineProjectError* costfunction = new SplineProjectError(functor);
-
-    problem.AddResidualBlock(costfunction, loss_function,
-            pose0.parameterPtr(),
-            pose1.parameterPtr(),
-             pose2.parameterPtr(),
-             pose3.parameterPtr(),
-             param_rho,
-             &est_dt);
-
-
-
-
+//
+//    problem.AddParameterBlock(pose0.parameterPtr(), 7);
+//    problem.SetParameterization(pose0.parameterPtr(),local_parameterization);
+//    problem.SetParameterBlockConstant(pose0.parameterPtr());
+//
+//    problem.AddParameterBlock(pose1.parameterPtr(), 7);
+//    problem.SetParameterization(pose1.parameterPtr(),local_parameterization);
+//    problem.SetParameterBlockConstant(pose1.parameterPtr());
+//
+//    problem.AddParameterBlock(pose2.parameterPtr(), 7);
+//    problem.SetParameterization(pose2.parameterPtr(),local_parameterization);
+//    problem.SetParameterBlockConstant(pose2.parameterPtr());
+//
+//    problem.AddParameterBlock(pose3.parameterPtr(), 7);
+//    problem.SetParameterization(pose3.parameterPtr(),local_parameterization);
+//    problem.SetParameterBlockConstant(pose3.parameterPtr());
+//
+//    problem.AddParameterBlock(&est_dt, 1);
+//
+//
+//
+//
+//    SplineProjectFunctor functor(u0, uv0, u1, uv1, ext_T_IC);
+//    SplineProjectError* costfunction = new SplineProjectError(functor);
+//
+//    problem.AddResidualBlock(costfunction, loss_function,
+//            pose0.parameterPtr(),
+//            pose1.parameterPtr(),
+//             pose2.parameterPtr(),
+//             pose3.parameterPtr(),
+//             param_rho,
+//             &est_dt);
+//
+//
+//
+//
     ceres::Solver::Options options;
 
     options.linear_solver_type = ceres::DENSE_SCHUR;
@@ -244,15 +245,33 @@ GTEST_ASSERT_EQ((numJacobian_min4 - jacobian4_min).norm()< 1e6, true);
     //options.trust_region_strategy_type = ceres::DOGLEG;
     options.max_num_iterations = 100;
     options.minimizer_progress_to_stdout = true;
+//
+//    ceres::Solver::Summary summary;
+//    ceres::Solve(options, &problem, &summary);
+//
+//    std::cout<<"--------------"<<std::endl;
+//    std::cout << summary.FullReport() << std::endl;
+//
+//    std::cout << "est_dt: " << est_dt << std::endl;
+//    std::cout << "true_dt: " << dt << std::endl;
 
-    ceres::Solver::Summary summary;
-    ceres::Solve(options, &problem, &summary);
+    std::vector<ceres::LocalParameterization *> local_prameters;
+    local_prameters.push_back(new PoseLocalParameter);
 
-    std::cout<<"--------------"<<std::endl;
-    std::cout << summary.FullReport() << std::endl;
+    ceres::OptimizationChecker optimizationChecker(splineProjectError, &local_prameters, loss_function);
+    std::vector<const double *> parameters;
+    parameters.push_back(pose0.data());
+    parameters.push_back(pose1.data());
+    parameters.push_back(pose2.data());
+    parameters.push_back(pose3.data());
+    parameters.push_back(param_rho);
+    parameters.push_back(&est_dt);
 
-    std::cout << "est_dt: " << est_dt << std::endl;
-    std::cout << "true_dt: " << dt << std::endl;
+
+
+    optimizationChecker.Probe(parameters, 0, options, NULL);
+
+
 
 
 }

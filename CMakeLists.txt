@@ -27,6 +27,7 @@ cs_add_library(${PROJECT_NAME}
         src/internal/pose_local_parameterization.cpp
         src/internal/utility.cpp
         src/QuaternionSplineUtility.cpp
+        src/internal/OptimizationChecker.cpp
         src/QuaternionSpline.cpp
         src/QuaternionSplineSampleError.cpp
         src/PoseSplineSampleError.cpp
@@ -94,7 +95,7 @@ target_link_libraries(test_vinsmono_imu_factor ${PROJECT_NAME}  -lpthread -lm)
 add_executable(test_spline_imu_factor test/test_spline_imu_factor.cpp)
 target_link_libraries(test_spline_imu_factor ${PROJECT_NAME}  -lpthread -lm)
 
-add_executable(test_JPL_imu_factor test/test_JPL_imu_factor.cpp)
+add_executable(test_JPL_imu_factor test/test_JPL_imu_factor.cpp include/internal/OptimizationChecker.h)
 target_link_libraries(test_JPL_imu_factor ${PROJECT_NAME}  -lpthread -lm)
 
 

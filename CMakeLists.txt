@@ -64,6 +64,7 @@ if(CATKIN_ENABLE_TESTING)
 #            test/QuaternionCeresTest.cpp
 #            test/testProjectError.cpp
 #            test/testSplineRotateError.cpp
+            src/internal/OptimizationChecker.cpp
             test/testSplineProjectError.cpp
 #            test/VectorSplineCeresTest.cpp
             )

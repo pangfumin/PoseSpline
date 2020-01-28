@@ -72,10 +72,17 @@ namespace ceres {
                    ProbeResults* results) const;
 
     private:
-        bool optimizeAtOneParameter(const std::vector<Eigen::VectorXd>& eigen_parameters,
+        bool optimizeAtOneParameter(const std::vector<Eigen::VectorXd> eigen_parameters,
                 const int& ith,
                 const ceres::Solver::Options& options,
                 const double threshold) const ;
+
+        void perturbParameter(double * param,
+                               ceres::LocalParameterization* localParameterization) const;
+
+        void perturbParameter(double * param,
+                                                   const int size) const ;
+
         ceres::CostFunction *function_;
         const std::vector<ceres::LocalParameterization *> *local_parameterizations_;
          ceres::LossFunction* loss_function_;

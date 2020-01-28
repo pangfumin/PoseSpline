@@ -4,7 +4,7 @@
 #include "extern/spline_projection_error3.h"
 #include "extern/spline_projection_error4.h"
 #include "extern/spline_projection_error_simple.h"
-
+#include <ceres/ceres.h>
 #include <iostream>
 #include "PoseSpline/NumbDifferentiator.hpp"
 #include "PoseSpline/PoseLocalParameter.hpp"
@@ -244,7 +244,7 @@ GTEST_ASSERT_EQ((numJacobian_min4 - jacobian4_min).norm()< 1e6, true);
     //options.num_threads = 2;
     //options.trust_region_strategy_type = ceres::DOGLEG;
     options.max_num_iterations = 100;
-    options.minimizer_progress_to_stdout = true;
+//    options.minimizer_progress_to_stdout = true;
 //
 //    ceres::Solver::Summary summary;
 //    ceres::Solve(options, &problem, &summary);
@@ -257,6 +257,11 @@ GTEST_ASSERT_EQ((numJacobian_min4 - jacobian4_min).norm()< 1e6, true);
 
     std::vector<ceres::LocalParameterization *> local_prameters;
     local_prameters.push_back(new PoseLocalParameter);
+    local_prameters.push_back(new PoseLocalParameter);
+    local_prameters.push_back(new PoseLocalParameter);
+    local_prameters.push_back(new PoseLocalParameter);
+//    local_prameters.push_back(new ceres::IdentityParameterization(1));
+//    local_prameters.push_back(new ceres::IdentityParameterization(1));
 
     ceres::OptimizationChecker optimizationChecker(splineProjectError, &local_prameters, loss_function);
     std::vector<const double *> parameters;

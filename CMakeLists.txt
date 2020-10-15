@@ -11,13 +11,13 @@ set(cmake_build_type Debug)
 find_package(Eigen3 REQUIRED)
 find_package(Ceres REQUIRED)
 find_package(OpenCV REQUIRED)
-find_package(Glog REQUIRED)
+#find_package(Glog REQUIRED)
 
 include_directories(include
         ${OpenCV_INCLUDE_DIRS}
         ${EIGEN3_INCLUDE_DIR}
         ${CERES_INCLUDE_DIRS}
-        ${GLOG_INCLUDE_DIRS}
+#        ${GLOG_INCLUDE_DIRS}
         )
 
 
@@ -35,7 +35,8 @@ add_library(cv
 target_link_libraries(cv
         util
         ${OPENCV_LIBRARIES}
-        ${GLOG_LIBRARIES})
+        )
+#        ${GLOG_LIBRARIES})
 
 
 add_library(ceres_ext
@@ -81,7 +82,8 @@ target_link_libraries(PoseSpline
         ceres_ext
         ${CERES_LIBRARIES}
         ${OpenCV_LIBRARIES}
-        ${GLOG_LIBRARIES})
+        )
+#        ${GLOG_LIBRARIES})
 
 add_library( simulate
         src/simulator/camera_simulate.cpp)

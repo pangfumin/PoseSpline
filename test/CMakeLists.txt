@@ -35,6 +35,10 @@ add_executable(QuaternionSplineTest QuaternionSplineTest.cpp)
 target_link_libraries(QuaternionSplineTest
         PoseSpline)
 
+add_executable(QuaternionPrediction QuaternionPrediction.cpp)
+target_link_libraries(QuaternionPrediction
+        PoseSpline)
+
 add_executable(VectorSpaceSplineTest VectorSpaceSplineTest.cpp)
 target_link_libraries(VectorSpaceSplineTest
         PoseSpline)

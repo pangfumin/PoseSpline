@@ -209,9 +209,6 @@ bool QuaternionSplineSampleError::EvaluateWithMinimalJacobians(double const* con
     }
 
     return true;
-
-
-
 }
 
 

@@ -3,6 +3,7 @@
 
 #include "common/csv_trajectory.hpp"
 #include "pose-spline/QuaternionSpline.hpp"
+#include "pose-spline/VectorSpaceSpline.hpp"
 #include <pose-spline/QuaternionSplineUtility.hpp>
 
 
@@ -15,7 +16,7 @@ std::pair<double,Quaternion>  getSample(ze::TupleVector& data, unsigned int i){
 };
 
 
-void loadCameraPose(const std::string &strFile, std::vector<Eigen::Matrix4d> &poses)
+void loadCameraPose(const std::string &strFile, std::vector<Eigen::Matrix4d> &poses, std::vector<int>& ids, std::vector<Eigen::Vector3d> &aas)
 {
     std::ifstream f;
     f.open(strFile.c_str());
@@ -35,19 +36,23 @@ void loadCameraPose(const std::string &strFile, std::vector<Eigen::Matrix4d> &po
             std::stringstream ss;
             ss << s;
             double aax,aay,aaz, tx, ty,tz;
+            int index;
 
-            ss >> aax >> aay >> aaz >> tx >> ty >> tz;
+            ss >> index >> aax >> aay >> aaz >> tx >> ty >> tz;
 
             double angle = Eigen::Vector3d(aax, aay, aaz).norm();
 
 
-            Eigen::Quaterniond q(Eigen::AngleAxisd(angle, Eigen::Vector3d(aax, aay, aaz).normalized()));
+            Eigen::AngleAxisd aa = Eigen::AngleAxisd(angle, Eigen::Vector3d(aax, aay, aaz).normalized());
+            aas.push_back(Eigen::Vector3d(aax,aay,aaz));
+            Eigen::Quaterniond q(aa);
 
             Eigen::Matrix4d pose;
             pose.topLeftCorner(3,3) = q.toRotationMatrix();
             pose.topRightCorner(3,1) = Eigen::Vector3d(tx, ty, tz);
 
             poses.push_back(pose);
+            ids.push_back(index);
 
         }
     }
@@ -57,32 +62,50 @@ void loadCameraPose(const std::string &strFile, std::vector<Eigen::Matrix4d> &po
 int main(int argc, char** argv){
     //google::InitGoogleLogging(argv[0]);
 
-    std::string pose_file = "/home/pang/camera_extrinsic.txt";
+    std::string pose_file = "/home/pang/camera_extrinsic_4.txt";
     std::vector<Eigen::Matrix4d> poses;
-
-    loadCameraPose(pose_file, poses);
+    std::vector<int> ids;
+    std::vector<Eigen::Vector3d> aas;
+    loadCameraPose(pose_file, poses,ids,aas);
     std::ofstream ofs_debug("/home/pang/debug.txt");
 
-    std::cout << "load pose: " << poses.size() << std::endl;
+    std::cout << "load pose: " << poses.size() << " " << ids.size() << std::endl;
 
 
-    QuaternionSpline qspline(0.2);
-    std::vector<std::pair<double,Quaternion>> samples, queryMeas;
+    double dt = 0.32;
+    QuaternionSpline qspline(dt);
+    std::vector<std::pair<double,Quaternion>> samples;
+
+    VectorSpaceSpline vspline(dt);
+    std::vector<std::pair<double,Eigen::Vector3d>> v_samples;
+
+
+    std::vector<int> ids_sample;
+    std::vector<Eigen::Vector3d> aas_sample;
+
 
     for (int i = 0; i < poses.size(); i++) {
         Eigen::Matrix4d pose = poses.at(i);
         Eigen::Matrix3d R = pose.topLeftCorner(3,3);
+        Eigen::Vector3d t = pose.topRightCorner(3,1);
         Eigen::Quaterniond q(R);
-        Eigen::AngleAxisd aa(R);
-        auto euler = R.eulerAngles(0, 1, 2);
+
+
 
 
 
         Quaternion QuatJPL = rotMatToQuat(R);
         std::pair<double,Quaternion> sampleJPL = std::make_pair(i * 0.033, QuatJPL);
-        queryMeas.push_back(sampleJPL);
 
         samples.push_back(sampleJPL);
+
+        std::pair<double,Eigen::Vector3d> v_sample = std::make_pair(i * 0.033, t);
+
+        v_samples.push_back(v_sample);
+
+        ids_sample.push_back(ids[i]);
+
+        aas_sample.push_back(aas[i]);
 
 
 
@@ -92,28 +115,42 @@ int main(int argc, char** argv){
 
 
     qspline.initialQuaternionSpline(samples);
+    vspline.initialSpline(v_samples);
 
-    for(auto i: queryMeas){
+    for(int i = 0; i < samples.size(); i++){
+        auto quat = samples[i];
+        auto trans = v_samples[i];
+        auto id = ids_sample[i];
+        auto aa = aas_sample[i];
+        if(qspline.isTsEvaluable(quat.first)){
+            Quaternion q_query = qspline.evalQuatSpline(quat.first);
+            Eigen::Vector3d t_query = vspline.evaluateSpline(quat.first);
 
-        if(qspline.isTsEvaluable(i.first)){
-            Quaternion query = qspline.evalQuatSpline(i.first);
-
-            Eigen::Vector3d diff = (quatLeftComp(i.second)*quatInv(query)).head(3);
+//            Eigen::Vector3d diff = (quatLeftComp(quat.second)*quatInv(query)).head(3);
 //            CHECK_EQ(diff.norm() < 0.01,true)<<"Qspline query is not close to the ground truth!"
 //                                             <<"Gt:    "<<i.second.transpose()<<std::endl
 //                                             <<"Query: "<<query.transpose()<<std::endl
 //                                             <<"diff:  "<<diff.transpose()<<std::endl<<std::endl;
 
-            std::cout <<"Gt:    "<<i.second.transpose()<<std::endl;
-            std::cout <<"Query: "<<query.transpose()<<std::endl;
+            std::cout <<"Gt:    "<<quat.second.transpose()<<std::endl;
+            std::cout <<"Query: "<<q_query.transpose()<<std::endl;
 
-            Eigen::Matrix3d R0 = quatToRotMat(i.second);
-            Eigen::Matrix3d R1 = quatToRotMat(query);
+            Eigen::Matrix3d R0 = quatToRotMat(quat.second);
+            Eigen::Matrix3d R1 = quatToRotMat(q_query);
 
             Eigen::AngleAxisd aa0(R0);
             Eigen::AngleAxisd aa1(R1);
 
-            ofs_debug << aa0.axis()[0] << " "  << aa0.axis()[1] << " " << aa0.axis()[2]<< " " << aa1.axis()[0] << " "  << aa1.axis()[1] << " " << aa1.axis()[2]<< std::endl;
+            Eigen::Vector3d t0 = trans.second;
+            Eigen::Vector3d t1 = t_query;
+
+
+            ofs_debug << id << " " << aa0.axis()[0] * aa0.angle() << " "  << aa0.axis()[1] * aa0.angle() << " " << aa0.axis()[2] * aa0.angle()
+                    << " " <<  t0[0] << " " << t0[1] << " " << t0[2]
+                    << " " << aa1.axis()[0] * aa0.angle() << " "  << aa1.axis()[1] * aa0.angle() << " " << aa1.axis()[2] * aa0.angle()
+                    << " " <<  t1[0] << " " << t1[1] << " " << t1[2]
+                    << " " <<  aa[0] << " " << aa[1] << " " << aa[2]
+                    << std::endl;
 
         }
 

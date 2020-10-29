@@ -12,7 +12,7 @@ public:
 
     }
 
-    void simulate(Eigen::Matrix4d T_WC, int count, std::vector<Eigen::Vector3d>& pt3d, std::vector<Eigen::Vector2d>& pt2d, std::vector<Eigen::Vector2d>& pt2d_bearing) {
+    void simulate(Eigen::Matrix4d T_WC, int count, std::vector<Eigen::Vector3d>& pt3d, std::vector<Eigen::Vector2d>& pt2d, std::vector<Eigen::Vector3d>& pt3d_bearing) {
         srand((unsigned int) time(0));
         double cx = width_ / 2;
         double cy = height_ / 2;
@@ -32,9 +32,10 @@ public:
             ray[1] = (pt2d.back()[1] - cy) / focal_;
 
             Eigen::Vector3d norm_ray(ray[0], ray[1],1.0);
+            pt3d_bearing.push_back(norm_ray);
             norm_ray.normalize();
 
-            pt2d_bearing.push_back(ray);
+
 
             Eigen::Vector3d Cp = norm_ray * std::abs(rand[2]);
 
@@ -76,14 +77,14 @@ int main(int argc, char** argv){
     //google::InitGoogleLogging(argv[0]);
 
     Eigen::Matrix4d T_WC = Eigen::Matrix4d::Identity();
-    std::vector<Eigen::Vector3d> pt3d;
-    std::vector<Eigen::Vector2d> pt2d, pt2d_bearing;
+    std::vector<Eigen::Vector3d> pt3d, pt3d_bearing;
+    std::vector<Eigen::Vector2d> pt2d;
 
     int count = 20;
     Simulation simulate(640, 480, 200);
-    simulate.simulate(T_WC, count, pt3d, pt2d, pt2d_bearing );
+    simulate.simulate(T_WC, count, pt3d, pt2d, pt3d_bearing );
 
-    std::cout << "3d - 2d: " << pt3d.size() << " " << pt2d.size()  << " " << pt2d_bearing.size() << std::endl;
+    std::cout << "3d - 2d: " << pt3d.size() << " " << pt2d.size()  << " " << pt3d_bearing.size() << std::endl;
 
 //    for (int i = 0; i < count; i ++) {
 //

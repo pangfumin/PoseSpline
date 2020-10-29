@@ -11,8 +11,7 @@
  *
  */
 class ProjectError:public ceres::SizedCostFunction<2, /* num of residual */
-        7, /* parameter of pose */
-        3>{
+        7>{
 
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -34,7 +33,7 @@ public:
     typedef Eigen::Matrix<double, 2, 6> jacobian0_t;
 
     ProjectError() = delete;
-    ProjectError(const Eigen::Vector3d& uv_C0);
+    ProjectError(const Eigen::Vector3d& uv_C0, const Eigen::Vector3d& pt3d);
 
     /// \brief Trivial destructor.
     virtual ~ProjectError() {}
@@ -49,7 +48,7 @@ public:
 
 private:
 
-    Eigen::Vector3d C0uv;
+    Eigen::Vector3d C0uv_, Wp_;
 
     // information matrix and its square root
     mutable information_t information_; ///< The information matrix for this error term.

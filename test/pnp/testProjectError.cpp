@@ -68,7 +68,7 @@ int main(){
 
     std::cout<<"------------ Zero Test -----------------"<<std::endl;
 
-    ProjectError* projectFactor = new ProjectError(p0);
+    ProjectError* projectFactor = new ProjectError(p0, Wp);
 
     double* param_T_WC0 = new double[7];
 
@@ -76,18 +76,17 @@ int main(){
 
     T2double(T_WC0,param_T_WC0);
 
-    double* paramters[2] = {param_T_WC0, Wp.data()};
+    double* paramters[1] = {param_T_WC0};
 
     Eigen::Matrix<double, 2,1> residual;
 
     Eigen::Matrix<double,2,6,Eigen::RowMajor> jacobian0_min;
-    Eigen::Matrix<double,2,3,Eigen::RowMajor> jacobian1_min;
-    double* jacobians_min[2] = {jacobian0_min.data(), jacobian1_min.data()};
+
+    double* jacobians_min[1] = {jacobian0_min.data()};
 
 
     Eigen::Matrix<double,2,7,Eigen::RowMajor> jacobian0;
-    Eigen::Matrix<double,2,3,Eigen::RowMajor> jacobian1;
-    double* jacobians[2] = {jacobian0.data(), jacobian1.data()};
+    double* jacobians[1] = {jacobian0.data()};
 
     projectFactor->EvaluateWithMinimalJacobians(paramters,residual.data(),jacobians,jacobians_min);
 
@@ -112,7 +111,7 @@ int main(){
     T2double(T_WC0_noised,param_T_WC0_noised);
 
 
-    double* parameters_noised[2] = {param_T_WC0_noised,Wp.data()};
+    double* parameters_noised[1] = {param_T_WC0_noised};
 
     projectFactor->EvaluateWithMinimalJacobians(parameters_noised,residual.data(),jacobians,jacobians_min);
 
@@ -122,20 +121,13 @@ int main(){
     Eigen::Matrix<double,2,6,Eigen::RowMajor> num_jacobian0_min;
     Eigen::Matrix<double,2,3,Eigen::RowMajor> num_jacobian1_min;
 
-    NumbDifferentiator<ProjectError,2> num_differ(projectFactor);
+    NumbDifferentiator<ProjectError,1> num_differ(projectFactor);
 
     num_differ.df_r_xi<2,7,6,PoseLocalParameterization>(parameters_noised,0,num_jacobian0_min.data());
 
     std::cout<<"jacobian0_min: "<<std::endl<<jacobian0_min<<std::endl;
     std::cout<<"num_jacobian0_min: "<<std::endl<<num_jacobian0_min<<std::endl;
 
-//    std::cout<<"Check jacobian0: "<<std::endl;
-//    localizer_num_differ.isJacobianEqual<2,6>(jacobian0_min.data(),num_jacobian0_min.data(),1e-2);
-//
-    num_differ.df_r_xi<2,3>(parameters_noised,1,num_jacobian1_min.data());
-
-    std::cout<<"jacobian1_min: "<<std::endl<<jacobian1_min<<std::endl;
-    std::cout<<"num_jacobian1_min: "<<std::endl<<num_jacobian1_min<<std::endl;
 
 
     return 0;

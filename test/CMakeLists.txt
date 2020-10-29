@@ -117,6 +117,14 @@ target_link_libraries(testProjectError
         PoseSpline)
 
 
+add_executable(human_2d_3d_alignment pnp/human_2d_3d_alignment.cpp
+        pnp/pose_local_parameterization.cpp
+        pnp/utility.cpp
+        pnp/project_error.cpp)
+target_link_libraries(human_2d_3d_alignment
+        PoseSpline)
+
+
 
 
 # # Copy test data.

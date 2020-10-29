@@ -48,9 +48,7 @@ add_executable(testPinholeProjectFactor testPinholeProjectFactor.cpp)
 target_link_libraries(testPinholeProjectFactor
         PoseSpline)
 
-add_executable(testProjectError testProjectError.cpp)
-target_link_libraries(testProjectError
-        PoseSpline)
+
 
 add_executable(testPoseSplineSampleError testPoseSplineSampleError.cpp)
 target_link_libraries(testPoseSplineSampleError
@@ -102,6 +100,23 @@ add_test(NAME frame_test COMMAND frame_test --gtest_color=yes)
 add_executable(test_buildOpticalFlowPyramid test_buildOpticalFlowPyramid.cpp)
 target_link_libraries(test_buildOpticalFlowPyramid
         PoseSpline)
+
+
+add_executable(test_pnp pnp/test_pnp.cpp
+        pnp/pose_local_parameterization.cpp
+        pnp/utility.cpp
+        pnp/project_error.cpp)
+target_link_libraries(test_pnp
+        PoseSpline)
+
+add_executable(testProjectError pnp/testProjectError.cpp
+        pnp/pose_local_parameterization.cpp
+        pnp/utility.cpp
+        pnp/project_error.cpp)
+target_link_libraries(testProjectError
+        PoseSpline)
+
+
 
 
 # # Copy test data.

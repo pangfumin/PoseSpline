@@ -6,109 +6,17 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
+#include<opencv2/core/eigen.hpp>
 #include "project_error.h"
 #include "pose_local_parameterization.h"
 
 #include <algorithm>    // std::max
 
-
-
 int width = 544;
 int height = 960;
 double focal = 516;
 
-class Simulation {
-public:
-    Simulation(int width, int height, double focal, double min_z, double max_z):
-    width_(width), height_(height), focal_(focal),min_z_(min_z), max_z_(max_z)  {
-
-    }
-
-    void simulate(Eigen::Matrix4d T_WC, int count, std::vector<Eigen::Vector3d>& pt3d, std::vector<Eigen::Vector2d>& pt2d, std::vector<Eigen::Vector3d>& pt3d_bearing) {
-        srand((unsigned int) time(0));
-        double cx = width_ / 2;
-        double cy = height_ / 2;
-        for (int i = 0; i < count; i++) {
-
-            Eigen::Vector3d rand = Eigen::Vector3d::Random();
-            pt2d.push_back(Eigen::Vector2d(std::abs(rand.x() * width_), std::abs(rand.y() * height_)));
-
-            // grenrate 3d
-            Eigen::Vector2d ray;
-            ray[0] = (pt2d.back()[0] - cx) / focal_;
-            ray[1] = (pt2d.back()[1] - cy) / focal_;
-
-            Eigen::Vector3d norm_ray(ray[0], ray[1],1.0);
-            pt3d_bearing.push_back(norm_ray);
-            norm_ray.normalize();
-            norm_ray  = norm_ray *(max_z_ - min_z_) + Eigen::Vector3d(1,1,1) *min_z_;
-
-
-            Eigen::Vector3d Cp = norm_ray * std::abs(rand[2]);
-            Eigen::Vector4d Wp = T_WC * (Eigen::Vector4d() << Cp,1.0 ).finished();
-            pt3d.push_back(Wp.head<3>() / Wp(3));
-
-        }
-
-    }
-
-
-    Eigen::Vector2d  project(Eigen::Vector3d& pt3d) {
-        double cx = width_ / 2;
-        double cy = height_ / 2;
-        Eigen::Vector2d pt2d;
-        pt2d << (pt3d(0)/ pt3d(2)) * focal_ + cx, (pt3d(1)/ pt3d(2)) * focal_ + cy;
-        return pt2d;
-    }
-
-    cv::Mat visualize(Eigen::Matrix4d T_WC, std::vector<Eigen::Vector3d>& pt3d, std::vector<Eigen::Vector2d>& pt2d) {
-        cv::Mat image(height_, width_,  CV_8UC3);
-        image.setTo(cv::Scalar(255,255,255));
-        double cx = width_ / 2;
-        double cy = height_ / 2;
-
-        for (int i = 0; i < pt3d.size(); i ++) {
-            cv::circle(image, cv::Point2f(pt2d[i].x(), pt2d[i].y()),3,cv::Scalar(0,255,1),3 );
-
-
-            Eigen::Matrix3d R_WC = T_WC.topLeftCorner(3,3);
-            Eigen::Vector3d Cp = R_WC.transpose() * (pt3d[i] - T_WC.topRightCorner(3,1));
-
-            cv::Point2f reproject;
-            reproject.x = (Cp[0]/Cp(2)) * focal_ + cx;
-            reproject.y = (Cp[1]/Cp(2)) * focal_ + cy;
-
-            cv::circle(image, reproject,3,cv::Scalar(255,0,1),3 );
-
-            cv::line(image, cv::Point2f(pt2d[i].x(), pt2d[i].y()), reproject, cv::Scalar(0,0,255), 2);
-
-        }
-        return image;
-    }
-
-
-private:
-    int width_;
-    int height_;
-    double focal_;
-    double min_z_, max_z_;
-
-};
-
-void T2double(Eigen::Matrix4d& T,double* ptr){
-
-    Eigen::Vector3d trans = T.topRightCorner(3,1);
-    Eigen::Matrix3d R = T.topLeftCorner(3,3);
-    Eigen::Quaterniond q(R);
-
-    ptr[0] = trans(0);
-    ptr[1] = trans(1);
-    ptr[2] = trans(2);
-    ptr[3] = q.x();
-    ptr[4] = q.y();
-    ptr[5] = q.z();
-    ptr[6] = q.w();
-}
 
 void applyNoise(const Eigen::Matrix4d& Tin,Eigen::Matrix4d& Tout){
 
@@ -143,36 +51,6 @@ Eigen::Matrix4d param2T(Vec3d vec, Eigen::Quaterniond q) {
 }
 
 
-void pnp(Eigen::Matrix4d& T_WC, std::vector<Eigen::Vector3d>& pt3d, std::vector<Eigen::Vector3d>& pt3d_bearing, Eigen::Quaterniond q) {
-    ceres::Problem problem;
-    auto initT = T_WC;
-
-    Vec3d  param = T2param(T_WC);
-
-    problem.AddParameterBlock(param.data(), 3);
-    for (int i = 0; i < pt3d.size(); i ++) {
-        ceres::CostFunction* e = new ProjectError(pt3d_bearing[i], pt3d[i], q);
-
-        problem.AddResidualBlock(e,NULL, param.data());
-    }
-
-    ceres::Solver::Options options;
-    options.minimizer_progress_to_stdout = true;
-    options.max_solver_time_in_seconds = 30;
-    options.max_num_iterations = 300;
-    options.linear_solver_type = ceres::SPARSE_SCHUR;
-    options.minimizer_progress_to_stdout = true;
-    options.parameter_tolerance = 1e-4;
-    ceres::Solver::Summary summary;
-    ceres::Solve(options, &problem, &summary);
-    std::cout << summary.FullReport() << std::endl;
-
-    T_WC = param2T(param, q);
-    std::cout << "before OPT : \n" << initT << std::endl;
-
-    std::cout << "OPT : \n" << T_WC << std::endl;
-
-}
 
 Eigen::Matrix4d pnp(Eigen::Matrix4d T_WC,
         std::vector<Eigen::Vector2d>& pt2ds, std::vector<Eigen::Vector3d>& pt3ds) {
@@ -182,37 +60,86 @@ Eigen::Matrix4d pnp(Eigen::Matrix4d T_WC,
 
     double cx = width / 2;
     double cy = height / 2;
+//
+//    ceres::Problem problem;
+//    auto initT = T_WC;
+//    Vec3d  param = T2param(T_WC);
+//    problem.AddParameterBlock(param.data(), 3);
+//
+//    Eigen::Quaterniond q(1.0,0,0,0);
+//    for (int i = 0; i < pt3ds.size(); i++) {
+//        auto pt2d = pt2ds[i];
+//        Eigen::Vector3d bearing((pt2d.x() - cx)/ focal, (pt2d.y() - cy)/ focal, 1.0);
+//        auto pt3d = pt3ds[i];
+//        ceres::CostFunction* e = new ProjectError(bearing, pt3d, q);
+//        problem.AddResidualBlock(e,NULL, param.data());
+//    }
+//
+//    ceres::Solver::Options options;
+//    options.minimizer_progress_to_stdout = true;
+//    options.max_solver_time_in_seconds = 3;
+//    options.max_num_iterations = 100;
+//    options.linear_solver_type = ceres::SPARSE_SCHUR;
+//    options.parameter_tolerance = 1e-4;
+//    ceres::Solver::Summary summary;
+//    ceres::Solve(options, &problem, &summary);
+//    std::cout << summary.FullReport() << std::endl;
+//
+//
+    Eigen::Matrix4d res = Eigen::Matrix4d::Identity();
+//    res = param2T(param, q);
+//    std::cout << "before OPT : \n" << initT << std::endl;
+//
+//    std::cout << "after  OPT : \n" << res << std::endl;
 
-    ceres::Problem problem;
-    auto initT = T_WC;
-    Vec3d  param = T2param(T_WC);
-    problem.AddParameterBlock(param.data(), 3);
 
-    Eigen::Quaterniond q(1.0,0,0,0);
+    cv::Mat r, D;
+
+    cv::Mat K = (cv::Mat_<double>(3, 3) << focal, 0, cx, 0, focal, cy, 0, 0, 1);
+    cv::Mat rvec = (cv::Mat_<double>(3, 1) <<  0, 0, 0);
+    cv::Mat t = (cv::Mat_<double>(3, 1) <<  0, 0, 0);
+    cv::Mat dist_coeff = cv::Mat::zeros(5, 1, CV_64F);
+
+    std::vector<cv::Point3f> pts_3_vector;
+    std::vector<cv::Point2f> pts_2_vector;
+
     for (int i = 0; i < pt3ds.size(); i++) {
         auto pt2d = pt2ds[i];
-        Eigen::Vector3d bearing((pt2d.x() - cx)/ focal, (pt2d.y() - cy)/ focal, 1.0);
         auto pt3d = pt3ds[i];
-        ceres::CostFunction* e = new ProjectError(bearing, pt3d, q);
-        problem.AddResidualBlock(e,NULL, param.data());
+        pts_3_vector.push_back(cv::Point3f(pt3d.x(), pt3d.y(), pt3d.z()));
+        pts_2_vector.push_back(cv::Point2f(pt2d.x(), pt2d.y()));
     }
 
-    ceres::Solver::Options options;
-    options.minimizer_progress_to_stdout = true;
-    options.max_solver_time_in_seconds = 3;
-    options.max_num_iterations = 100;
-    options.linear_solver_type = ceres::SPARSE_SCHUR;
-    options.parameter_tolerance = 1e-4;
-    ceres::Solver::Summary summary;
-    ceres::Solve(options, &problem, &summary);
-    std::cout << summary.FullReport() << std::endl;
+    if (! cv::solvePnP(pts_3_vector, pts_2_vector, K, dist_coeff, rvec, t, 1))
+    {
+
+    }
+
+//    cv::Rodrigues(rvec, r);
+    Eigen::Vector3d temp(rvec.at<double>(0),  rvec.at<double>(1), rvec.at<double>(2) );
+    std::cout << "temp: " << temp.transpose() << std::endl;
+    Eigen::AngleAxisd aa(temp.norm(), temp.normalized());
+    Eigen::MatrixXd R_pnp,tmp_R_pnp;
+//    cv::cv2eigen(r, tmp_R_pnp);
+
+    tmp_R_pnp = aa.toRotationMatrix();
+
+    std::cout << "tmp_R_pnp: \n" << tmp_R_pnp << std::endl;
+
+    R_pnp = tmp_R_pnp.transpose();
+    Eigen::MatrixXd T_pnp;
+    cv::cv2eigen(t, T_pnp);
+    T_pnp = R_pnp * (-T_pnp);
+//    frame_it->second.R = R_pnp ;
+//    frame_it->second.T = T_pnp;
+
+    std::cout << "R_pnp: \n" << R_pnp << std::endl;
+    std::cout << "T_pnp: \n" << T_pnp.transpose() << std::endl;
+
+    res.topLeftCorner(3,3) = R_pnp;
+    res.topRightCorner(3,1) = T_pnp;
 
 
-    Eigen::Matrix4d res;
-    res = param2T(param, q);
-    std::cout << "before OPT : \n" << initT << std::endl;
-
-    std::cout << "after  OPT : \n" << res << std::endl;
 
     return res;
 
@@ -287,15 +214,51 @@ void loadData(const std::string data_file, std::vector<std::vector<Eigen::Vector
 
 void visualize(cv::Mat& image, std::vector<Eigen::Vector2d> pt2ds, std::vector<Eigen::Vector3d> pt3ds, Eigen::Matrix4d T_WC,std::vector<int> index_2d, std::map<int, int> corresponding_pair) {
 
-    for (int i = 0; i < corresponding_pair.size(); i++) {
-        cv::Point2f pt(  pt2ds.at(index_2d[i]).x(), pt2ds.at(index_2d[i]).y());
 
-        std::string text = std::to_string(index_2d[i]);
+    std::cout << "T_WC: \n " << T_WC << std::endl;
+
+    Eigen::Vector3d t_WC = T_WC.topRightCorner(3,1);
+    Eigen::Matrix3d R_WC = T_WC.topLeftCorner(3,3);
+
+
+
+    double cx = width / 2;
+    double cy = height / 2;
+//    for (int i = 0; i < index_2d.size(); i++) {
+//
+//    }
+
+
+    for (int i = 0; i < corresponding_pair.size(); i++) {
+
+        int id1 = corresponding_pair[index_2d[i]];
+        auto pt3d = pt3ds[id1];
+//        pt3d  = R_WC.transpose()*(pt3d - t_WC);
+
+        Eigen::Vector2d pt2d;
+        pt2d << (pt3d(0)/ pt3d(2)) * focal + cx, (pt3d(1)/ pt3d(2)) * focal + cy;
+        cv::Point2f pt0( pt2d.x(), pt2d.y());
+        cv::circle(image, pt0,3,cv::Scalar(10,255,1),3 );
+
+        std::string text = std::to_string(id1);
         int font_face = cv::FONT_HERSHEY_COMPLEX;
         double font_scale = 0.51;
         int thickness = 2;
-        cv::putText(image, text, pt, font_face, font_scale, cv::Scalar(0, 0, 255), thickness, 8, 0);
-        cv::circle(image, pt,3,cv::Scalar(255,0,1),3 );
+        cv::putText(image, text, pt0, font_face, font_scale, cv::Scalar(0, 0, 255), thickness, 8, 0);
+
+
+
+        cv::Point2f pt1(  pt2ds.at(index_2d[i]).x(), pt2ds.at(index_2d[i]).y());
+
+         text = std::to_string(index_2d[i]);
+         font_face = cv::FONT_HERSHEY_COMPLEX;
+         font_scale = 0.51;
+         thickness = 2;
+        cv::putText(image, text, pt1, font_face, font_scale, cv::Scalar(0, 0, 255), thickness, 8, 0);
+        cv::circle(image, pt1,3,cv::Scalar(255,0,1),3 );
+
+//        cv::line(image, pt0, pt1, cv::Scalar(15,200,100), 2);
+
 
     }
 
@@ -340,27 +303,6 @@ void visualize(cv::Mat& image, std::vector<Eigen::Vector2d> pt2ds, std::vector<E
 
 
 
-    Eigen::Vector3d t_WC = T_WC.topRightCorner(3,1);
-
-    double cx = width / 2;
-    double cy = height / 2;
-    for (int i = 0; i < index_2d.size(); i++) {
-        int id1 = corresponding_pair[index_2d[i]];
-        auto pt3d = pt3ds[id1];
-        //pt3d -= t_WC;
-
-        Eigen::Vector2d pt2d;
-        pt2d << (pt3d(0)/ pt3d(2)) * focal + cx, (pt3d(1)/ pt3d(2)) * focal + cy;
-        cv::Point2f pt( pt2d.x(), pt2d.y());
-        cv::circle(image, pt,3,cv::Scalar(10,255,1),3 );
-
-        std::string text = std::to_string(id1);
-        int font_face = cv::FONT_HERSHEY_COMPLEX;
-        double font_scale = 0.51;
-        int thickness = 2;
-        cv::putText(image, text, pt, font_face, font_scale, cv::Scalar(0, 0, 255), thickness, 8, 0);
-
-    }
 
 
 }
@@ -503,7 +445,7 @@ int main(int argc, char** argv){
 
         visualize(image, pt2ds[i], normalize_pt3d, res_TWC,index_2d, corresponding_pair);
         cv::imshow("image", image);
-        cv::waitKey(2);
+        cv::waitKey();
     }
 
 

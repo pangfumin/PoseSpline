@@ -1,133 +1,114 @@
-#include "project_error.h"
-#include <iostream>
-#include "NumbDifferentiator.hpp"
-#include "pose_local_parameterization.h"
-void T2double(Eigen::Isometry3d& T,double* ptr){
+#include "opencv2/opencv.hpp"
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
-    Eigen::Vector3d trans = T.matrix().topRightCorner(3,1);
-    Eigen::Matrix3d R = T.matrix().topLeftCorner(3,3);
-    Eigen::Quaterniond q(R);
+int main()
+{
+    const char *input = "/home/pang/software/3dv_tutorial/bin/data/blais.mp4", *cover = "/home/pang/software/3dv_tutorial/bin/data/blais.jpg";
+    double f = 1000, cx = 320, cy = 240;
+    size_t min_inlier_num = 100;
 
-    ptr[0] = trans(0);
-    ptr[1] = trans(1);
-    ptr[2] = trans(2);
+    // Load the object image and extract features
+    cv::Mat obj_image = cv::imread(cover);
+    if (obj_image.empty()) return -1;
 
-}
+    cv::Ptr<cv::FeatureDetector> fdetector = cv::ORB::create();
+    cv::Ptr<cv::DescriptorMatcher> fmatcher = cv::DescriptorMatcher::create("BruteForce-Hamming");
+    std::vector<cv::KeyPoint> obj_keypoint;
+    cv::Mat obj_descriptor;
+    fdetector->detectAndCompute(obj_image, cv::Mat(), obj_keypoint, obj_descriptor);
+    if (obj_keypoint.empty() || obj_descriptor.empty()) return -1;
+    fmatcher->add(obj_descriptor);
 
-void applyNoise(const Eigen::Isometry3d& Tin,Eigen::Isometry3d& Tout){
+    // Open a video
+    cv::VideoCapture video;
+    if (!video.open(input)) return -1;
 
+    // Prepare a box for simple AR
+    std::vector<cv::Point3f> box_lower = { cv::Point3f(30, 145,   0), cv::Point3f(30, 200,   0), cv::Point3f(200, 200,   0), cv::Point3f(200, 145,   0) };
+    std::vector<cv::Point3f> box_upper = { cv::Point3f(30, 145, -50), cv::Point3f(30, 200, -50), cv::Point3f(200, 200, -50), cv::Point3f(200, 145, -50) };
 
-    Tout.setIdentity();
+    // Run pose estimation
+    cv::Mat K = (cv::Mat_<double>(3, 3) << f, 0, cx, 0, f, cy, 0, 0, 1);
+    cv::Mat dist_coeff = cv::Mat::zeros(5, 1, CV_64F), rvec, tvec;
+    while (true)
+    {
+        // Grab an image from the video
+        cv::Mat image;
+        video >> image;
+        if (image.empty()) break;
 
-    Eigen::Vector3d delat_trans = 0.5*Eigen::Matrix<double,3,1>::Random();
-    Eigen::Vector3d delat_rot = 0.16*Eigen::Matrix<double,3,1>::Random();
+        // Extract features and match them to the object features
+        std::vector<cv::KeyPoint> img_keypoint;
+        cv::Mat img_descriptor;
+        fdetector->detectAndCompute(image, cv::Mat(), img_keypoint, img_descriptor);
+        if (img_keypoint.empty() || img_descriptor.empty()) continue;
+        std::vector<cv::DMatch> match;
+        fmatcher->match(img_descriptor, match);
+        if (match.size() < min_inlier_num) continue;
+        std::vector<cv::Point3f> obj_points;
+        std::vector<cv::Point2f> obj_project, img_points;
+        for (auto m = match.begin(); m < match.end(); m++)
+        {
+            obj_points.push_back(cv::Point3f(obj_keypoint[m->trainIdx].pt));
+            obj_project.push_back(obj_keypoint[m->trainIdx].pt);
+            img_points.push_back(img_keypoint[m->queryIdx].pt);
+        }
 
-    Eigen::Quaterniond delat_quat(1.0,delat_rot(0),delat_rot(1),delat_rot(2)) ;
+        // Determine whether each matched feature is an inlier or not
+        std::vector<int> inlier;
+        cv::solvePnPRansac(obj_points, img_points, K, dist_coeff, rvec, tvec, false, 500, 2, 0.99, inlier);
 
-    Tout.matrix().topRightCorner(3,1) = Tin.matrix().topRightCorner(3,1) + delat_trans;
-    Tout.matrix().topLeftCorner(3,3) = Tin.matrix().topLeftCorner(3,3)*delat_quat.toRotationMatrix();
-}
+        Eigen::Vector3d temp(rvec.at<double>(0),  rvec.at<double>(1), rvec.at<double>(2) );
+        std::cout << "temp: " << temp.transpose() << std::endl;
+        Eigen::AngleAxisd aa(temp.norm(), temp.normalized());
+        Eigen::MatrixXd R_pnp,tmp_R_pnp;
 
-int main(){
+        tmp_R_pnp = aa.toRotationMatrix();
 
-    // simulate
+        std::cout << "tmp_R_pnp: \n" << tmp_R_pnp << std::endl;
 
-    Eigen::Isometry3d T_WI0, T_WI1, T_IC;
-    Eigen::Vector3d C0p(4, 3, 10);
-    T_WI0 = T_WI1 = T_IC = Eigen::Isometry3d::Identity();
+        cv::Mat inlier_mask = cv::Mat::zeros(int(match.size()), 1, CV_8U);
+        for (size_t i = 0; i < inlier.size(); i++) inlier_mask.at<uchar>(inlier[i]) = 1;
+        cv::Mat image_result;
+        cv::drawMatches(image, img_keypoint, obj_image, obj_keypoint, match, image_result, cv::Vec3b(0, 0, 255), cv::Vec3b(0, 127, 0), inlier_mask);
 
-    T_WI1.matrix().topRightCorner(3,1) = Eigen::Vector3d(1,0,0);
-    T_IC.matrix().topRightCorner(3,1) = Eigen::Vector3d(0.1,0.10,0);
+        // Estimate camera pose with inliers
+        size_t inlier_num = inlier.size();
+        if (inlier_num > min_inlier_num)
+        {
+            std::vector<cv::Point3f> obj_inlier;
+            std::vector<cv::Point2f> img_inlier;
+            for (int idx = 0; idx < inlier_mask.rows; idx++)
+            {
+                if (inlier_mask.at<uchar>(idx))
+                {
+                    obj_inlier.push_back(obj_points[idx]);
+                    img_inlier.push_back(img_points[idx]);
+                }
+            }
+            cv::solvePnP(obj_points, img_points, K, dist_coeff, rvec, tvec);
 
-    Eigen::Isometry3d T_WC0, T_WC1;
-    T_WC0 = T_WI0 * T_IC;
-    T_WC1 = T_WI1 * T_IC;
+            // Draw the box on the image
+            cv::Mat line_lower, line_upper;
+            cv::projectPoints(box_lower, rvec, tvec, K, dist_coeff, line_lower);
+            cv::projectPoints(box_upper, rvec, tvec, K, dist_coeff, line_upper);
+            line_lower.reshape(1).convertTo(line_lower, CV_32S); // Change 4 x 1 matrix (CV_64FC2) to 4 x 2 matrix (CV_32SC1)
+            line_upper.reshape(1).convertTo(line_upper, CV_32S); //  because 'cv::polylines()' only accepts 'CV_32S' depth.
+            cv::polylines(image_result, line_lower, true, cv::Vec3b(255, 0, 0), 2);
+            for (int i = 0; i < line_lower.rows; i++)
+                cv::line(image_result, cv::Point(line_lower.row(i)), cv::Point(line_upper.row(i)), cv::Vec3b(0, 255, 0), 2);
+            cv::polylines(image_result, line_upper, true, cv::Vec3b(0, 0, 255), 2);
+        }
 
-    Eigen::Isometry3d T_C0C1 = T_WC0.inverse()*T_WC1;
-    Eigen::Isometry3d T_C1C0 = T_C0C1.inverse();
+        // Show the image
+        cv::String info = cv::format("Inliers: %d (%d%%), Focal Length: %.0f", inlier_num, 100 * inlier_num / match.size(), K.at<double>(0));
+        cv::putText(image_result, info, cv::Point(5, 15), cv::FONT_HERSHEY_PLAIN, 1, cv::Vec3b(0, 255, 0));
+        cv::imshow("3DV Tutorial: Pose Estimation (Book)", image_result);
+        int key = cv::waitKey(1);
+        if (key == 27) break; // 'ESC' key: Exit
+    }
 
-    Eigen::Vector3d Wp = T_WC0.matrix().topLeftCorner(3,3)*C0p+T_WC0.matrix().topRightCorner(3,1);
-
-    Eigen::Vector3d C1p = T_C1C0.matrix().topLeftCorner(3,3)*C0p+T_C1C0.matrix().topRightCorner(3,1);
-
-    Eigen::Vector3d p0(C0p(0)/C0p(2), C0p(1)/C0p(2), 1);
-    double z = C0p(2);
-    double rho = 1.0/z;
-
-    Eigen::Vector3d p1(C1p(0)/C1p(2), C1p(1)/C1p(2), 1);
-
-    Eigen::Matrix3d R = T_WC0.matrix().topLeftCorner(3,3);
-    Eigen::Quaterniond Q_QC(R);
-
-
-
-    /*
-     * Zero Test
-     * Passed!
-     */
-
-    std::cout<<"------------ Zero Test -----------------"<<std::endl;
-
-    ProjectError* projectFactor = new ProjectError(p0, Wp,Q_QC);
-
-    double* param_T_WC0 = new double[3];
-
-
-
-    T2double(T_WC0,param_T_WC0);
-
-    double* paramters[1] = {param_T_WC0};
-
-    Eigen::Matrix<double, 2,1> residual;
-
-    Eigen::Matrix<double,2,3,Eigen::RowMajor> jacobian0_min;
-
-    double* jacobians_min[1] = {jacobian0_min.data()};
-
-
-    Eigen::Matrix<double,2,3,Eigen::RowMajor> jacobian0;
-    double* jacobians[1] = {jacobian0.data()};
-
-    projectFactor->EvaluateWithMinimalJacobians(paramters,residual.data(),jacobians,jacobians_min);
-
-    std::cout<<"residual: "<<residual.transpose()<<std::endl;
-    CHECK_EQ(residual.norm()< 0.001,true)<<"Residual is Not zero, zero check not passed!";
-//
-    /*
-     * Jacobian Check: compare the analytical jacobian to num-diff jacobian
-     */
-//
-//
-    std::cout<<"------------  Jacobian Check -----------------"<<std::endl;
-
-    Eigen::Isometry3d T_WC0_noised;
-
-    applyNoise(T_WC0,T_WC0_noised);
-
-    double* param_T_WC0_noised = new double[3];
-
-
-
-    T2double(T_WC0_noised,param_T_WC0_noised);
-
-
-    double* parameters_noised[1] = {param_T_WC0_noised};
-
-    projectFactor->EvaluateWithMinimalJacobians(parameters_noised,residual.data(),jacobians,jacobians_min);
-
-
-    std::cout<<"residual: "<<residual.transpose()<<std::endl;
-
-    Eigen::Matrix<double,2,3,Eigen::RowMajor> num_jacobian0_min;
-
-    NumbDifferentiator<ProjectError,1> num_differ(projectFactor);
-
-    num_differ.df_r_xi<2,3>(parameters_noised,0,num_jacobian0_min.data());
-
-    std::cout<<"jacobian0_min: "<<std::endl<<jacobian0_min<<std::endl;
-    std::cout<<"num_jacobian0_min: "<<std::endl<<num_jacobian0_min<<std::endl;
-
-
-
+    video.release();
     return 0;
 }

@@ -21,7 +21,7 @@
 
         // Build a  least-square problem
         ceres::Problem problem;
-
+        ceres::LossFunction* loss_function = new ceres::HuberLoss(0.5);
         for(auto i : Meas){
             //std::cout<<"-----------------------------------"<<std::endl;
             // add sample
@@ -54,7 +54,7 @@
             problem.AddParameterBlock(cp2,3);
             problem.AddParameterBlock(cp3,3);
 
-            problem.AddResidualBlock(vectorSplineSampleError, NULL, cp0, cp1, cp2, cp3);
+            problem.AddResidualBlock(vectorSplineSampleError, loss_function, cp0, cp1, cp2, cp3);
 
         }
         //std::cout<<"ParameterNum: "<<problem.NumParameterBlocks()<<std::endl;

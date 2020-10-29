@@ -99,5 +99,10 @@ set_target_properties(testSimulator PROPERTIES COMPILE_FLAGS "-std=c++11 -Wno-de
 add_test(NAME frame_test COMMAND frame_test --gtest_color=yes)
 
 
+add_executable(test_buildOpticalFlowPyramid test_buildOpticalFlowPyramid.cpp)
+target_link_libraries(test_buildOpticalFlowPyramid
+        PoseSpline)
+
+
 # # Copy test data.
 # file(COPY ./data DESTINATION ${CMAKE_BINARY_DIR})

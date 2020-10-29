@@ -22,6 +22,8 @@
         // Build a  least-square problem
         ceres::Problem problem;
         QuaternionLocalParameter* quaternionLocalParam = new QuaternionLocalParameter;
+
+        ceres::LossFunction* loss_function = new ceres::HuberLoss(0.5);
         //std::cout<<"Meas NUM: "<<Meas.size()<<std::endl;
         for(auto i : Meas){
             //std::cout<<"-----------------------------------"<<std::endl;
@@ -67,7 +69,7 @@
             problem.AddParameterBlock(cp2,4,quaternionLocalParam);
             problem.AddParameterBlock(cp3,4,quaternionLocalParam);
 
-            problem.AddResidualBlock(quatSampleFunctor, NULL, cp0, cp1, cp2, cp3);
+            problem.AddResidualBlock(quatSampleFunctor, loss_function, cp0, cp1, cp2, cp3);
 
         }
         //std::cout<<"ParameterNum: "<<problem.NumParameterBlocks()<<std::endl;

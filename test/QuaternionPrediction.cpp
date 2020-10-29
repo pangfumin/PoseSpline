@@ -16,7 +16,7 @@ std::pair<double,Quaternion>  getSample(ze::TupleVector& data, unsigned int i){
 };
 
 
-void loadCameraPose(const std::string &strFile, std::vector<Eigen::Matrix4d> &poses, std::vector<int>& ids, std::vector<Eigen::Vector3d> &aas)
+void loadCameraPose(const std::string &strFile, std::vector<Eigen::Matrix4d> &poses, std::vector<std::string>& ids, std::vector<Eigen::Vector3d> &aas)
 {
     std::ifstream f;
     f.open(strFile.c_str());
@@ -36,9 +36,9 @@ void loadCameraPose(const std::string &strFile, std::vector<Eigen::Matrix4d> &po
             std::stringstream ss;
             ss << s;
             double aax,aay,aaz, tx, ty,tz;
-            int index;
+            std::string temp, index;
 
-            ss >> index >> aax >> aay >> aaz >> tx >> ty >> tz;
+            ss >> temp >> index >> aax >> aay >> aaz >> tx >> ty >> tz;
 
             double angle = Eigen::Vector3d(aax, aay, aaz).norm();
 
@@ -62,9 +62,9 @@ void loadCameraPose(const std::string &strFile, std::vector<Eigen::Matrix4d> &po
 int main(int argc, char** argv){
     //google::InitGoogleLogging(argv[0]);
 
-    std::string pose_file = "/home/pang/camera_extrinsic_4.txt";
+    std::string pose_file = "/home/pang/arc_campose.txt";
     std::vector<Eigen::Matrix4d> poses;
-    std::vector<int> ids;
+    std::vector<std::string> ids;
     std::vector<Eigen::Vector3d> aas;
     loadCameraPose(pose_file, poses,ids,aas);
     std::ofstream ofs_debug("/home/pang/debug.txt");
@@ -80,7 +80,7 @@ int main(int argc, char** argv){
     std::vector<std::pair<double,Eigen::Vector3d>> v_samples;
 
 
-    std::vector<int> ids_sample;
+    std::vector<std::string> ids_sample;
     std::vector<Eigen::Vector3d> aas_sample;
 
 
@@ -145,7 +145,7 @@ int main(int argc, char** argv){
             Eigen::Vector3d t1 = t_query;
 
 
-            ofs_debug << id << " " << aa0.axis()[0] * aa0.angle() << " "  << aa0.axis()[1] * aa0.angle() << " " << aa0.axis()[2] * aa0.angle()
+            ofs_debug  << aa0.axis()[0] * aa0.angle() << " "  << aa0.axis()[1] * aa0.angle() << " " << aa0.axis()[2] * aa0.angle()
                     << " " <<  t0[0] << " " << t0[1] << " " << t0[2]
                     << " " << aa1.axis()[0] * aa0.angle() << " "  << aa1.axis()[1] * aa0.angle() << " " << aa1.axis()[2] * aa0.angle()
                     << " " <<  t1[0] << " " << t1[1] << " " << t1[2]

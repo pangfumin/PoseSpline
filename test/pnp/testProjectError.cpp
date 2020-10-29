@@ -11,10 +11,7 @@ void T2double(Eigen::Isometry3d& T,double* ptr){
     ptr[0] = trans(0);
     ptr[1] = trans(1);
     ptr[2] = trans(2);
-    ptr[3] = q.x();
-    ptr[4] = q.y();
-    ptr[5] = q.z();
-    ptr[6] = q.w();
+
 }
 
 void applyNoise(const Eigen::Isometry3d& Tin,Eigen::Isometry3d& Tout){
@@ -59,6 +56,9 @@ int main(){
 
     Eigen::Vector3d p1(C1p(0)/C1p(2), C1p(1)/C1p(2), 1);
 
+    Eigen::Matrix3d R = T_WC0.matrix().topLeftCorner(3,3);
+    Eigen::Quaterniond Q_QC(R);
+
 
 
     /*
@@ -68,9 +68,9 @@ int main(){
 
     std::cout<<"------------ Zero Test -----------------"<<std::endl;
 
-    ProjectError* projectFactor = new ProjectError(p0, Wp);
+    ProjectError* projectFactor = new ProjectError(p0, Wp,Q_QC);
 
-    double* param_T_WC0 = new double[7];
+    double* param_T_WC0 = new double[3];
 
 
 
@@ -80,12 +80,12 @@ int main(){
 
     Eigen::Matrix<double, 2,1> residual;
 
-    Eigen::Matrix<double,2,6,Eigen::RowMajor> jacobian0_min;
+    Eigen::Matrix<double,2,3,Eigen::RowMajor> jacobian0_min;
 
     double* jacobians_min[1] = {jacobian0_min.data()};
 
 
-    Eigen::Matrix<double,2,7,Eigen::RowMajor> jacobian0;
+    Eigen::Matrix<double,2,3,Eigen::RowMajor> jacobian0;
     double* jacobians[1] = {jacobian0.data()};
 
     projectFactor->EvaluateWithMinimalJacobians(paramters,residual.data(),jacobians,jacobians_min);
@@ -96,15 +96,15 @@ int main(){
     /*
      * Jacobian Check: compare the analytical jacobian to num-diff jacobian
      */
-
-
+//
+//
     std::cout<<"------------  Jacobian Check -----------------"<<std::endl;
 
     Eigen::Isometry3d T_WC0_noised;
 
     applyNoise(T_WC0,T_WC0_noised);
 
-    double* param_T_WC0_noised = new double[7];
+    double* param_T_WC0_noised = new double[3];
 
 
 
@@ -118,12 +118,11 @@ int main(){
 
     std::cout<<"residual: "<<residual.transpose()<<std::endl;
 
-    Eigen::Matrix<double,2,6,Eigen::RowMajor> num_jacobian0_min;
-    Eigen::Matrix<double,2,3,Eigen::RowMajor> num_jacobian1_min;
+    Eigen::Matrix<double,2,3,Eigen::RowMajor> num_jacobian0_min;
 
     NumbDifferentiator<ProjectError,1> num_differ(projectFactor);
 
-    num_differ.df_r_xi<2,7,6,PoseLocalParameterization>(parameters_noised,0,num_jacobian0_min.data());
+    num_differ.df_r_xi<2,3>(parameters_noised,0,num_jacobian0_min.data());
 
     std::cout<<"jacobian0_min: "<<std::endl<<jacobian0_min<<std::endl;
     std::cout<<"num_jacobian0_min: "<<std::endl<<num_jacobian0_min<<std::endl;

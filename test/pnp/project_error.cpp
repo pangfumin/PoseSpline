@@ -1,7 +1,9 @@
 #include "project_error.h"
 #include "pose_local_parameterization.h"
-ProjectError::ProjectError(const Eigen::Vector3d& uv_C0, const Eigen::Vector3d& pt3d):
-        C0uv_(uv_C0), Wp_(pt3d){
+ProjectError::ProjectError(const Eigen::Vector3d& uv_C0,
+        const Eigen::Vector3d& pt3d,
+                           const Eigen::Quaterniond& Q_WC):
+        C0uv_(uv_C0), Wp_(pt3d), Q_WC_(Q_WC){
 }
 
 bool ProjectError::Evaluate(double const *const *parameters,
@@ -20,8 +22,7 @@ bool ProjectError::EvaluateWithMinimalJacobians(double const *const *parameters,
 
     // T_WC
     Eigen::Vector3d t_WC(parameters[0][0], parameters[0][1], parameters[0][2]);
-    Eigen::Quaterniond Q_WC(parameters[0][6], parameters[0][3], parameters[0][4], parameters[0][5]);
-    Eigen::Matrix3d R_WC = Q_WC.toRotationMatrix();
+    Eigen::Matrix3d R_WC = Q_WC_.toRotationMatrix();
     Eigen::Vector3d Cp = R_WC.transpose()*(Wp_ - t_WC);
     Eigen::Matrix<double, 2, 1> error;
 
@@ -43,17 +44,17 @@ bool ProjectError::EvaluateWithMinimalJacobians(double const *const *parameters,
     // calculate jacobians
     if(jacobians != NULL){
         if(jacobians[0] != NULL){
-            Eigen::Matrix<double,2,6,Eigen::RowMajor> jacobian0_min;
-            Eigen::Map<Eigen::Matrix<double,2,7,Eigen::RowMajor>> jacobian0(jacobians[0]);
-            Eigen::Matrix<double, 3, 6> tmp;
+            Eigen::Matrix<double,2,3,Eigen::RowMajor> jacobian0_min;
+            Eigen::Map<Eigen::Matrix<double,2,3,Eigen::RowMajor>> jacobian0(jacobians[0]);
+            Eigen::Matrix<double, 3, 3> tmp;
             tmp.setIdentity();
             tmp.topLeftCorner(3,3) = - R_WC.transpose();
-            tmp.topRightCorner(3,3) =   Utility::skewSymmetric(R_WC.transpose()*(Wp_ - t_WC));
+
             jacobian0_min  =  H*tmp;
-            jacobian0 << squareRootInformation_*jacobian0_min, Eigen::Matrix<double, 2,1>::Zero();
+            jacobian0 << squareRootInformation_*jacobian0_min;
 
             if(jacobiansMinimal != NULL && jacobiansMinimal[0] != NULL){
-                Eigen::Map<Eigen::Matrix<double,2,6,Eigen::RowMajor>> map_jacobian0_min(jacobiansMinimal[0]);
+                Eigen::Map<Eigen::Matrix<double,2,3,Eigen::RowMajor>> map_jacobian0_min(jacobiansMinimal[0]);
                 map_jacobian0_min = squareRootInformation_*jacobian0_min;
             }
         }

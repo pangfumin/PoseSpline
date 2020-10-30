@@ -52,100 +52,48 @@ Eigen::Matrix4d param2T(Vec3d vec, Eigen::Quaterniond q) {
 
 
 
-Eigen::Matrix4d pnp(Eigen::Matrix4d T_WC,
+Eigen::Vector3d pnp(Eigen::Vector3d t,
         std::vector<Eigen::Vector2d>& pt2ds, std::vector<Eigen::Vector3d>& pt3ds) {
     std::vector<Eigen::Vector3d> used_pt3d_bearing, used_pt3d;
-
 
 
     double cx = width / 2;
     double cy = height / 2;
 //
-//    ceres::Problem problem;
-//    auto initT = T_WC;
-//    Vec3d  param = T2param(T_WC);
-//    problem.AddParameterBlock(param.data(), 3);
+    ceres::Problem problem;
+    auto initT = t;
+    problem.AddParameterBlock(t.data(), 3);
+
+    Eigen::Quaterniond q(1.0,0,0,0);
+    for (int i = 0; i < pt3ds.size(); i++) {
+        auto pt2d = pt2ds[i];
+        Eigen::Vector3d bearing((pt2d.x() - cx)/ focal, (pt2d.y() - cy)/ focal, 1.0);
+        auto pt3d = pt3ds[i];
+        ceres::CostFunction* e = new ProjectError(pt2d, pt3d, cx, cy, focal);
+        problem.AddResidualBlock(e,NULL, t.data());
+    }
+
+    ceres::Solver::Options options;
+    options.minimizer_progress_to_stdout = true;
+    options.max_solver_time_in_seconds = 3;
+    options.max_num_iterations = 100;
+    options.linear_solver_type = ceres::SPARSE_SCHUR;
+    options.parameter_tolerance = 1e-4;
+    ceres::Solver::Summary summary;
+    ceres::Solve(options, &problem, &summary);
+    std::cout << summary.FullReport() << std::endl;
 //
-//    Eigen::Quaterniond q(1.0,0,0,0);
-//    for (int i = 0; i < pt3ds.size(); i++) {
-//        auto pt2d = pt2ds[i];
-//        Eigen::Vector3d bearing((pt2d.x() - cx)/ focal, (pt2d.y() - cy)/ focal, 1.0);
-//        auto pt3d = pt3ds[i];
-//        ceres::CostFunction* e = new ProjectError(bearing, pt3d, q);
-//        problem.AddResidualBlock(e,NULL, param.data());
-//    }
 //
-//    ceres::Solver::Options options;
-//    options.minimizer_progress_to_stdout = true;
-//    options.max_solver_time_in_seconds = 3;
-//    options.max_num_iterations = 100;
-//    options.linear_solver_type = ceres::SPARSE_SCHUR;
-//    options.parameter_tolerance = 1e-4;
-//    ceres::Solver::Summary summary;
-//    ceres::Solve(options, &problem, &summary);
-//    std::cout << summary.FullReport() << std::endl;
-//
-//
-    Eigen::Matrix4d res = Eigen::Matrix4d::Identity();
+
 //    res = param2T(param, q);
 //    std::cout << "before OPT : \n" << initT << std::endl;
 //
 //    std::cout << "after  OPT : \n" << res << std::endl;
 
 
-    cv::Mat r, D;
-
-    cv::Mat K = (cv::Mat_<double>(3, 3) << focal, 0, cx, 0, focal, cy, 0, 0, 1);
-    cv::Mat rvec = (cv::Mat_<double>(3, 1) <<  0, 0, 0);
-    cv::Mat t = (cv::Mat_<double>(3, 1) <<  0, 0, 0);
-    cv::Mat dist_coeff = cv::Mat::zeros(5, 1, CV_64F);
-
-    std::vector<cv::Point3f> pts_3_vector;
-    std::vector<cv::Point2f> pts_2_vector;
-
-    for (int i = 0; i < pt3ds.size(); i++) {
-        auto pt2d = pt2ds[i];
-        auto pt3d = pt3ds[i];
-        pts_3_vector.push_back(cv::Point3f(pt3d.x(), pt3d.y(), pt3d.z()));
 
 
-        pts_2_vector.push_back(cv::Point2f(pt2d.x(), pt2d.y()));
-
-        std::cout << "vec2d.push_back(Eigen::Vector2d(" << pt2d.x()<< "," << pt2d.y() << "));" << std::endl;
-    }
-
-//    if (! cv::solvePnP(pts_3_vector, pts_2_vector, K, dist_coeff, rvec, t, 1))
-//    {
-//
-//    }
-//
-////    cv::Rodrigues(rvec, r);
-//    Eigen::Vector3d temp(rvec.at<double>(0),  rvec.at<double>(1), rvec.at<double>(2) );
-//    std::cout << "temp: " << temp.transpose() << std::endl;
-//    Eigen::AngleAxisd aa(temp.norm(), temp.normalized());
-//    Eigen::MatrixXd R_pnp,tmp_R_pnp;
-////    cv::cv2eigen(r, tmp_R_pnp);
-//
-//    tmp_R_pnp = aa.toRotationMatrix();
-//
-//    std::cout << "tmp_R_pnp: \n" << tmp_R_pnp << std::endl;
-//
-//    R_pnp = tmp_R_pnp.transpose();
-//    Eigen::MatrixXd T_pnp;
-//    cv::cv2eigen(t, T_pnp);
-//    T_pnp = R_pnp * (-T_pnp);
-////    frame_it->second.R = R_pnp ;
-////    frame_it->second.T = T_pnp;
-//
-//    std::cout << "R_pnp: \n" << R_pnp << std::endl;
-//    std::cout << "T_pnp: \n" << T_pnp.transpose() << std::endl;
-//
-//    res.topLeftCorner(3,3) = R_pnp;
-//    res.topRightCorner(3,1) = T_pnp;
-
-
-
-    return res;
+    return t;
 
 }
 
@@ -217,13 +165,13 @@ void loadData(const std::string data_file, std::vector<std::vector<Eigen::Vector
 }
 
 void visualize(cv::Mat& image, std::vector<Eigen::Vector2d> pt2ds, std::vector<Eigen::Vector3d> pt3ds,
-        Eigen::Matrix4d T_WC,std::vector<int> index_2d, std::map<int, int> corresponding_pair) {
+        Eigen::Vector3d t,std::vector<int> index_2d, std::map<int, int> corresponding_pair) {
 
 
-    std::cout << "T_WC: \n " << T_WC << std::endl;
-
-    Eigen::Vector3d t_WC = T_WC.topRightCorner(3,1);
-    Eigen::Matrix3d R_WC = T_WC.topLeftCorner(3,3);
+//    std::cout << "T_WC: \n " << T_WC << std::endl;
+//
+//    Eigen::Vector3d t_WC = T_WC.topRightCorner(3,1);
+//    Eigen::Matrix3d R_WC = T_WC.topLeftCorner(3,3);
 
 
 
@@ -237,7 +185,7 @@ void visualize(cv::Mat& image, std::vector<Eigen::Vector2d> pt2ds, std::vector<E
     for (int i = 0; i < corresponding_pair.size(); i++) {
 
         int id1 = corresponding_pair[index_2d[i]];
-        auto pt3d = pt3ds[id1];
+        auto pt3d = pt3ds[id1] + t;
 //        pt3d  = R_WC.transpose()*(pt3d - t_WC);
 
         // raw 3d
@@ -353,7 +301,7 @@ std::vector<Eigen::Vector3d> normalize3d( std::vector<Eigen::Vector3d>& pt3ds) {
 //    std::cout << "max_x: " << max_x << " " << min_x << " " << max_y << " " << min_y << " " << max_z << " " << min_z  << " " << scale<< std::endl;
 
     for (int i = 0; i < rescaled_shift_pt3ds.size(); i++) {
-        rescaled_shift_pt3ds[i] = rescaled_shift_pt3ds[i] * 1.0/ scale + Eigen::Vector3d(0,0,1);
+        rescaled_shift_pt3ds[i] = rescaled_shift_pt3ds[i] + Eigen::Vector3d(0,0,1);
 
     }
 
@@ -428,31 +376,29 @@ int main(int argc, char** argv){
     index_2d.push_back(7);
 
     for (int i = 0; i < pt2ds.size(); i++) {
-        Eigen::Matrix4d T_WC = Eigen::Matrix4d::Identity();
-        Eigen::Matrix4d res_TWC = Eigen::Matrix4d::Identity();
 
         std::vector<Eigen::Vector3d> normalize_pt3d = normalize3d(pt3ds[i]);
-        std::vector<Eigen::Vector2d> normalize_pt2d = normalize2d(pt2ds[i]);
+//        std::vector<Eigen::Vector2d> normalize_pt2d = normalize2d(pt2ds[i]);
 
         std::vector<Eigen::Vector2d> used_pt2d;
         std::vector<Eigen::Vector3d> used_pt3d;
         for (int j = 0; j < index_2d.size();j++) {
-            used_pt2d.push_back(normalize_pt2d[index_2d[j]]);
+            used_pt2d.push_back(pt2ds[i][index_2d[j]]);
             int id1 = corresponding_pair[index_2d[j]];
             used_pt3d.push_back(normalize_pt3d[id1]);
         }
 
-        T_WC(2,3) = -0.3;
-        res_TWC = pnp(T_WC,used_pt2d, used_pt3d);
+        Eigen::Vector3d est_t(0,0,0);
+        est_t = pnp(est_t,used_pt2d, used_pt3d);
 
 
 
         cv::Mat image(960, 544,  CV_8UC3);
         image.setTo(cv::Scalar(255,255,255));
 
-        visualize(image, normalize_pt2d, normalize_pt3d, res_TWC,index_2d, corresponding_pair);
+        visualize(image, pt2ds[i], normalize_pt3d, est_t,index_2d, corresponding_pair);
         cv::imshow("image", image);
-        cv::waitKey();
+        cv::waitKey(20);
     }
 
 

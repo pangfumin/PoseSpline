@@ -2,6 +2,15 @@
 #include <iostream>
 #include "NumbDifferentiator.hpp"
 #include "pose_local_parameterization.h"
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+int width = 544;
+int height = 960;
+double focal = 410;
+
+
 void T2double(Eigen::Isometry3d& T,double* ptr){
 
     Eigen::Vector3d trans = T.matrix().topRightCorner(3,1);
@@ -28,36 +37,77 @@ void applyNoise(const Eigen::Isometry3d& Tin,Eigen::Isometry3d& Tout){
     Tout.matrix().topLeftCorner(3,3) = Tin.matrix().topLeftCorner(3,3)*delat_quat.toRotationMatrix();
 }
 
+
+void pnp(Eigen::Vector3d& t, std::vector<Eigen::Vector2d>& pt2d, std::vector<Eigen::Vector3d>& pt3d) {
+    ceres::Problem problem;
+    auto initT = t;
+
+    double cx = width / 2.0;
+    double cy = height / 2.0;
+
+    problem.AddParameterBlock(t.data(), 3);
+    for (int i = 0; i < pt3d.size(); i ++) {
+        ceres::CostFunction* e = new ProjectError(pt2d[i], pt3d[i], cx, cy, focal);
+
+        problem.AddResidualBlock(e,NULL, t.data());
+    }
+
+    ceres::Solver::Options options;
+    options.minimizer_progress_to_stdout = true;
+    options.max_solver_time_in_seconds = 30;
+    options.max_num_iterations = 300;
+    options.linear_solver_type = ceres::SPARSE_SCHUR;
+    options.minimizer_progress_to_stdout = true;
+    options.parameter_tolerance = 1e-4;
+    ceres::Solver::Summary summary;
+    ceres::Solve(options, &problem, &summary);
+    std::cout << summary.FullReport() << std::endl;
+
+    std::cout << "before OPT : \n" << initT.transpose()<< std::endl;
+
+    std::cout << "OPT : \n" << t.transpose() << std::endl;
+
+}
+
+
+cv::Mat visualize( std::vector<Eigen::Vector3d>& vec3d,
+std::vector<Eigen::Vector2d>& vec2d, Eigen::Vector3d t) {
+    cv::Mat image(height, width,  CV_8UC3);
+    image.setTo(cv::Scalar(255,255,255));
+
+    double cx = width / 2.0;
+    double cy = height / 2.0;
+
+    for (int i = 0; i < vec2d.size(); i ++) {
+        cv::circle(image, cv::Point2f(vec2d[i].x(), vec2d[i].y()),3,cv::Scalar(0,1, 255),3 );
+
+        Eigen::Vector2d uv;
+        auto pt3d = vec3d[i] + t;
+        uv << focal * pt3d[0]/ pt3d[2] + cx, focal * pt3d[1]/ pt3d[2] + cy;
+//         vec2d.push_back(uv);
+
+        cv::circle(image, cv::Point2f(uv.x(), uv.y()),3,cv::Scalar(255,0,1),3 );
+
+    }
+
+    return image;
+}
+
+
 int main(){
 
     // simulate
 
-    Eigen::Isometry3d T_WI0, T_WI1, T_IC;
-    Eigen::Vector3d C0p(4, 3, 10);
-    T_WI0 = T_WI1 = T_IC = Eigen::Isometry3d::Identity();
+   Eigen::Vector3d C0p(1.2,-0.3, 2);
 
-    T_WI1.matrix().topRightCorner(3,1) = Eigen::Vector3d(1,0,0);
-    T_IC.matrix().topRightCorner(3,1) = Eigen::Vector3d(0.1,0.10,0);
 
-    Eigen::Isometry3d T_WC0, T_WC1;
-    T_WC0 = T_WI0 * T_IC;
-    T_WC1 = T_WI1 * T_IC;
+    double cx = width / 2.0;
+    double cy = height / 2.0;
 
-    Eigen::Isometry3d T_C0C1 = T_WC0.inverse()*T_WC1;
-    Eigen::Isometry3d T_C1C0 = T_C0C1.inverse();
 
-    Eigen::Vector3d Wp = T_WC0.matrix().topLeftCorner(3,3)*C0p+T_WC0.matrix().topRightCorner(3,1);
 
-    Eigen::Vector3d C1p = T_C1C0.matrix().topLeftCorner(3,3)*C0p+T_C1C0.matrix().topRightCorner(3,1);
+    Eigen::Vector2d uv(focal  * C0p(0)/C0p(2) + cx, focal * C0p(1)/C0p(2) + cy);
 
-    Eigen::Vector3d p0(C0p(0)/C0p(2), C0p(1)/C0p(2), 1);
-    double z = C0p(2);
-    double rho = 1.0/z;
-
-    Eigen::Vector3d p1(C1p(0)/C1p(2), C1p(1)/C1p(2), 1);
-
-    Eigen::Matrix3d R = T_WC0.matrix().topLeftCorner(3,3);
-    Eigen::Quaterniond Q_QC(R);
 
 
 
@@ -68,15 +118,15 @@ int main(){
 
     std::cout<<"------------ Zero Test -----------------"<<std::endl;
 
-    ProjectError* projectFactor = new ProjectError(p0, Wp,Q_QC);
+    ProjectError* projectFactor = new ProjectError(uv, C0p, cx, cy, focal);
 
     double* param_T_WC0 = new double[3];
 
 
 
-    T2double(T_WC0,param_T_WC0);
+    Eigen::Vector3d param_t = {0,0,0};
 
-    double* paramters[1] = {param_T_WC0};
+    double* paramters[1] = {param_t.data()};
 
     Eigen::Matrix<double, 2,1> residual;
 
@@ -100,18 +150,10 @@ int main(){
 //
     std::cout<<"------------  Jacobian Check -----------------"<<std::endl;
 
-    Eigen::Isometry3d T_WC0_noised;
-
-    applyNoise(T_WC0,T_WC0_noised);
-
-    double* param_T_WC0_noised = new double[3];
+    Eigen::Vector3d param_t_noised = param_t + Eigen::Vector3d(0.001, 0.02, 0.001);
 
 
-
-    T2double(T_WC0_noised,param_T_WC0_noised);
-
-
-    double* parameters_noised[1] = {param_T_WC0_noised};
+    double* parameters_noised[1] = {param_t_noised.data()};
 
     projectFactor->EvaluateWithMinimalJacobians(parameters_noised,residual.data(),jacobians,jacobians_min);
 
@@ -126,6 +168,77 @@ int main(){
 
     std::cout<<"jacobian0_min: "<<std::endl<<jacobian0_min<<std::endl;
     std::cout<<"num_jacobian0_min: "<<std::endl<<num_jacobian0_min<<std::endl;
+
+
+
+    std::vector<Eigen::Vector3d> vec3d;
+    std::vector<Eigen::Vector2d> vec2d;
+
+
+    vec3d.push_back(Eigen::Vector3d(3.6173e-05,-2.04261e-05,1));
+    vec3d.push_back(Eigen::Vector3d(-0.129064,0.00135955,1.02077));
+    vec3d.push_back(Eigen::Vector3d(0.129065,-0.00136625,0.97924));
+    vec3d.push_back(Eigen::Vector3d(-0.130392,-0.411304,0.956982));
+    vec3d.push_back(Eigen::Vector3d(-0.0136219,-0.471249,0.904506));
+    vec3d.push_back(Eigen::Vector3d(0.114658,-0.414131,0.905035));
+    vec3d.push_back(Eigen::Vector3d(-0.0059986,-0.531102,0.821417));
+    vec3d.push_back(Eigen::Vector3d(-0.20701,-0.181552,1.07393));
+    vec3d.push_back(Eigen::Vector3d(0.207106,-0.179638,0.983115));
+    vec3d.push_back(Eigen::Vector3d(-0.228879,0.0652985,1.10983));
+    vec3d.push_back(Eigen::Vector3d(0.189251,0.0424184,0.977305));
+
+//     for (int i = 0; i < vec3d.size(); i++) {
+//         Eigen::Vector2d uv;
+//         auto pt3d = vec3d[i];
+//         uv << focal * pt3d[0]/ pt3d[2] + cx, focal * pt3d[1]/ pt3d[2] + cy;
+//         vec2d.push_back(uv);
+//     }
+
+    vec2d.push_back(Eigen::Vector2d(272,480));
+    vec2d.push_back(Eigen::Vector2d(240.041,480));
+    vec2d.push_back(Eigen::Vector2d(303.959,480));
+    vec2d.push_back(Eigen::Vector2d(223.523,329.587));
+    vec2d.push_back(Eigen::Vector2d(269.845,327.428));
+    vec2d.push_back(Eigen::Vector2d(316.168,325.269));
+    vec2d.push_back(Eigen::Vector2d(272.359,269.853));
+    vec2d.push_back(Eigen::Vector2d(208.441,399.396));
+    vec2d.push_back(Eigen::Vector2d(333.404,399.396));
+    vec2d.push_back(Eigen::Vector2d(207.005,473.523));
+    vec2d.push_back(Eigen::Vector2d(332.686,472.084));
+
+
+
+
+
+    srand((unsigned)time(NULL));
+
+    for (int  i = 0; i < 50; i++) {
+        Eigen::Vector3d rand;
+        rand.setRandom();
+
+        rand *= 0.125;
+//        rand.head<2>().setZero();
+        Eigen::Vector3d est_t(0,0,0);
+
+        cv::Mat before_image  = visualize(vec3d, vec2d, est_t);
+        cv::imshow("before_image", before_image);
+//    cv::waitKey();
+
+
+
+        for (int j = 0; j < vec3d.size(); j++) {
+            vec3d[j] = vec3d[j] + rand;
+        }
+        pnp(est_t, vec2d, vec3d);
+
+        std::cout << "noised: " << rand.transpose() << std::endl;
+
+
+        cv::Mat after_image  = visualize(vec3d, vec2d, est_t);
+        cv::imshow("after_image", after_image);
+        cv::waitKey(300);
+
+    }
 
 
 

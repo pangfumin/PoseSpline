@@ -107,37 +107,41 @@ Eigen::Matrix4d pnp(Eigen::Matrix4d T_WC,
         auto pt2d = pt2ds[i];
         auto pt3d = pt3ds[i];
         pts_3_vector.push_back(cv::Point3f(pt3d.x(), pt3d.y(), pt3d.z()));
+
+
         pts_2_vector.push_back(cv::Point2f(pt2d.x(), pt2d.y()));
+
+        std::cout << "vec2d.push_back(Eigen::Vector2d(" << pt2d.x()<< "," << pt2d.y() << "));" << std::endl;
     }
 
-    if (! cv::solvePnP(pts_3_vector, pts_2_vector, K, dist_coeff, rvec, t, 1))
-    {
-
-    }
-
-//    cv::Rodrigues(rvec, r);
-    Eigen::Vector3d temp(rvec.at<double>(0),  rvec.at<double>(1), rvec.at<double>(2) );
-    std::cout << "temp: " << temp.transpose() << std::endl;
-    Eigen::AngleAxisd aa(temp.norm(), temp.normalized());
-    Eigen::MatrixXd R_pnp,tmp_R_pnp;
-//    cv::cv2eigen(r, tmp_R_pnp);
-
-    tmp_R_pnp = aa.toRotationMatrix();
-
-    std::cout << "tmp_R_pnp: \n" << tmp_R_pnp << std::endl;
-
-    R_pnp = tmp_R_pnp.transpose();
-    Eigen::MatrixXd T_pnp;
-    cv::cv2eigen(t, T_pnp);
-    T_pnp = R_pnp * (-T_pnp);
-//    frame_it->second.R = R_pnp ;
-//    frame_it->second.T = T_pnp;
-
-    std::cout << "R_pnp: \n" << R_pnp << std::endl;
-    std::cout << "T_pnp: \n" << T_pnp.transpose() << std::endl;
-
-    res.topLeftCorner(3,3) = R_pnp;
-    res.topRightCorner(3,1) = T_pnp;
+//    if (! cv::solvePnP(pts_3_vector, pts_2_vector, K, dist_coeff, rvec, t, 1))
+//    {
+//
+//    }
+//
+////    cv::Rodrigues(rvec, r);
+//    Eigen::Vector3d temp(rvec.at<double>(0),  rvec.at<double>(1), rvec.at<double>(2) );
+//    std::cout << "temp: " << temp.transpose() << std::endl;
+//    Eigen::AngleAxisd aa(temp.norm(), temp.normalized());
+//    Eigen::MatrixXd R_pnp,tmp_R_pnp;
+////    cv::cv2eigen(r, tmp_R_pnp);
+//
+//    tmp_R_pnp = aa.toRotationMatrix();
+//
+//    std::cout << "tmp_R_pnp: \n" << tmp_R_pnp << std::endl;
+//
+//    R_pnp = tmp_R_pnp.transpose();
+//    Eigen::MatrixXd T_pnp;
+//    cv::cv2eigen(t, T_pnp);
+//    T_pnp = R_pnp * (-T_pnp);
+////    frame_it->second.R = R_pnp ;
+////    frame_it->second.T = T_pnp;
+//
+//    std::cout << "R_pnp: \n" << R_pnp << std::endl;
+//    std::cout << "T_pnp: \n" << T_pnp.transpose() << std::endl;
+//
+//    res.topLeftCorner(3,3) = R_pnp;
+//    res.topRightCorner(3,1) = T_pnp;
 
 
 
@@ -448,7 +452,7 @@ int main(int argc, char** argv){
 
         visualize(image, normalize_pt2d, normalize_pt3d, res_TWC,index_2d, corresponding_pair);
         cv::imshow("image", image);
-        cv::waitKey(20);
+        cv::waitKey();
     }
 
 

@@ -28,7 +28,7 @@ public:
 
 
     ProjectError() = delete;
-    ProjectError(const Eigen::Vector3d& uv_C0, const Eigen::Vector3d& pt3d, const Eigen::Quaterniond& Q_WC);
+    ProjectError(const Eigen::Vector2d& uv, const Eigen::Vector3d& pt3d, const double cx, const double cy, double focal);
 
     /// \brief Trivial destructor.
     virtual ~ProjectError() {}
@@ -43,8 +43,9 @@ public:
 
 private:
 
-    Eigen::Vector3d C0uv_, Wp_;
-    Eigen::Quaterniond Q_WC_;
+    Eigen::Vector2d uv_;
+    Eigen::Vector3d pt3d_;
+    double cx_, cy_, focal_;
 
     // information matrix and its square root
     mutable information_t information_; ///< The information matrix for this error term.

@@ -212,7 +212,8 @@ void loadData(const std::string data_file, std::vector<std::vector<Eigen::Vector
     }
 }
 
-void visualize(cv::Mat& image, std::vector<Eigen::Vector2d> pt2ds, std::vector<Eigen::Vector3d> pt3ds, Eigen::Matrix4d T_WC,std::vector<int> index_2d, std::map<int, int> corresponding_pair) {
+void visualize(cv::Mat& image, std::vector<Eigen::Vector2d> pt2ds, std::vector<Eigen::Vector3d> pt3ds,
+        Eigen::Matrix4d T_WC,std::vector<int> index_2d, std::map<int, int> corresponding_pair) {
 
 
     std::cout << "T_WC: \n " << T_WC << std::endl;
@@ -235,6 +236,7 @@ void visualize(cv::Mat& image, std::vector<Eigen::Vector2d> pt2ds, std::vector<E
         auto pt3d = pt3ds[id1];
 //        pt3d  = R_WC.transpose()*(pt3d - t_WC);
 
+        // raw 3d
         Eigen::Vector2d pt2d;
         pt2d << (pt3d(0)/ pt3d(2)) * focal + cx, (pt3d(1)/ pt3d(2)) * focal + cy;
         cv::Point2f pt0( pt2d.x(), pt2d.y());
@@ -248,6 +250,7 @@ void visualize(cv::Mat& image, std::vector<Eigen::Vector2d> pt2ds, std::vector<E
 
 
 
+        // raw 2d
         cv::Point2f pt1(  pt2ds.at(index_2d[i]).x(), pt2ds.at(index_2d[i]).y());
 
          text = std::to_string(index_2d[i]);
@@ -301,10 +304,6 @@ void visualize(cv::Mat& image, std::vector<Eigen::Vector2d> pt2ds, std::vector<E
     end = 7;
     cv::line(image, cv::Point2f(  pt2ds.at(start).x(), pt2ds.at(start).y()), cv::Point2f(  pt2ds.at(end).x(), pt2ds.at(end).y()), cv::Scalar(255,0,0), 2);
 
-
-
-
-
 }
 
 std::vector<Eigen::Vector3d> normalize3d( std::vector<Eigen::Vector3d>& pt3ds) {
@@ -344,7 +343,8 @@ std::vector<Eigen::Vector3d> normalize3d( std::vector<Eigen::Vector3d>& pt3ds) {
 
     }
 
-    double scale = std::max(max_x - min_x, std::max(max_y - min_y, max_z - min_z));
+//    double scale = std::max(max_x - min_x, std::max(max_y - min_y, max_z - min_z));
+    double scale = 1.0;
 
 //    std::cout << "max_x: " << max_x << " " << min_x << " " << max_y << " " << min_y << " " << max_z << " " << min_z  << " " << scale<< std::endl;
 
@@ -354,16 +354,23 @@ std::vector<Eigen::Vector3d> normalize3d( std::vector<Eigen::Vector3d>& pt3ds) {
     }
 
     return rescaled_shift_pt3ds;
-
-
-
 }
 
 
 
+std::vector<Eigen::Vector2d> normalize2d( std::vector<Eigen::Vector2d>& pt2ds)  {
 
+    double cx = width / 2;
+    double cy = height / 2;
 
+    Eigen::Vector2d  diff = Eigen::Vector2d(cx, cy) - pt2ds[18];
+    std::vector<Eigen::Vector2d> normalized;
 
+    for (int i =0; i < pt2ds.size(); i++) {
+        normalized.push_back(pt2ds[i] + diff);
+    }
+    return normalized;
+}
 
 int main(int argc, char** argv){
     //google::InitGoogleLogging(argv[0]);
@@ -416,23 +423,19 @@ int main(int argc, char** argv){
     index_2d.push_back(4);
     index_2d.push_back(7);
 
-
-
-
     for (int i = 0; i < pt2ds.size(); i++) {
-
         Eigen::Matrix4d T_WC = Eigen::Matrix4d::Identity();
         Eigen::Matrix4d res_TWC = Eigen::Matrix4d::Identity();
-//
 
         std::vector<Eigen::Vector3d> normalize_pt3d = normalize3d(pt3ds[i]);
+        std::vector<Eigen::Vector2d> normalize_pt2d = normalize2d(pt2ds[i]);
 
         std::vector<Eigen::Vector2d> used_pt2d;
         std::vector<Eigen::Vector3d> used_pt3d;
         for (int j = 0; j < index_2d.size();j++) {
-            used_pt2d.push_back(pt2ds[i][index_2d[j]]);
+            used_pt2d.push_back(normalize_pt2d[index_2d[j]]);
             int id1 = corresponding_pair[index_2d[j]];
-            used_pt3d.push_back(pt3ds[i][id1]);
+            used_pt3d.push_back(normalize_pt3d[id1]);
         }
 
         T_WC(2,3) = -0.3;
@@ -443,9 +446,9 @@ int main(int argc, char** argv){
         cv::Mat image(960, 544,  CV_8UC3);
         image.setTo(cv::Scalar(255,255,255));
 
-        visualize(image, pt2ds[i], normalize_pt3d, res_TWC,index_2d, corresponding_pair);
+        visualize(image, normalize_pt2d, normalize_pt3d, res_TWC,index_2d, corresponding_pair);
         cv::imshow("image", image);
-        cv::waitKey();
+        cv::waitKey(20);
     }
 
 

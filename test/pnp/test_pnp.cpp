@@ -53,6 +53,41 @@ public:
 
     }
 
+    void simulate(Eigen::Matrix4d T_WC, const std::vector<Eigen::Vector2d>& pt2d, std::vector<Eigen::Vector3d>& pt3d, std::vector<Eigen::Vector3d>& pt3d_bearing) {
+        srand((unsigned int) time(0));
+        double cx = width_ / 2;
+        double cy = height_ / 2;
+        for (int i = 0; i < pt2d.size(); i++) {
+
+
+            Eigen::Vector3d rand = Eigen::Vector3d::Random();
+
+            // grenrate 3d
+
+            Eigen::Vector2d ray;
+            ray[0] = (pt2d[i][0] - cx) / focal_;
+            ray[1] = (pt2d[i][1] - cy) / focal_;
+
+            Eigen::Vector3d norm_ray(ray[0], ray[1],1.0);
+            pt3d_bearing.push_back(norm_ray);
+            norm_ray.normalize();
+            norm_ray  = norm_ray *(max_z_ - min_z_) + Eigen::Vector3d(1,1,1) *min_z_;
+
+
+            Eigen::Vector3d Cp = norm_ray * std::abs(rand[2]);
+
+//            std::cout << "3d: " << Cp.transpose() <<std::endl;
+
+            Eigen::Vector4d Wp = T_WC * (Eigen::Vector4d() << Cp,1.0 ).finished();
+
+            pt3d.push_back(Wp.head<3>() / Wp(3));
+
+        }
+
+    }
+
+
+
 
     Eigen::Vector2d  project(Eigen::Vector3d& pt3d) {
         double cx = width_ / 2;
@@ -116,7 +151,7 @@ void applyNoise(const Eigen::Matrix4d& Tin,Eigen::Matrix4d& Tout){
 
     Tout.setIdentity();
 
-    Eigen::Vector3d delat_trans = 0.45*Eigen::Matrix<double,3,1>::Random();
+    Eigen::Vector3d delat_trans = 0.15*Eigen::Matrix<double,3,1>::Random();
     Eigen::Vector3d delat_rot = 0.10*Eigen::Matrix<double,3,1>::Random();
 
     Eigen::Quaterniond delat_quat(1.0,delat_rot(0),delat_rot(1),delat_rot(2)) ;
@@ -175,46 +210,224 @@ void pnp(Eigen::Matrix4d& T_WC, std::vector<Eigen::Vector3d>& pt3d, std::vector<
 
 }
 
+std::vector<std::string> StrSplit(const std::string &str, char delimiter) {
+    std::vector<std::string> splits;
+    size_t curr = 0;
+    size_t next = str.find(delimiter, curr);
+    while (next != std::string::npos) {
+        splits.push_back(str.substr(curr, next - curr));
+        curr = next + 1;
+        next = str.find(delimiter, curr);
+    }
+    splits.push_back(str.substr(curr));
+    return std::move(splits);
+}
+
+void loadData(const std::string data_file, std::vector<std::vector<Eigen::Vector2d>>& pt2ds, std::vector<std::vector<Eigen::Vector3d>>& pt3ds) {
+    std::ifstream ifs(data_file);
+    if (!ifs.is_open()) {
+        std::cerr << "Failed to open data list file: " << data_file
+                  << std::endl;
+        return ;
+    }
+
+    std::cout << "list_file: " << data_file << std::endl;
+
+    bool first_msg = true;
+
+    std::string one_line;
+    int imu_seq = 0;
+
+    int CNT_2D = 19;
+    int CNT_3D = 21;
+
+    std::string line;
+    int SKIP = 2;
+//    ; // get rid of the header
+//    std::cout << line << std::endl;
+    while (std::getline(ifs, line)) {
+//        std::cout << line << std::endl;
+        if (line.front() != '#') {
+            std::vector<std::string> content = StrSplit(line, ' ');
+//            std::cout << "content: " << content.size()  << " " << content[0] << std::endl;
+            std::vector<Eigen::Vector3d> pt3d;
+            std::vector<Eigen::Vector2d> pt2d;
+
+            for (int i = 0; i < CNT_2D ; i++) {
+
+                double x = std::stod(content[SKIP + i*2]);
+                double y = std::stod(content[SKIP + i*2 + 1]);
+                pt2d.push_back(Eigen::Vector2d(x,y));
+
+            }
+
+            for (int i = 0; i < CNT_3D ; i++) {
+
+                double x = std::stod(content[SKIP + CNT_2D*2 + i*3]);
+                double y = std::stod(content[SKIP + CNT_2D*2 + i*3 + 1]);
+                double z = std::stod(content[SKIP + CNT_2D*2 + i*3 + 2]);
+                pt3d.push_back(Eigen::Vector3d(x,y,z));
+
+            }
+
+            pt2ds.push_back(pt2d);
+            pt3ds.push_back(pt3d);
+
+        }
+    }
+}
+
 
 int main(int argc, char** argv){
     //google::InitGoogleLogging(argv[0]);
 
+//    Eigen::Matrix4d T_WC = Eigen::Matrix4d::Identity();
+//    std::vector<Eigen::Vector3d> pt3d, pt3d_bearing;
+//    std::vector<Eigen::Vector2d> pt2d;
+//    std::vector<std::vector<Eigen::Vector2d>> pt2ds;
+//    std::vector<std::vector<Eigen::Vector3d>> pt3ds;
+//
+//    std::string data_file = "/home/pang/Downloads/handHold_2d3d_keypoints.txt";
+//    loadData(data_file, pt2ds, pt3ds);
+//
+//
+//
+//
+//    Simulation simulate(544, 960, 200, 0.1, 7);
+//    simulate.simulate(T_WC, pt2ds, pt3d, pt3d_bearing );
+//
+//    std::cout << "3d - 2d: " << pt3d.size() << " " << pt2d.size()  << " " << pt3d_bearing.size() << std::endl;
+//
+////    for (int i = 0; i < count; i ++) {
+////        Eigen::Vector2d reproject = simulate.project(pt3d[i]);
+////        std::cout << "reproject: " << reproject.transpose() << std::endl;
+////        std::cout << "gt       : " << pt2d[i].transpose() << std::endl;
+////    }
+//
+//
+//    Eigen::Matrix4d noised_T_WC;
+//
+//
+//
+//    Eigen::Matrix3d R = T_WC.topLeftCorner(3,3);
+//    Eigen::Quaterniond q(R);
+//    applyNoise(T_WC, noised_T_WC);
+//
+//    cv::Mat before_image = simulate.visualize(noised_T_WC, pt3d, pt2d);
+//    cv::imshow("before_image", before_image);
+//
+//
+//    // pnp
+//    pnp( noised_T_WC, pt3d, pt3d_bearing, q);
+//
+//
+//    cv::Mat after_image = simulate.visualize(noised_T_WC, pt3d, pt2d);
+//    cv::imshow("after_image", after_image);
+//    cv::waitKey();
+
     Eigen::Matrix4d T_WC = Eigen::Matrix4d::Identity();
     std::vector<Eigen::Vector3d> pt3d, pt3d_bearing;
     std::vector<Eigen::Vector2d> pt2d;
+    std::vector<std::vector<Eigen::Vector2d>> pt2ds;
+    std::vector<std::vector<Eigen::Vector3d>> pt3ds;
 
-    int count = 20;
-    Simulation simulate(640, 480, 200, 0.1, 7);
-    simulate.simulate(T_WC, count, pt3d, pt2d, pt3d_bearing );
+    std::string data_file = "/home/pang/Downloads/handHold_2d3d_keypoints.txt";
+    loadData(data_file, pt2ds, pt3ds);
 
-    std::cout << "3d - 2d: " << pt3d.size() << " " << pt2d.size()  << " " << pt3d_bearing.size() << std::endl;
+    std::cout << "data: " << pt2ds.size() << " " << pt3ds.size() << std::endl;
 
-//    for (int i = 0; i < count; i ++) {
-//        Eigen::Vector2d reproject = simulate.project(pt3d[i]);
-//        std::cout << "reproject: " << reproject.transpose() << std::endl;
-//        std::cout << "gt       : " << pt2d[i].transpose() << std::endl;
-//    }
+    std::map<int, int> corresponding_pair;
+    std::vector<int> index_2d;
+    //腰
+    corresponding_pair.insert({18,0});
+    corresponding_pair.insert({8,5});
+    corresponding_pair.insert({11,1});
+    index_2d.push_back(18);
+    index_2d.push_back(8);
+    index_2d.push_back(11);
 
-
-    Eigen::Matrix4d noised_T_WC;
-
-
-
-    Eigen::Matrix3d R = T_WC.topLeftCorner(3,3);
-    Eigen::Quaterniond q(R);
-    applyNoise(T_WC, noised_T_WC);
-
-    cv::Mat before_image = simulate.visualize(noised_T_WC, pt3d, pt2d);
-    cv::imshow("before_image", before_image);
-
-
-    // pnp
-    pnp( noised_T_WC, pt3d, pt3d_bearing, q);
+    // 肩膀
+    corresponding_pair.insert({2,13});
+    corresponding_pair.insert({1,10});
+    corresponding_pair.insert({5,17});
+    index_2d.push_back(2);
+    index_2d.push_back(1);
+    index_2d.push_back(5);
 
 
-    cv::Mat after_image = simulate.visualize(noised_T_WC, pt3d, pt2d);
-    cv::imshow("after_image", after_image);
-    cv::waitKey();
+    // 头
+    corresponding_pair.insert({0,11});
+    index_2d.push_back(0);
+
+
+
+
+    // 胳膊
+    corresponding_pair.insert({3,14});
+    corresponding_pair.insert({6,18});
+    corresponding_pair.insert({4,15});
+    corresponding_pair.insert({7,19});
+
+    index_2d.push_back(3);
+    index_2d.push_back(6);
+    index_2d.push_back(4);
+    index_2d.push_back(7);
+
+
+    Simulation simulate(544, 960, 500, 0.1, 7);
+
+
+    for (int i = 0; i < pt2ds.size(); i++) {
+
+        Eigen::Matrix4d T_WC = Eigen::Matrix4d::Identity();
+        Eigen::Matrix4d res_TWC = Eigen::Matrix4d::Identity();
+//
+
+
+        std::vector<Eigen::Vector2d> used_pt2d;
+        std::vector<Eigen::Vector3d> used_pt3d;
+        for (int j = 0; j < index_2d.size();j++) {
+            used_pt2d.push_back(pt2ds[i][index_2d[j]]);
+            int id1 = corresponding_pair[index_2d[j]];
+            used_pt3d.push_back(pt3ds[i][id1]);
+        }
+
+        pt3d.clear();
+        simulate.simulate(T_WC, used_pt2d, pt3d, pt3d_bearing );
+
+        std::cout << "3d - 2d: " << pt3d.size() << " " << pt2d.size()  << " " << pt3d_bearing.size() << std::endl;
+
+    //    for (int i = 0; i < count; i ++) {
+    //        Eigen::Vector2d reproject = simulate.project(pt3d[i]);
+    //        std::cout << "reproject: " << reproject.transpose() << std::endl;
+    //        std::cout << "gt       : " << pt2d[i].transpose() << std::endl;
+    //    }
+
+
+        Eigen::Matrix4d noised_T_WC;
+
+
+
+        Eigen::Matrix3d R = T_WC.topLeftCorner(3,3);
+        Eigen::Quaterniond q(R);
+        applyNoise(T_WC, noised_T_WC);
+
+        cv::Mat before_image = simulate.visualize(noised_T_WC, pt3d, used_pt2d);
+        cv::imshow("before_image", before_image);
+
+
+        // pnp
+        pnp( noised_T_WC, pt3d, pt3d_bearing, q);
+
+
+        cv::Mat after_image = simulate.visualize(noised_T_WC, pt3d, used_pt2d);
+        cv::imshow("after_image", after_image);
+        cv::waitKey(3);
+
+
+    }
+
+
 
     return 0;
 }

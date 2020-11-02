@@ -46,9 +46,6 @@ private:
     Eigen::Vector3d pt3d_;
     double cx_, cy_, focal_;
 
-    // information matrix and its square root
-    mutable information_t information_; ///< The information matrix for this error term.
-    mutable information_t squareRootInformation_; ///< The square root information matrix for this error term.
 };
 
 #endif

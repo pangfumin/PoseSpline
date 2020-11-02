@@ -17,41 +17,6 @@ int width = 544;
 int height = 960;
 double focal = 516;
 
-
-void applyNoise(const Eigen::Matrix4d& Tin,Eigen::Matrix4d& Tout){
-
-
-    Tout.setIdentity();
-
-    Eigen::Vector3d delat_trans = 0.45*Eigen::Matrix<double,3,1>::Random();
-    Eigen::Vector3d delat_rot = 0.10*Eigen::Matrix<double,3,1>::Random();
-
-    Eigen::Quaterniond delat_quat(1.0,delat_rot(0),delat_rot(1),delat_rot(2)) ;
-    delat_quat.normalize();
-
-    Tout.topRightCorner(3,1) = Tin.topRightCorner(3,1) + delat_trans;
-}
-
-
-
-typedef Eigen::Matrix<double,3,1> Vec3d;
-
-Vec3d T2param(Eigen::Matrix4d T) {
-    Eigen::Matrix3d R = T.topLeftCorner(3,3);
-    Vec3d param;
-    param << T.topRightCorner(3,1);
-    return param;
-}
-
-Eigen::Matrix4d param2T(Vec3d vec, Eigen::Quaterniond q) {
-    Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
-    T.topRightCorner(3,1) = vec;
-    T.topLeftCorner(3,3) = q.toRotationMatrix();
-    return T;
-}
-
-
-
 Eigen::Vector3d pnp(Eigen::Vector3d t,
         std::vector<Eigen::Vector2d>& pt2ds, std::vector<Eigen::Vector3d>& pt3ds) {
     std::vector<Eigen::Vector3d> used_pt3d_bearing, used_pt3d;
@@ -125,18 +90,7 @@ Eigen::Vector3d pnp(Eigen::Vector3d t,
     std::cout << "ceres: " << t.transpose() << std::endl;
 
 
-
-
-//    res = param2T(param, q);
-//    std::cout << "before OPT : \n" << initT << std::endl;
-//
-//    std::cout << "after  OPT : \n" << res << std::endl;
-
-
-
-
     return est_t;
-//    return t;
 
 }
 

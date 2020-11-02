@@ -4,6 +4,7 @@
 
 
 #include "tiny_solver.h"
+#include "tiny_solver_multiple_function.h"
 #include <iostream>
 
 
@@ -61,10 +62,24 @@ void TestHelper(const Function& f, const Vector& x0) {
     std::cout << "residuals: " << residuals.transpose() << std::endl;
 
     solver::TinySolver<Function> solver;
+    auto other_x = x;
+    solver::TinySolverMultipleFunction<Function> solver_multiple;
     solver.Solve(f, &x);
-//    EXPECT_NEAR(0.0, solver.summary.final_cost, 1e-10);
+
+    //    EXPECT_NEAR(0.0, solver.summary.final_cost, 1e-10);
     std::cout << "solver.summary.final_cost: " << solver.summary.final_cost<< std::endl;
     std::cout << "opt x: " << x.transpose() << std::endl;
+
+
+    std::cout << "--------------------------------------------" << std::endl;
+    std::vector<Function> f_vec={f};
+
+    solver_multiple.Solve(f_vec, &other_x);
+
+
+    std::cout << "solver_multiple.summary.final_cost: " << solver_multiple.summary.final_cost<< std::endl;
+    std::cout << "opt other_x: " << other_x.transpose() << std::endl;
+
 }
 
 int main() {

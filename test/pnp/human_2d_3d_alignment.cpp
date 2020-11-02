@@ -74,14 +74,14 @@ Eigen::Vector3d pnp(Eigen::Vector3d t,
     }
 
     ceres::Solver::Options options;
-    options.minimizer_progress_to_stdout = true;
+    options.minimizer_progress_to_stdout = false;
     options.max_solver_time_in_seconds = 3;
     options.max_num_iterations = 100;
     options.linear_solver_type = ceres::SPARSE_SCHUR;
     options.parameter_tolerance = 1e-4;
     ceres::Solver::Summary summary;
     ceres::Solve(options, &problem, &summary);
-    std::cout << summary.FullReport() << std::endl;
+    std::cout << summary.BriefReport() << std::endl;
 //
 //
 
@@ -110,7 +110,7 @@ std::vector<std::string> StrSplit(const std::string &str, char delimiter) {
     return std::move(splits);
 }
 
-void loadData(const std::string data_file, std::vector<std::vector<Eigen::Vector2d>>& pt2ds, std::vector<std::vector<Eigen::Vector3d>>& pt3ds) {
+void loadData( const std::string data_file, std::vector<int>& data_id, std::vector<int>& image_id, std::vector<std::vector<Eigen::Vector2d>>& pt2ds, std::vector<std::vector<Eigen::Vector3d>>& pt3ds) {
     std::ifstream ifs(data_file);
     if (!ifs.is_open()) {
         std::cerr << "Failed to open data list file: " << data_file
@@ -139,6 +139,9 @@ void loadData(const std::string data_file, std::vector<std::vector<Eigen::Vector
 //            std::cout << "content: " << content.size()  << " " << content[0] << std::endl;
             std::vector<Eigen::Vector3d> pt3d;
             std::vector<Eigen::Vector2d> pt2d;
+
+            data_id.push_back(std::stod(content[0]));
+            image_id.push_back(std::stod(content[1]));
 
             for (int i = 0; i < CNT_2D ; i++) {
 
@@ -244,17 +247,21 @@ void visualize(cv::Mat& image, std::vector<Eigen::Vector2d> pt2ds, std::vector<E
     start = 2;
     end = 3;
     cv::line(image, cv::Point2f(  pt2ds.at(start).x(), pt2ds.at(start).y()), cv::Point2f(  pt2ds.at(end).x(), pt2ds.at(end).y()), cv::Scalar(255,0,0), 2);
-    start = 3;
-    end = 4;
-    cv::line(image, cv::Point2f(  pt2ds.at(start).x(), pt2ds.at(start).y()), cv::Point2f(  pt2ds.at(end).x(), pt2ds.at(end).y()), cv::Scalar(255,0,0), 2);
-
 
     start = 5;
     end = 6;
     cv::line(image, cv::Point2f(  pt2ds.at(start).x(), pt2ds.at(start).y()), cv::Point2f(  pt2ds.at(end).x(), pt2ds.at(end).y()), cv::Scalar(255,0,0), 2);
-    start = 6;
-    end = 7;
+
+
+    start = 8;
+    end = 9;
     cv::line(image, cv::Point2f(  pt2ds.at(start).x(), pt2ds.at(start).y()), cv::Point2f(  pt2ds.at(end).x(), pt2ds.at(end).y()), cv::Scalar(255,0,0), 2);
+    start = 11;
+    end = 12;
+    cv::line(image, cv::Point2f(  pt2ds.at(start).x(), pt2ds.at(start).y()), cv::Point2f(  pt2ds.at(end).x(), pt2ds.at(end).y()), cv::Scalar(255,0,0), 2);
+
+
+
 
 }
 
@@ -324,6 +331,71 @@ std::vector<Eigen::Vector2d> normalize2d( std::vector<Eigen::Vector2d>& pt2ds)  
     return normalized;
 }
 
+
+void evaluate(cv::Mat& image, std::vector<Eigen::Vector2d> pt2ds, std::vector<Eigen::Vector3d> pt3ds,
+               Eigen::Vector3d t, int* index_2d, int* index_3d, int cnt, std::vector<Eigen::Vector2d>& gt2d, std::vector<Eigen::Vector2d>& rep2d, double& mean_error) {
+
+
+//    std::cout << "T_WC: \n " << T_WC << std::endl;
+//
+//    Eigen::Vector3d t_WC = T_WC.topRightCorner(3,1);
+//    Eigen::Matrix3d R_WC = T_WC.topLeftCorner(3,3);
+
+
+
+    double cx = width / 2;
+    double cy = height / 2;
+//    for (int i = 0; i < index_2d.size(); i++) {
+//
+//    }
+
+    double error = 0;
+    for (int i = 0; i <cnt; i++) {
+
+        int id1 = index_3d[i];
+        auto pt3d = pt3ds[id1] + t;
+//        pt3d  = R_WC.transpose()*(pt3d - t_WC);
+
+        // raw 3d
+        Eigen::Vector2d pt2d;
+        pt2d << (pt3d(0)/ pt3d(2)) * focal + cx, (pt3d(1)/ pt3d(2)) * focal + cy;
+        cv::Point2f pt0( pt2d.x(), pt2d.y());
+        cv::circle(image, pt0,3,cv::Scalar(10,255,1),3 );
+
+        std::string text = std::to_string(id1);
+        int font_face = cv::FONT_HERSHEY_COMPLEX;
+        double font_scale = 0.51;
+        int thickness = 2;
+        cv::putText(image, text, pt0, font_face, font_scale, cv::Scalar(0, 0, 255), thickness, 8, 0);
+
+
+
+        // raw 2d
+        cv::Point2f pt1(  pt2ds.at(index_2d[i]).x(), pt2ds.at(index_2d[i]).y());
+
+        text = std::to_string(index_2d[i]);
+        font_face = cv::FONT_HERSHEY_COMPLEX;
+        font_scale = 0.51;
+        thickness = 2;
+        cv::putText(image, text, pt1, font_face, font_scale, cv::Scalar(0, 0, 255), thickness, 8, 0);
+        cv::circle(image, pt1,3,cv::Scalar(255,0,1),3 );
+
+//        cv::line(image, pt0, pt1, cv::Scalar(15,200,100), 2);
+
+        gt2d.push_back(pt2ds.at(index_2d[i]));
+        rep2d.push_back(pt2d);
+
+
+        error += (gt2d.back() - rep2d.back()).norm();
+    }
+
+    mean_error = error / 13;
+
+
+
+
+}
+
 int main(int argc, char** argv){
     //google::InitGoogleLogging(argv[0]);
 
@@ -334,7 +406,13 @@ int main(int argc, char** argv){
     std::vector<std::vector<Eigen::Vector3d>> pt3ds;
 
     std::string data_file = "/home/pang/Downloads/handHold_2d3d_keypoints.txt";
-    loadData(data_file, pt2ds, pt3ds);
+    std::vector<int> data_id;
+    std::vector<int> image_id;
+    loadData(data_file, data_id, image_id, pt2ds, pt3ds);
+
+
+    std::ofstream ofs_point_data("/home/pang/Downloads/handHold_2d3d_keypoints_RESULT.txt");
+    std::ofstream ofs_error_data("/home/pang/Downloads/handHold_2d3d_keypoints_MEAN_ERROR_RESULT.txt");
 
     std::cout << "data: " << pt2ds.size() << " " << pt3ds.size() << std::endl;
 
@@ -367,13 +445,26 @@ int main(int argc, char** argv){
     // 胳膊
     corresponding_pair.insert({3,14});
     corresponding_pair.insert({6,18});
-    corresponding_pair.insert({4,15});
-    corresponding_pair.insert({7,19});
+
+    // 膝盖
+    corresponding_pair.insert({9,6});
+    corresponding_pair.insert({12,2});
+
+
 
     index_2d.push_back(3);
     index_2d.push_back(6);
-    index_2d.push_back(4);
-    index_2d.push_back(7);
+    index_2d.push_back(9);
+    index_2d.push_back(12);
+
+
+    int eval_2d_index[13] = {11, 8, 5,  2, 10, 9, 13, 12, 4,  3,  7,  6, 0};
+    int eval_3d_index[13] = {1,  5,17, 13, 7, 6,  3,  2, 15, 14, 19, 18, 11};
+
+    int cur_data = data_id[0];
+    double mean_error_per_data = 0;
+    int cur_data_cnt = 0;
+
 
     for (int i = 0; i < pt2ds.size(); i++) {
 
@@ -397,9 +488,57 @@ int main(int argc, char** argv){
         image.setTo(cv::Scalar(255,255,255));
 
         visualize(image, pt2ds[i], normalize_pt3d, est_t,index_2d, corresponding_pair);
+
+
+
+
+        // evaluate
+        cv::Mat eval_image(960, 544,  CV_8UC3);
+        eval_image.setTo(cv::Scalar(255,255,255));
+
+
+        std::vector<Eigen::Vector2d> gt2d, rep2d;
+        double mean_error = 0;
+        evaluate(eval_image, pt2ds[i], normalize_pt3d, est_t, eval_2d_index, eval_3d_index, 13,gt2d, rep2d, mean_error);
+
+        std::cout << "mean_error: " << data_id[i] << " " << image_id[i] << " " << mean_error  << std::endl;
+        ofs_point_data << data_id[i] << " " << image_id[i] << " " << mean_error << " ";
+        for (int k  = 0 ; k < gt2d.size(); k++) {
+            ofs_point_data << gt2d[k].x() << " " << gt2d[k].y() << " ";
+        }
+
+        for (int k  = 0 ; k < rep2d.size(); k++) {
+            ofs_point_data << rep2d[k].x() << " " << rep2d[k].y() << " ";
+        }
+
+        ofs_point_data << std::endl;
+
+        if (data_id[i] != cur_data) {
+
+
+            std::cout << "------------------------------"  << mean_error_per_data / cur_data_cnt<< std::endl;
+            ofs_error_data << cur_data << " " << mean_error_per_data / cur_data_cnt << std::endl;
+            cur_data = data_id[i];
+            mean_error_per_data = 0;
+            cur_data_cnt = 0;
+        } else {
+            mean_error_per_data += mean_error;
+            cur_data_cnt++;
+        }
+
+
+
         cv::imshow("image", image);
+        cv::imshow("eval_image", eval_image);
         cv::waitKey(20);
     }
+
+    // todo
+    ofs_error_data << cur_data << " " << mean_error_per_data / cur_data_cnt << std::endl;
+
+
+    ofs_point_data.close();
+    ofs_error_data.close();
 
 
 

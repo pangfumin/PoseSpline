@@ -102,7 +102,7 @@ target_link_libraries(test_buildOpticalFlowPyramid
         PoseSpline)
 
 
-add_executable(test_pnp pnp/test_pnp.cpp
+add_executable(test_pnp
         pnp/pose_local_parameterization.cpp
         pnp/utility.cpp
         pnp/project_error.cpp)
@@ -124,12 +124,14 @@ add_executable(human_2d_3d_alignment pnp/human_2d_3d_alignment.cpp
 target_link_libraries(human_2d_3d_alignment
         PoseSpline)
 
-add_executable(test_opencvPnp pnp/test_opencvPnp.cpp
+add_executable(test_tiny_solver pnp/test_tiny_solver.cpp
         pnp/pose_local_parameterization.cpp
         pnp/utility.cpp
         pnp/project_error.cpp)
-target_link_libraries(test_opencvPnp
+target_link_libraries(test_tiny_solver
         PoseSpline)
+
+
 
 
 

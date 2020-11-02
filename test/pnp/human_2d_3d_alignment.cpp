@@ -64,14 +64,53 @@ Eigen::Vector3d pnp(Eigen::Vector3d t,
     auto initT = t;
     problem.AddParameterBlock(t.data(), 3);
 
-    Eigen::Quaterniond q(1.0,0,0,0);
+    std::vector<ceres::CostFunction*> projector_errors;
+
     for (int i = 0; i < pt3ds.size(); i++) {
         auto pt2d = pt2ds[i];
-        Eigen::Vector3d bearing((pt2d.x() - cx)/ focal, (pt2d.y() - cy)/ focal, 1.0);
         auto pt3d = pt3ds[i];
         ceres::CostFunction* e = new ProjectError(pt2d, pt3d, cx, cy, focal);
         problem.AddResidualBlock(e,NULL, t.data());
+
+        projector_errors.push_back(e);
     }
+
+    int max_iteration = 100;
+
+    auto est_t  =initT;
+
+
+    for (int i = 0; i < max_iteration; i++) {
+
+        Eigen::Vector3d b;
+        Eigen::Matrix<double, 3,3, Eigen::RowMajor> H;
+        for (int j = 0; j < projector_errors.size(); j++) {
+            // evaluate
+            Eigen::Vector2d error;
+            Eigen::Matrix<double, 2,3, Eigen::RowMajor> jacobian;
+
+            double* params[1] = {est_t.data()};
+            double* jacobians[1] = {jacobian.data()};
+            projector_errors[j]->Evaluate(params, error.data(), jacobians);
+            b += jacobian.transpose() * error;
+            H += jacobian.transpose() * jacobian;
+        }
+
+
+        Eigen::Vector3d dx =  - H.ldlt().solve(b);
+
+        est_t += dx;
+
+//        double parameter_tolerance = 0.0001;
+//        if (dx.norm() < parameter_tolerance) {
+//            break;
+//        }
+
+    }
+//
+    std::cout << "custum: " << est_t.transpose() << std::endl;
+
+
 
     ceres::Solver::Options options;
     options.minimizer_progress_to_stdout = false;
@@ -82,8 +121,11 @@ Eigen::Vector3d pnp(Eigen::Vector3d t,
     ceres::Solver::Summary summary;
     ceres::Solve(options, &problem, &summary);
     std::cout << summary.BriefReport() << std::endl;
-//
-//
+
+    std::cout << "ceres: " << t.transpose() << std::endl;
+
+
+
 
 //    res = param2T(param, q);
 //    std::cout << "before OPT : \n" << initT << std::endl;
@@ -93,7 +135,8 @@ Eigen::Vector3d pnp(Eigen::Vector3d t,
 
 
 
-    return t;
+    return est_t;
+//    return t;
 
 }
 

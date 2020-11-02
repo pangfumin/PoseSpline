@@ -27,7 +27,6 @@ public:
 
 
 
-    ProjectError() = delete;
     ProjectError(const Eigen::Vector2d& uv, const Eigen::Vector3d& pt3d, const double cx, const double cy, double focal);
 
     /// \brief Trivial destructor.

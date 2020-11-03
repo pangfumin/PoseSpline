@@ -210,7 +210,7 @@ class TinySolverMultipleFunction {
 
           jtj_ += jacobian_.transpose() * jacobian_;
           g_ += jacobian_.transpose() * error_;
-          
+
           cost_ += error_.squaredNorm() / 2;
       }
 

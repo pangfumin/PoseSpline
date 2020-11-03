@@ -52,6 +52,52 @@ public:
 };
 
 
+
+
+class ExampleStatic2 {
+public:
+    typedef double Scalar;
+    enum {
+        // Can also be Eigen::Dynamic.
+        NUM_RESIDUALS = 1,
+        NUM_PARAMETERS = 3,
+    };
+    ExampleStatic2(int x, int y):x_(x), y_(y) {
+
+    }
+
+    bool EvaluateResidualsAndJacobians2(const double* parameters,
+                                        double* residuals,
+                                        double* jacobian) const  {
+        double a = parameters[0];
+        double b = parameters[1];
+        double c = parameters[2];
+
+
+        double exp_y = std::exp( a*x_*x_ + b*x_ + c );
+        residuals[0] =  exp_y - y_;
+
+
+        if (jacobian) {
+            Eigen::Map<Eigen::Matrix<double, 1, 3>> jaco_abc(jacobian);  // 误差为1维，状态量 3 个，所以是 1x3 的雅克比矩阵
+            jaco_abc << x_ * x_ * exp_y, x_ * exp_y , 1 * exp_y;
+
+
+        }
+        return true;
+    }
+
+
+    bool operator()(const double* parameters,
+                    double* residuals,
+                    double* jacobian) const {
+        return EvaluateResidualsAndJacobians2(parameters, residuals, jacobian);
+    }
+    double x_, y_;
+};
+
+
+
 template <typename Function, typename Vector>
 void TestHelper(const Function& f, const Vector& x0) {
     Vector x = x0;
@@ -82,16 +128,34 @@ void TestHelper(const Function& f, const Vector& x0) {
 
 }
 
-int main() {
+void TestHelper2() {
 
+    solver::TinySolverMultipleFunction<ExampleStatic2> solver_multiple;
+
+    int N = 100;
+    std::vector<ExampleStatic2> f_vec;
+    for (int i = 0; i < N; ++i) {
+
+        double x = i/100.;
+        // 观测 y
+        double a=1.0, b=2.0, c=1.0;
+        double y = std::exp( a*x*x + b*x + c ) ;
+//        double y = std::exp( a*x*x + b*x + c );
+
+        ExampleStatic2  e(x,y);
+        f_vec.push_back(e);
+    }
+    Vec3 other_x(0.76026643, -30.01799744, 0.55192142);
+    solver_multiple.Solve(f_vec, &other_x);
+    std::cout << "solver_multiple.summary.final_cost: " << solver_multiple.summary.final_cost<< std::endl;
+    std::cout << "opt other_x: " << other_x.transpose() << std::endl;
+}
+
+
+int main() {
     Vec3 x0(0.76026643, -30.01799744, 0.55192142);
     ExampleStatic f;
-
     TestHelper(f, x0);
-
-
-//
-
-
+    TestHelper2();
 }
 

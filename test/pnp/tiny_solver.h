@@ -204,7 +204,6 @@ class TinySolver {
     jacobian_ = jacobian_ * jacobi_scaling_.asDiagonal();
     jtj_ = jacobian_.transpose() * jacobian_;
     g_ = jacobian_.transpose() * error_;
-      std::cout << "error_: " << error_.transpose() << std::endl;
 
 
       summary.gradient_max_norm = g_.array().abs().maxCoeff();
@@ -222,12 +221,6 @@ class TinySolver {
     Update(function, x);
     summary.initial_cost = cost_;
     summary.final_cost = cost_;
-
-      std::cout << "summary.initial_cost : " << summary.initial_cost << std::endl;
-      std::cout << "jtj_ : \n" << jtj_ << std::endl;
-      std::cout << "g_ : \n" << g_.transpose() << std::endl;
-
-
 
 
     if (summary.gradient_max_norm < options.gradient_tolerance) {
@@ -260,8 +253,6 @@ class TinySolver {
       lm_step_ = linear_solver_.solve(g_);
       dx_ = jacobi_scaling_.asDiagonal() * lm_step_;
 
-        std::cout << "lm_diagonal_: " << lm_diagonal_.transpose() << std::endl;
-        std::cout << "lm_step_: " << lm_step_.transpose() << std::endl;
 
       // Adding parameter_tolerance to x.norm() ensures that this
       // works if x is near zero.
@@ -274,55 +265,57 @@ class TinySolver {
       }
       x_new_ = x + dx_;
 
-      std::cout << "x_new_: " << x_new_.transpose()  << " " << dx_.transpose() << std::endl;
 
 //
-//      // TODO(keir): Add proper handling of errors from user eval of cost
-//      // functions.
-//      function(&x_new_[0], &f_x_new_[0], NULL);
-//
-//      const Scalar cost_change = (2 * cost_ - f_x_new_.squaredNorm());
-//      std::cout << "f_x_new_: " << f_x_new_.squaredNorm() << std::endl;
-//
-//      // TODO(sameeragarwal): Better more numerically stable evaluation.
-//      const Scalar model_cost_change = lm_step_.dot(2 * g_ - jtj_ * lm_step_);
-//
-//      // rho is the ratio of the actual reduction in error to the reduction
-//      // in error that would be obtained if the problem was linear. See [1]
-//      // for details.
-//      Scalar rho(cost_change / model_cost_change);
-//
-//        std::cout << "rho: " << rho << std::endl;
-//
-//
-//        if (rho > 0) {
-//        // Accept the Levenberg-Marquardt step because the linear
-//        // model fits well.
-//        x = x_new_;
-//
-//        // TODO(sameeragarwal): Deal with failure.
-//        Update(function, x);
-//        if (summary.gradient_max_norm < options.gradient_tolerance) {
-//          summary.status = GRADIENT_TOO_SMALL;
-//          break;
-//        }
-//
-//        if (cost_ < options.cost_threshold) {
-//          summary.status = COST_TOO_SMALL;
-//          break;
-//        }
-//
-//        Scalar tmp = Scalar(2 * rho - 1);
-//        u = u * std::max(1 / 3., 1 - tmp * tmp * tmp);
-//        v = 2;
-//        continue;
-//      }
-//
-//      // Reject the update because either the normal equations failed to solve
-//      // or the local linear model was not good (rho < 0). Instead, increase u
-//      // to move closer to gradient descent.
-//      u *= v;
-//      v *= 2;
+      // TODO(keir): Add proper handling of errors from user eval of cost
+      // functions.
+      function(&x_new_[0], &f_x_new_[0], NULL);
+
+      const Scalar cost_change = (2 * cost_ - f_x_new_.squaredNorm());
+
+        std::cout << "cost_change: " << cost_ << " " <<  f_x_new_.squaredNorm() << std::endl;
+
+
+        // TODO(sameeragarwal): Better more numerically stable evaluation.
+      const Scalar model_cost_change = lm_step_.dot(2 * g_ - jtj_ * lm_step_);
+
+      // rho is the ratio of the actual reduction in error to the reduction
+      // in error that would be obtained if the problem was linear. See [1]
+      // for details.
+      Scalar rho(cost_change / model_cost_change);
+
+        std::cout << "rho: " << rho << " " <<  cost_change  << " " <<  model_cost_change << std::endl;
+
+
+
+        if (rho > 0) {
+        // Accept the Levenberg-Marquardt step because the linear
+        // model fits well.
+        x = x_new_;
+
+        // TODO(sameeragarwal): Deal with failure.
+        Update(function, x);
+        if (summary.gradient_max_norm < options.gradient_tolerance) {
+          summary.status = GRADIENT_TOO_SMALL;
+          break;
+        }
+
+        if (cost_ < options.cost_threshold) {
+          summary.status = COST_TOO_SMALL;
+          break;
+        }
+
+        Scalar tmp = Scalar(2 * rho - 1);
+        u = u * std::max(1 / 3., 1 - tmp * tmp * tmp);
+        v = 2;
+        continue;
+      }
+
+      // Reject the update because either the normal equations failed to solve
+      // or the local linear model was not good (rho < 0). Instead, increase u
+      // to move closer to gradient descent.
+      u *= v;
+      v *= 2;
     }
 
     summary.final_cost = cost_;

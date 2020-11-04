@@ -206,7 +206,7 @@ class TinySolverMultipleFunction {
           // factorization.
           jacobian_ = jacobian_ * jacobi_scaling_.asDiagonal();
 
-
+//          std::cout << "jacobian_: \n" << jacobian_ << std::endl;
 
           jtj_ += jacobian_.transpose() * jacobian_;
           g_ += jacobian_.transpose() * error_;
@@ -261,6 +261,9 @@ class TinySolverMultipleFunction {
       linear_solver_.compute(jtj_regularized_);
       lm_step_ = linear_solver_.solve(g_);
       dx_ = jacobi_scaling_.asDiagonal() * lm_step_;
+//
+//      std::cout << "jtj_: \n" << jtj_ << std::endl;
+//      std::cout << "g_: \n" << g_.transpose() << std::endl;
 
 
 
@@ -276,6 +279,8 @@ class TinySolverMultipleFunction {
       }
       x_new_ = x + dx_;
 
+//      std::cout << "dx: " << dx_.transpose() << std::endl;
+
 
       // TODO(keir): Add proper handling of errors from user eval of cost
       // functions.
@@ -285,13 +290,7 @@ class TinySolverMultipleFunction {
           f(&x_new_[0], &f_x_new_[0], NULL);
           new_cost += f_x_new_.squaredNorm();
       }
-
-
-
       const Scalar cost_change = (2 * cost_ - new_cost);
-
-        std::cout << "cost_change: " << cost_ << " " <<  new_cost << std::endl;
-//
         // TODO(sameeragarwal): Better more numerically stable evaluation.
       const Scalar model_cost_change = lm_step_.dot(2 * g_ - jtj_ * lm_step_);
 
@@ -300,7 +299,6 @@ class TinySolverMultipleFunction {
       // for details.
       Scalar rho(cost_change / model_cost_change);
 
-      std::cout << "rho: " << rho << " " <<  cost_change  << " " <<  model_cost_change << std::endl;
       if (rho > 0) {
         // Accept the Levenberg-Marquardt step because the linear
         // model fits well.
@@ -329,6 +327,7 @@ class TinySolverMultipleFunction {
       // to move closer to gradient descent.
       u *= v;
       v *= 2;
+
     }
 
     summary.final_cost = cost_;

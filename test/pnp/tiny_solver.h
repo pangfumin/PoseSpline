@@ -156,7 +156,7 @@ class TinySolver {
           parameter_tolerance(1e-8),
           cost_threshold(std::numeric_limits<Scalar>::epsilon()),
           initial_trust_region_radius(1e4),
-          max_num_iterations(3) {}
+          max_num_iterations(30) {}
     Scalar gradient_tolerance;   // eps > max(J'*f(x))
     Scalar parameter_tolerance;  // eps > ||dx|| / ||x||
     Scalar cost_threshold;       // eps > ||f(x)||
@@ -273,7 +273,6 @@ class TinySolver {
 
       const Scalar cost_change = (2 * cost_ - f_x_new_.squaredNorm());
 
-        std::cout << "cost_change: " << cost_ << " " <<  f_x_new_.squaredNorm() << std::endl;
 
 
         // TODO(sameeragarwal): Better more numerically stable evaluation.
@@ -286,9 +285,7 @@ class TinySolver {
 
         std::cout << "rho: " << rho << " " <<  cost_change  << " " <<  model_cost_change << std::endl;
 
-
-
-        if (rho > 0) {
+      if (rho > 0) {
         // Accept the Levenberg-Marquardt step because the linear
         // model fits well.
         x = x_new_;
@@ -307,6 +304,7 @@ class TinySolver {
 
         Scalar tmp = Scalar(2 * rho - 1);
         u = u * std::max(1 / 3., 1 - tmp * tmp * tmp);
+        std::cout << "u: " << u << std::endl;
         v = 2;
         continue;
       }

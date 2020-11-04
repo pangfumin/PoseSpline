@@ -62,7 +62,7 @@ public:
         NUM_RESIDUALS = 1,
         NUM_PARAMETERS = 3,
     };
-    ExampleStatic2(int x, int y):x_(x), y_(y) {
+    ExampleStatic2(double x, double y):x_(x), y_(y) {
 
     }
 
@@ -113,18 +113,18 @@ void TestHelper(const Function& f, const Vector& x0) {
     solver.Solve(f, &x);
 
     //    EXPECT_NEAR(0.0, solver.summary.final_cost, 1e-10);
-    std::cout << "solver.summary.final_cost: " << solver.summary.final_cost<< std::endl;
+    std::cout << "solver.summary.final_cost: " << solver.summary.final_cost << std::endl;
     std::cout << "opt x: " << x.transpose() << std::endl;
 
 
-    std::cout << "--------------------------------------------" << std::endl;
-    std::vector<Function> f_vec={f};
-
-    solver_multiple.Solve(f_vec, &other_x);
-
-
-    std::cout << "solver_multiple.summary.final_cost: " << solver_multiple.summary.final_cost<< std::endl;
-    std::cout << "opt other_x: " << other_x.transpose() << std::endl;
+//    std::cout << "--------------------------------------------" << std::endl;
+//    std::vector<Function> f_vec={f};
+//
+//    solver_multiple.Solve(f_vec, &other_x);
+//
+//
+//    std::cout << "solver_multiple.summary.final_cost: " << solver_multiple.summary.final_cost<< std::endl;
+//    std::cout << "opt other_x: " << other_x.transpose() << std::endl;
 
 }
 
@@ -132,20 +132,19 @@ void TestHelper2() {
 
     solver::TinySolverMultipleFunction<ExampleStatic2> solver_multiple;
 
-    int N = 100;
+    int N = 30;
     std::vector<ExampleStatic2> f_vec;
     for (int i = 0; i < N; ++i) {
 
-        double x = i/100.;
+        double x = (double)i / (N);
         // 观测 y
         double a=1.0, b=2.0, c=1.0;
         double y = std::exp( a*x*x + b*x + c ) ;
-//        double y = std::exp( a*x*x + b*x + c );
 
         ExampleStatic2  e(x,y);
         f_vec.push_back(e);
     }
-    Vec3 other_x(0.76026643, -30.01799744, 0.55192142);
+    Vec3 other_x(0.76026643, 0.01799744, 0.55192142);
     solver_multiple.Solve(f_vec, &other_x);
     std::cout << "solver_multiple.summary.final_cost: " << solver_multiple.summary.final_cost<< std::endl;
     std::cout << "opt other_x: " << other_x.transpose() << std::endl;
@@ -153,9 +152,10 @@ void TestHelper2() {
 
 
 int main() {
-    Vec3 x0(0.76026643, -30.01799744, 0.55192142);
+    Vec3 x0(0.76026643, 0.01799744, 0.55192142);
     ExampleStatic f;
-    TestHelper(f, x0);
+//    TestHelper(f, x0);
     TestHelper2();
+    return 0;
 }
 

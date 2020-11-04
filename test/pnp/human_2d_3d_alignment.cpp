@@ -3,19 +3,86 @@
 
 #include <Eigen/Core>
 #include <vector>
+#include <map>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 #include<opencv2/core/eigen.hpp>
-#include "project_error.h"
-#include "pose_local_parameterization.h"
+#include "tiny_solver_multiple_function.h"
 
 #include <algorithm>    // std::max
 
 int width = 544;
 int height = 960;
 double focal = 516;
+
+
+class ProjectEdge {
+public:
+    typedef double Scalar;
+    enum {
+        // Can also be Eigen::Dynamic.
+        NUM_RESIDUALS = 2,
+        NUM_PARAMETERS = 3,
+    };
+    ProjectEdge( const Eigen::Vector2d& uv, const Eigen::Vector3d& pt3d,
+                 const double cx, const double cy, double focal ):
+            uv_(uv), pt3d_(pt3d), cx_(cx), cy_(cy), focal_(focal){
+
+    }
+
+    bool EvaluateResidualsAndJacobians2(const double* parameters,
+                                        double* residuals,
+                                        double* jacobian) const  {
+        double a = parameters[0];
+        double b = parameters[1];
+        double c = parameters[2];
+
+
+
+
+        Eigen::Map<const Eigen::Matrix<double,3,1>> t(parameters);
+        // T_WC
+        cache_Cp_ =  pt3d_ + t;
+        cache_inv_z_ = 1/cache_Cp_(2);
+        Eigen::Vector2d hat_C0uv(focal_ * cache_Cp_(0)*cache_inv_z_ + cx_, focal_ * cache_Cp_(1)*cache_inv_z_ + cy_);
+
+        Eigen::Map<Eigen::Matrix<double, 2,1>> residual(residuals);
+        residual = hat_C0uv - uv_;
+
+
+
+        if (jacobian) {
+            Eigen::Map<Eigen::Matrix<double, 2, 3>> jaco_abc(jacobian);  // 误差为1维，状态量 3 个，所以是 1x3 的雅克比矩阵
+            Eigen::Matrix<double,2,3> H;
+            H << 1, 0, -cache_Cp_(0)*cache_inv_z_,
+                    0, 1, -cache_Cp_(1)*cache_inv_z_;
+            H *= focal_ * cache_inv_z_;
+
+
+            jaco_abc = H ;
+
+
+        }
+        return true;
+    }
+
+
+    bool operator()(const double* parameters,
+                    double* residuals,
+                    double* jacobian) const {
+        return EvaluateResidualsAndJacobians2(parameters, residuals, jacobian);
+    }
+    Eigen::Vector2d uv_;
+    Eigen::Vector3d pt3d_;
+    double cx_, cy_, focal_;
+
+    mutable Eigen::Vector3d cache_Cp_;
+    mutable  double cache_inv_z_;
+};
+
+
 
 Eigen::Vector3d pnp(Eigen::Vector3d t,
         std::vector<Eigen::Vector2d>& pt2ds, std::vector<Eigen::Vector3d>& pt3ds) {
@@ -25,72 +92,28 @@ Eigen::Vector3d pnp(Eigen::Vector3d t,
     double cx = width / 2;
     double cy = height / 2;
 //
-    ceres::Problem problem;
-    auto initT = t;
-    problem.AddParameterBlock(t.data(), 3);
 
-    std::vector<ceres::CostFunction*> projector_errors;
-
+    solver::TinySolverMultipleFunction<ProjectEdge> solver_multiple;
+    std::vector<ProjectEdge> f_vec;
     for (int i = 0; i < pt3ds.size(); i++) {
         auto pt2d = pt2ds[i];
         auto pt3d = pt3ds[i];
-        ceres::CostFunction* e = new ProjectError(pt2d, pt3d, cx, cy, focal);
-        problem.AddResidualBlock(e,NULL, t.data());
 
-        projector_errors.push_back(e);
-    }
-
-    int max_iteration = 100;
-
-    auto est_t  =initT;
-
-
-    for (int i = 0; i < max_iteration; i++) {
-
-        Eigen::Vector3d b;
-        Eigen::Matrix<double, 3,3, Eigen::RowMajor> H;
-        for (int j = 0; j < projector_errors.size(); j++) {
-            // evaluate
-            Eigen::Vector2d error;
-            Eigen::Matrix<double, 2,3, Eigen::RowMajor> jacobian;
-
-            double* params[1] = {est_t.data()};
-            double* jacobians[1] = {jacobian.data()};
-            projector_errors[j]->Evaluate(params, error.data(), jacobians);
-            b += jacobian.transpose() * error;
-            H += jacobian.transpose() * jacobian;
-        }
-
-
-        Eigen::Vector3d dx =  - H.ldlt().solve(b);
-
-        est_t += dx;
-
-//        double parameter_tolerance = 0.0001;
-//        if (dx.norm() < parameter_tolerance) {
-//            break;
-//        }
+        ProjectEdge factor(pt2d, pt3d, cx, cy, focal);
+        f_vec.push_back(factor);
 
     }
-//
-    std::cout << "custum: " << est_t.transpose() << std::endl;
 
 
 
-    ceres::Solver::Options options;
-    options.minimizer_progress_to_stdout = false;
-    options.max_solver_time_in_seconds = 3;
-    options.max_num_iterations = 100;
-    options.linear_solver_type = ceres::SPARSE_SCHUR;
-    options.parameter_tolerance = 1e-4;
-    ceres::Solver::Summary summary;
-    ceres::Solve(options, &problem, &summary);
-    std::cout << summary.BriefReport() << std::endl;
+    Eigen::Vector3d other_x(0,0,0);
+    solver_multiple.Solve(f_vec, &other_x);
 
-    std::cout << "ceres: " << t.transpose() << std::endl;
+//    std::cout << "ceres: " << t.transpose() << std::endl;
 
 
-    return est_t;
+
+    return other_x;
 
 }
 

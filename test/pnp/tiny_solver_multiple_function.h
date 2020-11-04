@@ -299,6 +299,8 @@ class TinySolverMultipleFunction {
       // for details.
       Scalar rho(cost_change / model_cost_change);
 
+//      std::cout << "rho: " << rho << std::endl;
+
       if (rho > 0) {
         // Accept the Levenberg-Marquardt step because the linear
         // model fits well.

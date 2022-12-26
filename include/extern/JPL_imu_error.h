@@ -254,7 +254,11 @@ class IntegrationBase{
                 QuaternionLocalParameter::liftJacobian<T>(Qj.data(), lift1.data());
                 J_r_q_WI0.setZero();
                 J_r_q_WI0.template block<3,4>(O_P, 0) = - R_WIi.transpose() * crossMat(temp_p) * lift0;
-                J_r_q_WI0.template block<3,4>(O_R, 0) = T(2) * quatLeftComp<T>(quatMult<T>(quatInv<T>(corrected_delta_q), quatInv<T>(Qj))).topRows(3);
+                // option 1: calculate jacobian wrt delta, then lift 
+                J_r_q_WI0.template block<3,4>(O_R, 0) = (quatLeftComp<T>(quatMult<T>(quatInv<T>(corrected_delta_q), quatInv<T>(Qj))) * quatRightComp<T>(Qi)).topLeftCorner(3,3) * lift0;
+                // option 2: calculate jacbiina wrt quaternion directly
+                //  J_r_q_WI0.template block<3,4>(O_R, 0) = T(2) * quatLeftComp<T>(quatMult<T>(quatInv<T>(corrected_delta_q), quatInv<T>(Qj))).topRows(3);
+                
                 J_r_q_WI0.template block<3,4>(O_V, 0) = - R_WIi.transpose() * crossMat(temp_v) * lift0;
 
                 J_r_v_WI0.setZero();

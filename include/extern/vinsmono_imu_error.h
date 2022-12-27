@@ -165,10 +165,12 @@ namespace hamilton {
             Eigen::Vector3d result_linearized_ba;
             Eigen::Vector3d result_linearized_bg;
 
-            midPointIntegration(_dt, acc_0, gyr_0, _acc_1, _gyr_1, delta_p, delta_q, delta_v,
-                                linearized_ba, linearized_bg,
-                                result_delta_p, result_delta_q, result_delta_v,
-                                result_linearized_ba, result_linearized_bg, 1);
+            midPointIntegration(_dt, acc_0, gyr_0, _acc_1, _gyr_1, 
+                delta_p, delta_q, delta_v,
+                linearized_ba, linearized_bg,
+                
+                result_delta_p, result_delta_q, result_delta_v,
+                result_linearized_ba, result_linearized_bg, 1);
 
             //checkJacobian(_dt, acc_0, gyr_0, acc_1, gyr_1, delta_p, delta_q, delta_v,
             //                    linearized_ba, linearized_bg);

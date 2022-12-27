@@ -173,10 +173,11 @@ class IntegrationBase{
             Eigen::Vector3d result_linearized_ba;
             Eigen::Vector3d result_linearized_bg;
 
-            midPointIntegration(_dt, acc_0, gyr_0, _acc_1, _gyr_1, delta_p, delta_q, delta_v,
-                                linearized_ba, linearized_bg,
-                                result_delta_p, result_delta_q, result_delta_v,
-                                result_linearized_ba, result_linearized_bg, 1);
+            midPointIntegration(_dt, acc_0, gyr_0, _acc_1, _gyr_1, 
+                delta_p, delta_q, delta_v,
+                linearized_ba, linearized_bg,
+                result_delta_p, result_delta_q, result_delta_v,
+                result_linearized_ba, result_linearized_bg, 1);
 
             //checkJacobian(_dt, acc_0, gyr_0, acc_1, gyr_1, delta_p, delta_q, delta_v,
             //                    linearized_ba, linearized_bg);
@@ -227,7 +228,7 @@ class IntegrationBase{
             Eigen::Matrix<T,3,1> temp_p = T(0.5) * G * _sum_dt * _sum_dt + Pj - Pi - Vi * _sum_dt;
             Eigen::Matrix<T,3,1> temp_v = G * _sum_dt + Vj - Vi;
             residuals.template block<3, 1>(O_P, 0) = R_WIi.transpose() * temp_p - corrected_delta_p;
-            residuals.template block<3, 1>(O_R, 0) = T(2) * quatMult<T>(quatInv<T>(corrected_delta_q), quatMult<T>(quatInv(Qj), Qi)).template head<3>();
+            residuals.template block<3, 1>(O_R, 0) = T(2) * quatMult<T>( (corrected_delta_q), quatMult<T>(quatInv(Qi), Qj)).template head<3>();
             residuals.template block<3, 1>(O_V, 0) = R_WIi.transpose() * temp_v - corrected_delta_v;
             residuals.template block<3, 1>(O_BA, 0) = Baj - Bai;
             residuals.template block<3, 1>(O_BG, 0) = Bgj - Bgi;
@@ -245,7 +246,6 @@ class IntegrationBase{
                 Eigen::Map<Eigen::Matrix<T, 15, 3, Eigen::RowMajor>> J_r_ba1(jacobians[8]);
                 Eigen::Map<Eigen::Matrix<T, 15, 3, Eigen::RowMajor>> J_r_bg1(jacobians[9]);
 
-
                 J_r_t_WI0.setZero();
                 J_r_t_WI0.template block<3,3>(O_P, 0) = - R_WIi.transpose();
 
@@ -254,11 +254,7 @@ class IntegrationBase{
                 QuaternionLocalParameter::liftJacobian<T>(Qj.data(), lift1.data());
                 J_r_q_WI0.setZero();
                 J_r_q_WI0.template block<3,4>(O_P, 0) = - R_WIi.transpose() * crossMat(temp_p) * lift0;
-                // option 1: calculate jacobian wrt delta, then lift 
-                J_r_q_WI0.template block<3,4>(O_R, 0) = (quatLeftComp<T>(quatMult<T>(quatInv<T>(corrected_delta_q), quatInv<T>(Qj))) * quatRightComp<T>(Qi)).topLeftCorner(3,3) * lift0;
-                // option 2: calculate jacbiina wrt quaternion directly
-                //  J_r_q_WI0.template block<3,4>(O_R, 0) = T(2) * quatLeftComp<T>(quatMult<T>(quatInv<T>(corrected_delta_q), quatInv<T>(Qj))).topRows(3);
-                
+                J_r_q_WI0.template block<3,4>(O_R, 0) = - (quatLeftComp<T>(quatMult<T>(corrected_delta_q, quatInv<T>(Qi))) * quatRightComp<T>(Qj)).topLeftCorner(3,3) * lift0;
                 J_r_q_WI0.template block<3,4>(O_V, 0) = - R_WIi.transpose() * crossMat(temp_v) * lift0;
 
                 J_r_v_WI0.setZero();
@@ -272,7 +268,8 @@ class IntegrationBase{
 
                 J_r_bg0.setZero();
                 J_r_bg0.template block<3,3>(O_P, 0) = - dp_dbg;
-                J_r_bg0.template block<3,3>(O_R, 0) = - (quatLeftComp<T>(quatInv<T>(delta_q.cast<T>())) * quatRightComp<T>(quatMult<T>(quatInv<T>(Qj), Qi))).topLeftCorner(3,3) * dq_dbg;
+                // J_r_bg0.template block<3,3>(O_R, 0) = - (quatLeftComp<T>(quatInv<T>(delta_q.cast<T>())) * quatRightComp<T>(quatMult<T>(quatInv<T>(Qj), Qi))).topLeftCorner(3,3) * dq_dbg;
+                J_r_bg0.template block<3,3>(O_R, 0) = (quatRightComp<T>(quatMult<T>(delta_q.cast<T>(), quatMult<T>(quatInv<T>(Qi), Qj)))).topLeftCorner(3,3) * dq_dbg;
                 J_r_bg0.template block<3,3>(O_V, 0) = - dv_dbg;
                 J_r_bg0.template block<3,3>(O_BG, 0) = - Eigen::Matrix<T,3,3>::Identity();
 
@@ -280,7 +277,7 @@ class IntegrationBase{
                 J_r_t_WI1.template block<3,3>(O_P, 0) = R_WIi.transpose();
 
                 J_r_q_WI1.setZero();
-                J_r_q_WI1.template block<3,4>(O_R, 0) = - (quatLeftComp<T>(quatMult<T>(quatInv<T>(corrected_delta_q), quatInv<T>(Qj))) * quatRightComp<T>(Qi)).topLeftCorner(3,3) * lift1;
+                J_r_q_WI1.template block<3,4>(O_R, 0) = (quatLeftComp<T>(quatMult<T>(corrected_delta_q, quatInv<T>(Qi))) * quatRightComp<T>(Qj)).topLeftCorner(3,3) * lift1;
 
                 J_r_v_WI1.setZero();
                 J_r_v_WI1.template block<3,3>(O_V, 0) = R_WIi.transpose();
@@ -293,11 +290,8 @@ class IntegrationBase{
 
             }
 
-
             return residuals;
         }
-
-
 
         double dt;
         Eigen::Vector3d acc_0, gyr_0;
@@ -315,10 +309,8 @@ class IntegrationBase{
 
         double sum_dt;
         Eigen::Vector3d delta_p;
-        QuaternionTemplate<double> delta_q;  // Q_Ikp1_Ik   in JPL
+        QuaternionTemplate<double> delta_q;  // Q_Ikp1_Ik in JPL
         Eigen::Vector3d delta_v;
-
-
 
         std::vector<double> dt_buf;
         std::vector<Eigen::Vector3d> acc_buf;
@@ -386,43 +378,48 @@ class IntegrationBase{
 
             Eigen::Matrix<double, 15, 15> sqrt_info = Eigen::LLT<Eigen::Matrix<double, 15, 15>>(
                     pre_integration->covariance.inverse()).matrixL().transpose();
-            sqrt_info.setIdentity();
+
+            sqrt_info.setIdentity();  // todo: remove
 
             residual = sqrt_info * residual;
 
             Eigen::Vector3d G{0.0, 0.0, 9.8};
-        if (jacobians)
-        {
-
-            if (jacobians[0])
+            if (jacobians)
             {
-                Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian_pose_i(jacobians[0]);
-                jacobian_pose_i.setZero();
-                jacobian_pose_i << J_r_t_WI0, J_r_q_WI0;
-            }
-            if (jacobians[1])
-            {
-                Eigen::Map<Eigen::Matrix<double, 15, 9, Eigen::RowMajor>> jacobian_speedbias_i(jacobians[1]);
-                jacobian_speedbias_i.setZero();
-                jacobian_speedbias_i << J_r_v_WI0, J_r_ba0, J_r_bg0;
 
-            }
-            if (jacobians[2])
-            {
-                Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian_pose_j(jacobians[2]);
-                jacobian_pose_j.setZero();
+                if (jacobians[0])
+                {
+                    Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian_pose_i(jacobians[0]);
+                    jacobian_pose_i.setZero();
+                    jacobian_pose_i << J_r_t_WI0, J_r_q_WI0;
+                    jacobian_pose_i  = sqrt_info * jacobian_pose_i;
+                }
+                if (jacobians[1])
+                {
+                    Eigen::Map<Eigen::Matrix<double, 15, 9, Eigen::RowMajor>> jacobian_speedbias_i(jacobians[1]);
+                    jacobian_speedbias_i.setZero();
+                    jacobian_speedbias_i << J_r_v_WI0, J_r_ba0, J_r_bg0;
+                    jacobian_speedbias_i  = sqrt_info * jacobian_speedbias_i;
 
-                jacobian_pose_j << J_r_t_WI1, J_r_q_WI1;
+                }
+                if (jacobians[2])
+                {
+                    Eigen::Map<Eigen::Matrix<double, 15, 7, Eigen::RowMajor>> jacobian_pose_j(jacobians[2]);
+                    jacobian_pose_j.setZero();
 
-            }
-            if (jacobians[3])
-            {
-                Eigen::Map<Eigen::Matrix<double, 15, 9, Eigen::RowMajor>> jacobian_speedbias_j(jacobians[3]);
-                jacobian_speedbias_j.setZero();
+                    jacobian_pose_j << J_r_t_WI1, J_r_q_WI1;
+                    jacobian_pose_j  = sqrt_info * jacobian_pose_j;
 
-                jacobian_speedbias_j << J_r_v_WI1, J_r_ba1, J_r_bg1;
+                }
+                if (jacobians[3])
+                {
+                    Eigen::Map<Eigen::Matrix<double, 15, 9, Eigen::RowMajor>> jacobian_speedbias_j(jacobians[3]);
+                    jacobian_speedbias_j.setZero();
+
+                    jacobian_speedbias_j << J_r_v_WI1, J_r_ba1, J_r_bg1;
+                    jacobian_speedbias_j  = sqrt_info * jacobian_speedbias_j;
+                }
             }
-        }
 
             return true;
         }

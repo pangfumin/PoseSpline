@@ -11,23 +11,29 @@ inline void get_dQuaternionJpl_dTheta(
   CHECK_NOTNULL(jacobian_row_major);
 
   const Eigen::Map<const Eigen::Matrix<double, 4, 1>> q(q_ptr);
-  CHECK_GE(q(3), 0.);
+  Eigen::Matrix<double, 4, 1> temp;
+  if (q(3) < 0) {
+    temp = -q;
+  } else {
+    temp = q;
+  }
+  CHECK_GE(temp(3), 0.);
 
   Eigen::Map<Eigen::Matrix<double, 4, 3, Eigen::RowMajor>> jacobian(
       jacobian_row_major);
   jacobian.setZero();
-  jacobian(0, 0) = q(3);
-  jacobian(0, 1) = -q(2);
-  jacobian(0, 2) = q(1);
-  jacobian(1, 0) = q(2);
-  jacobian(1, 1) = q(3);
-  jacobian(1, 2) = -q(0);
-  jacobian(2, 0) = -q(1);
-  jacobian(2, 1) = q(0);
-  jacobian(2, 2) = q(3);
-  jacobian(3, 0) = -q(0);
-  jacobian(3, 1) = -q(1);
-  jacobian(3, 2) = -q(2);
+  jacobian(0, 0) = temp(3);
+  jacobian(0, 1) = -temp(2);
+  jacobian(0, 2) = temp(1);
+  jacobian(1, 0) = temp(2);
+  jacobian(1, 1) = temp(3);
+  jacobian(1, 2) = -temp(0);
+  jacobian(2, 0) = -temp(1);
+  jacobian(2, 1) = temp(0);
+  jacobian(2, 2) = temp(3);
+  jacobian(3, 0) = -temp(0);
+  jacobian(3, 1) = -temp(1);
+  jacobian(3, 2) = -temp(2);
   jacobian *= 0.5;
 }
 }  // namespace

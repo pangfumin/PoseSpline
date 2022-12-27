@@ -155,24 +155,7 @@ Eigen::Matrix<typename Derived::Scalar, 4, 1> quaternionInverseJPL(
   return inverse_q;
 }
 
-namespace internal {
 
-template <typename Scalar>
-Eigen::Quaternion<Scalar> internalSignedQuaternionProductHamilton(
-    const Eigen::Quaternion<Scalar>& lhs,
-    const Eigen::Quaternion<Scalar>& rhs) {
-  return Eigen::Quaternion<Scalar>(
-      lhs.w() * rhs.w() - lhs.x() * rhs.x() - lhs.y() * rhs.y() -
-          lhs.z() * rhs.z(),
-      lhs.w() * rhs.x() + lhs.x() * rhs.w() + lhs.y() * rhs.z() -
-          lhs.z() * rhs.y(),
-      lhs.w() * rhs.y() - lhs.x() * rhs.z() + lhs.y() * rhs.w() +
-          lhs.z() * rhs.x(),
-      lhs.w() * rhs.z() + lhs.x() * rhs.y() - lhs.y() * rhs.x() +
-          lhs.z() * rhs.w());
-}
-
-}  // namespace internal
 
 namespace eigen_quaternion_helpers {
 const int kLocalSize = 3;

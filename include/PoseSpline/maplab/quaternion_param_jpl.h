@@ -18,51 +18,47 @@ class JplQuaternionParameterization : public ceres::LocalParameterization {
   virtual int LocalSize() const {
     return 3;
   }
+
+  template<typename T>
+  static Eigen::Matrix<T,4,4> quatRightComp( const Eigen::Matrix<T,4,1> q )
+  {
+      // [  q3, -q2,  q1, q0]
+      // [  q2,  q3, -q0, q1]
+      // [ -q1,  q0,  q3, q2]
+      // [ -q0, -q1, -q2, q3]
+
+      Eigen::Matrix<T,4,4> Q;
+      Q(0,0) =  q[3]; Q(0,1) = -q[2]; Q(0,2) =  q[1]; Q(0,3) =  q[0];
+      Q(1,0) =  q[2]; Q(1,1) =  q[3]; Q(1,2) = -q[0]; Q(1,3) =  q[1];
+      Q(2,0) = -q[1]; Q(2,1) =  q[0]; Q(2,2) =  q[3]; Q(2,3) =  q[2];
+      Q(3,0) = -q[0]; Q(3,1) = -q[1]; Q(3,2) = -q[2]; Q(3,3) =  q[3];
+
+      return Q;
+  }
+
+
+  template <typename  T>
+  static bool liftJacobian(const T* x, T* jacobian) {
+
+      Eigen::Map<Eigen::Matrix<T, 3, 4, Eigen::RowMajor> > J_lift(jacobian);
+
+      Eigen::Matrix<T, 4, 1> q_inv(-x[0],-x[1],-x[2],x[3]);
+      Eigen::Matrix<T, 3, 4> Jq_pinv;
+      Jq_pinv.setZero();
+      Jq_pinv.template topLeftCorner<3,3>() = Eigen::Matrix<T,3,3>::Identity() * T(2.0);
+      J_lift = Jq_pinv * quatRightComp(q_inv);
+
+      return true;
+  }
+  // Additional interface
+  bool ComputeLiftJacobian(const double* x, double* jacobian) const {
+      liftJacobian<double>(x,jacobian);
+      return true;
+  }
+
 };
 
-// Yaw is defined as rotations around the z-axis of a left multiplied frame.
-// E.g. When using the pose q_AB a yaw increment corresponds to a rotation
-// around the A_[0,0,1] axis: q_AB + delta_yaw  = q_AhatA(delta_yaw) * qAB
-class JplYawQuaternionParameterization : public ceres::LocalParameterization {
- public:
-  virtual ~JplYawQuaternionParameterization() {}
-  virtual bool Plus(
-      const double* x, const double* delta, double* x_plus_delta) const;
-  virtual bool ComputeJacobian(const double* x, double* jacobian) const;
-  virtual int GlobalSize() const {
-    return 4;
-  }
-  virtual int LocalSize() const {
-    return 1;
-  }
-};
 
-// Rotation parameterization that keeps global yaw fixed; yaw = rotation around
-// G_[0;0;1]. The poses are composed by: q_GI = q_GM * q_MI and thus the
-// parameterization requires access to both q_GM and q_MI, which is not
-// supported by ceres. Luckily the baseframe q_GM is constant for VI problems,
-// for which we need this parameterization. Therefore the (constant) baseframe
-// transformation is set using the constructor.
-class JplRollPitchQuaternionParameterization
-    : public ceres::LocalParameterization {
- public:
-  JplRollPitchQuaternionParameterization(
-      const Eigen::Matrix<double, 4, 1>& q_G_M_JPL);
-  virtual ~JplRollPitchQuaternionParameterization() {}
-  virtual bool Plus(
-      const double* q_I_M, const double* delta, double* q_I_M_plus_delta) const;
-
-  virtual bool ComputeJacobian(const double* q_I_M, double* jacobian) const;
-  virtual int GlobalSize() const {
-    return 4;
-  }
-  virtual int LocalSize() const {
-    return 2;
-  }
-
- private:
-  Eigen::Matrix3d R_M_G_;
-};
 
 }  // namespace ceres_error_terms
 

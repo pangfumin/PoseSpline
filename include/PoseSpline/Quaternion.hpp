@@ -305,6 +305,11 @@ Eigen::Matrix<T,4,1> quatMult( const Eigen::Matrix<T,4,1> q,const Eigen::Matrix<
     // p3*q3 - p1*q1 - p2*q2 - p0*q0
     qplus_p[3] = p[3]*q[3] - p[1]*q[1] - p[2]*q[2] - p[0]*q[0];
 
+    if (qplus_p(3) < static_cast<T>(0.)) {
+        qplus_p = -qplus_p;
+    }
+
+
     
     return qplus_p;
 }

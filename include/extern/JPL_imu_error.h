@@ -228,7 +228,9 @@ class IntegrationBase{
             Eigen::Matrix<T,3,1> temp_p = T(0.5) * G * _sum_dt * _sum_dt + Pj - Pi - Vi * _sum_dt;
             Eigen::Matrix<T,3,1> temp_v = G * _sum_dt + Vj - Vi;
             residuals.template block<3, 1>(O_P, 0) = R_WIi.transpose() * temp_p - corrected_delta_p;
-            residuals.template block<3, 1>(O_R, 0) = T(2) * quatMult<T>( (corrected_delta_q), quatMult<T>(quatInv(Qi), Qj)).template head<3>();
+            QuaternionTemplate<T> temp0 = quatMult<T>(quatInv(Qi), Qj);
+            // std::cout << "JPL  temp0: " << temp0.transpose() << std::endl; 
+            residuals.template block<3, 1>(O_R, 0) = T(2) * quatMult<T>( (corrected_delta_q), temp0).template head<3>();
             residuals.template block<3, 1>(O_V, 0) = R_WIi.transpose() * temp_v - corrected_delta_v;
             residuals.template block<3, 1>(O_BA, 0) = Baj - Bai;
             residuals.template block<3, 1>(O_BG, 0) = Bgj - Bgi;

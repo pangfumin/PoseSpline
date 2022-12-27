@@ -12,8 +12,9 @@ class JplPoseParameterization : public ceres::ProductParameterization {
  public:
   JplPoseParameterization()
       : ceres::ProductParameterization(
-            new JplQuaternionParameterization,
-            new ceres::IdentityParameterization(3)) {}
+            
+            new ceres::IdentityParameterization(3),
+            new JplQuaternionParameterization) {}
   virtual ~JplPoseParameterization() {}
 };
 

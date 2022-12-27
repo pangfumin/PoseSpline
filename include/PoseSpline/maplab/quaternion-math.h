@@ -82,13 +82,7 @@ inline void GetBoxminusJacobians(
 
 }  // namespace eigen_quaternion_helpers
 
-namespace internal {
 
-template <typename Scalar>
-Eigen::Quaternion<Scalar> internalSignedQuaternionProductHamilton(
-    const Eigen::Quaternion<Scalar>& lhs, const Eigen::Quaternion<Scalar>& rhs);
-
-}  // namespace internal
 
 }  // namespace common
 

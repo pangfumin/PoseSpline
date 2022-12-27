@@ -214,9 +214,9 @@ namespace hamilton {
                     Qi.inverse() * (0.5 * G * sum_dt * sum_dt + Pj - Pi - Vi * sum_dt) - corrected_delta_p;
             Eigen::Quaterniond delta_q_ij_hat = Qi.inverse() * Qj;
             Eigen::Quaterniond delta = (corrected_delta_q.inverse() * delta_q_ij_hat);
-//            if (delta.w() < 0) {
-//                delta.coeffs() = - delta.coeffs();
-//            }
+            // if (delta.w() < 0) {
+            //     delta.coeffs() = - delta.coeffs();
+            // }
             residuals.block<3, 1>(O_R, 0) = 2 * delta.vec();
             residuals.block<3, 1>(O_V, 0) = Qi.inverse() * (G * sum_dt + Vj - Vi) - corrected_delta_v;
             residuals.block<3, 1>(O_BA, 0) = Baj - Bai;

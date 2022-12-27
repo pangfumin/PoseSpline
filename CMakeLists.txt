@@ -39,6 +39,7 @@ cs_add_library(${PROJECT_NAME}
         src/Time.cpp
         src/Duration.cpp
         src/PoseSplineSampleTemporalError.cpp
+        src/maplab/quaternion_param_jpl.cpp
 #        src/PoseSpline/LinearAccelerateSampleError.cpp
 #        src/PoseSpline/AngularVelocitySampleError.cpp
         )

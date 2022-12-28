@@ -281,8 +281,8 @@ int main(){
         JPL_T1 << t_WI1, JPL_q_WI1;
 
         Eigen::Matrix<double,7,1> maplab_T0, maplab_T1;
-        maplab_T0 << t_WI0, maplab_q_I0W;
-        maplab_T1 << t_WI1, maplab_q_I1W;
+        maplab_T0 << maplab_q_I0W, t_WI0;
+        maplab_T1 << maplab_q_I1W, t_WI1;
 
         Eigen::Matrix<double,7,1> hamilton_T0, hamilton_T1;
         hamilton_T0 << t_WI0, hamilton_q_WI0.coeffs();
@@ -299,11 +299,12 @@ int main(){
 
         double* JPL_parameters[4] = {JPL_T0.data(), sb0.data(), JPL_T1.data(), sb1.data()};
         double* hamilton_parameters[4] = {hamilton_T0.data(), sb0.data(), hamilton_T1.data(), sb1.data()};
-        double* maplab_parameters[4] = {maplab_T0.data(), sb0.data(), maplab_T1.data(), sb1.data()};
+        double* maplab_parameters[8] = {maplab_T0.data(), bg0.data(), v0.data(), ba0.data(), 
+                                        maplab_T1.data(), bg1.data(), v1.data(), ba1.data()};
 
 
         JPL::IMUFactor JPL_Imufactor(JPL_intergrateImu.get());
-        maplab::IMUFactor maplab_Imufactor(maplab_intergrateImu.get());
+        maplab::IMUFactor maplab_Imufactor(maplab_intergrateImu);
         hamilton::IMUFactor hamilton_Imufactor(hamilton_intergrateImu.get());
 
         JPL_Imufactor.Evaluate(JPL_parameters, JPL_residuals.data(), NULL);
@@ -340,34 +341,16 @@ int main(){
 //         ceres::GradientChecker::ProbeResults results;
 
 //         gradient_checker.Probe(JPL_parameters, 1e-9, &results);
-//         std::cout << "jacobian0:  \n" << results.local_jacobians.at(0) << std::endl;
-//         std::cout << "num jacobian0:  \n" << results.local_numeric_jacobians.at(0) << std::endl;
+//         for (int i = 0; i < 4; i++) {
+//             std::cout << "jacobian       " << i << " :  \n" << results.local_jacobians.at(i) << std::endl;
+//             std::cout << "num jacobian:  " << i << " :  \n" << results.local_numeric_jacobians.at(i) << std::endl;
 // //
-//         CHECK_EQ((results.local_jacobians.at(0) - results.local_numeric_jacobians.at(0)).squaredNorm() < 1e-6, true) 
-//             << "jcaobian error is large: " 
-//             << (results.local_jacobians.at(0) - results.local_numeric_jacobians.at(0)).squaredNorm();
+//             CHECK_EQ((results.local_jacobians.at(i) - results.local_numeric_jacobians.at(i)).squaredNorm() < 1e-6, true) 
+//                 << "jcaobian error is large: " 
+//                 << (results.local_jacobians.at(i) - results.local_numeric_jacobians.at(i)).squaredNorm();
 
 
-//         std::cout << "jacobian1:  \n" << results.local_jacobians.at(1) << std::endl;
-//         std::cout << "num jacobian1:  \n" << results.local_numeric_jacobians.at(1) << std::endl;
-
-//         CHECK_EQ((results.local_jacobians.at(1) - results.local_numeric_jacobians.at(1)).squaredNorm() < 1e-6, true) 
-//             << "jcaobian error is large: " 
-//             << (results.local_jacobians.at(1) - results.local_numeric_jacobians.at(1)).squaredNorm();
-
-//         std::cout << "jacobian2:  \n" << results.local_jacobians.at(2) << std::endl;
-//         std::cout << "num jacobian2:  \n" << results.local_numeric_jacobians.at(2) << std::endl;
-
-//         CHECK_EQ((results.local_jacobians.at(2) - results.local_numeric_jacobians.at(2)).squaredNorm() < 1e-6, true) 
-//             << "jcaobian error is large: " 
-//             << (results.local_jacobians.at(2) - results.local_numeric_jacobians.at(2)).squaredNorm();
-
-//        std::cout << "jacobian3:  \n" << results.local_jacobians.at(3) << std::endl;
-//        std::cout << "num jacobian3:  \n" << results.local_numeric_jacobians.at(3) << std::endl;
-
-//         CHECK_EQ((results.local_jacobians.at(3) - results.local_numeric_jacobians.at(3)).squaredNorm() < 1e-6, true) 
-//             << "jcaobian error is large: " 
-//             << (results.local_jacobians.at(3) - results.local_numeric_jacobians.at(3)).squaredNorm();
+//         }
 
 
           // jacnobian
@@ -379,43 +362,34 @@ int main(){
 
         std::vector<const ceres::LocalParameterization*> local_parameterizations;
         local_parameterizations.push_back(localParameterization);
-        local_parameterizations.push_back(NULL);
+        local_parameterizations.push_back(NULL); // bg
+        local_parameterizations.push_back(NULL); // v
+        local_parameterizations.push_back(NULL); // ba
         local_parameterizations.push_back(localParameterization);
-        local_parameterizations.push_back(NULL);
+        local_parameterizations.push_back(NULL); // bg
+        local_parameterizations.push_back(NULL); // v
+        local_parameterizations.push_back(NULL); // ba
 
         ceres::GradientChecker gradient_checker(
                 &maplab_Imufactor, &local_parameterizations, numeric_diff_options);
         ceres::GradientChecker::ProbeResults results;
 
         gradient_checker.Probe(maplab_parameters, 1e-9, &results);
-        std::cout << "jacobian0:  \n" << results.local_jacobians.at(0) << std::endl;
-        std::cout << "num jacobian0:  \n" << results.local_numeric_jacobians.at(0) << std::endl;
+
+
+        for (int i = 0; i < 7; i++) {
+            std::cout << "jacobian       " << i << " :  \n" << results.local_jacobians.at(i) << std::endl;
+            std::cout << "num jacobian:  " << i << " :  \n" << results.local_numeric_jacobians.at(i) << std::endl;
 //
-        CHECK_EQ((results.local_jacobians.at(0) - results.local_numeric_jacobians.at(0)).squaredNorm() < 1e-6, true) 
-            << "jcaobian error is large: " 
-            << (results.local_jacobians.at(0) - results.local_numeric_jacobians.at(0)).squaredNorm();
+            CHECK_EQ((results.local_jacobians.at(i) - results.local_numeric_jacobians.at(i)).squaredNorm() < 1e-6, true) 
+                << "jcaobian error is large: " 
+                << (results.local_jacobians.at(i) - results.local_numeric_jacobians.at(i)).squaredNorm();
 
 
-        std::cout << "jacobian1:  \n" << results.local_jacobians.at(1) << std::endl;
-        std::cout << "num jacobian1:  \n" << results.local_numeric_jacobians.at(1) << std::endl;
+        }
+       
 
-        CHECK_EQ((results.local_jacobians.at(1) - results.local_numeric_jacobians.at(1)).squaredNorm() < 1e-6, true) 
-            << "jcaobian error is large: " 
-            << (results.local_jacobians.at(1) - results.local_numeric_jacobians.at(1)).squaredNorm();
-
-        std::cout << "jacobian2:  \n" << results.local_jacobians.at(2) << std::endl;
-        std::cout << "num jacobian2:  \n" << results.local_numeric_jacobians.at(2) << std::endl;
-
-        CHECK_EQ((results.local_jacobians.at(2) - results.local_numeric_jacobians.at(2)).squaredNorm() < 1e-6, true) 
-            << "jcaobian error is large: " 
-            << (results.local_jacobians.at(2) - results.local_numeric_jacobians.at(2)).squaredNorm();
-
-       std::cout << "jacobian3:  \n" << results.local_jacobians.at(3) << std::endl;
-       std::cout << "num jacobian3:  \n" << results.local_numeric_jacobians.at(3) << std::endl;
-
-        CHECK_EQ((results.local_jacobians.at(3) - results.local_numeric_jacobians.at(3)).squaredNorm() < 1e-6, true) 
-            << "jcaobian error is large: " 
-            << (results.local_jacobians.at(3) - results.local_numeric_jacobians.at(3)).squaredNorm();
+     
 
 
 

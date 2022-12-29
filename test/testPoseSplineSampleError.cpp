@@ -1,11 +1,9 @@
-#include "pose-spline/PoseLocalParameter.hpp"
-#include "pose-spline/PoseSplineUtility.hpp"
-#include "pose-spline/PoseSplineSampleError.hpp"
-#include "pose-spline/NumbDifferentiator.hpp"
+#include "PoseSpline/PoseLocalParameter.hpp"
+#include "PoseSpline/PoseSplineUtility.hpp"
+#include "PoseSpline/PoseSplineSampleError.hpp"
+#include "PoseSpline/NumbDifferentiator.hpp"
 
 int main() {
-
-
     Pose<double> pose0;
     pose0.setRandom();
     std::cout<<pose0.parameters().transpose()<<std::endl;
@@ -43,8 +41,6 @@ int main() {
     /**
      *  Zero Test
      */
-
-
     double* paramters[4] = {pose0.parameterPtr(), pose1.parameterPtr(),
                             pose2.parameterPtr(), pose3.parameterPtr()};
     Eigen::Matrix<double, 6, 1> Residual;
@@ -153,9 +149,6 @@ int main() {
     PoseSplineSampleError* quatSplineError3 = new PoseSplineSampleError(u4,P_meas3);
     PoseSplineSampleError* quatSplineError4 = new PoseSplineSampleError(u5,P_meas4);
     PoseSplineSampleError* quatSplineError5 = new PoseSplineSampleError(u5,P_meas5);
-
-
-
 
 
     problem.AddResidualBlock(quatSplineError, loss_function, pose0.parameterPtr(),pose1.parameterPtr(),

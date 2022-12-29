@@ -13,13 +13,10 @@
 class PinholeProjectError:public ceres::SizedCostFunction<2, /* num of residual */
         7, /* parameter of pose */
         7, /* parameter of pose */
-        7,
         1>{
 
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    /// \brief The base in ceres we derive from
-    typedef ::ceres::SizedCostFunction<2, 7, 7> base_t;
 
     /// \brief The number of residuals
     static const int kNumResiduals = 2;

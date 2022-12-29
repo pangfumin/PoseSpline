@@ -1,7 +1,7 @@
 #include "extern/pinhole_project_error.h"
-#include "pose-spline/QuaternionSplineUtility.hpp"
-#include "geometry/Quaternion.hpp"
-#include "pose-spline/PoseLocalParameter.hpp"
+#include "PoseSpline/QuaternionSplineUtility.hpp"
+#include "PoseSpline/Quaternion.hpp"
+#include "PoseSpline/PoseLocalParameter.hpp"
 PinholeProjectError::PinholeProjectError(const Eigen::Vector3d& uv_C0,
                                            const Eigen::Vector3d& uv_C1,
                                            const Eigen::Isometry3d _T_IC):

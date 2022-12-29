@@ -1,5 +1,5 @@
 #include "extern/RotateVectorError.hpp"
-#include "pose-spline/QuaternionSplineUtility.hpp"
+#include "PoseSpline/QuaternionSplineUtility.hpp"
 
 
 RoatateVectorError::RoatateVectorError(double t_meas,
@@ -116,7 +116,6 @@ bool RoatateVectorError::EvaluateWithMinimalJacobians(double const* const * para
 
             J0_minimal  = J_1st * J_spline0;
 
-            //std::cout<<"J_spline0: "<<std::endl<<J_spline0<<std::endl;
 
             Eigen::Matrix<double,3,4,Eigen::RowMajor> J_lift;
             QuaternionLocalParameter::liftJacobian(Q0.data(),J_lift.data());

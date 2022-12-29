@@ -1,9 +1,9 @@
-#include "pose-spline/AngularVelocitySampleError.hpp"
-#include "pose-spline/NumbDifferentiator.hpp"
-#include "pose-spline/PoseSplineUtility.hpp"
+#include "PoseSpline/AngularVelocitySampleError.hpp"
+#include "PoseSpline/NumbDifferentiator.hpp"
+#include "PoseSpline/PoseSplineUtility.hpp"
 
-#include "pose-spline/QuaternionSplineUtility.hpp"
-#include "pose-spline/PoseLocalParameter.hpp"
+#include "PoseSpline/QuaternionSplineUtility.hpp"
+#include "PoseSpline/PoseLocalParameter.hpp"
 #include "geometry/Pose.hpp"
 
 int main(int argc, char** argv){
